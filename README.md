@@ -4,7 +4,8 @@ This tool finds and ports triple slash comments found in .NET repos but do not y
 
 ### Usage example:
 
-This command will look for triple slash comments in APIs from System.IO* and System.Text* (except System.IO.Compression and System.IO.FileSystem), check if they are missing in the dotnet-api-docs repo, and if they are, then they get automatically added to the appropriate xml file:
+This command will look for triple slash comments in APIs from System.IO* and System.Text* (except System.IO.Compression and System.IO.FileSystem), within the corefx and coreclr repos, then check if they are missing in the dotnet-api-docs repo, and if they are, then they get automatically added to the appropriate xml file:
+
 ```
 DocsPortingTool.exe -docs D:\dotnet-api-docs -include System.IO,System.Text -exclude System.IO.Compression,System.IO.FileSystem -save true -tripleslash D:\coreclr\bin\Product\Windows_NT.x64.Debug\IL\,D:\corefx\artifacts\bin\
 ```

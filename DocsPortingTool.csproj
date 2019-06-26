@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <AssemblyName>DocsPortingTool</AssemblyName>
+    <Description>Tool that finds triple slash comments that exist in the .NET repos but do not yet exist in the dotnet-api-docs repo, and ports them.</Description>
+  </PropertyGroup>
+
+</Project>

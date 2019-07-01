@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FullXmlDiff": {
+      "commandName": "Project",
+      "commandLineArgs": "-left %SourceRepos%\\corefxlab\\standalone\\Microsoft.Private.Intellisense\\xmldocs\\netcoreapp\\1033 -right C:\\Users\\calope\\Desktop\\_intellisense\\netcore-3.0,C:\\Users\\calope\\Desktop\\_intellisense\\dotnet-plat-ext-3.0,C:\\Users\\calope\\Desktop\\_intellisense\\netstandard-2.1"
+    }
+  }
+}

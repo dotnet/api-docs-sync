@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Shared;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -46,7 +47,7 @@ namespace DocsPortingTool
 
             if (args == null || args.Length == 0)
             {
-                Log.LogErrorPrintHelpAndExit("No arguments passed to the executable.");
+                Log.LogErrorPrintHelpAndExit(PrintHelp, "No arguments passed to the executable.");
             }
 
             foreach(string arg in args)
@@ -68,7 +69,7 @@ namespace DocsPortingTool
                             }
                             else
                             {
-                                Log.LogErrorPrintHelpAndExit("You must specify at least one assembly.");
+                                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one assembly.");
                             }
 
                             mode = Mode.Initial;
@@ -106,7 +107,7 @@ namespace DocsPortingTool
                             }
                             else
                             {
-                                Log.LogErrorPrintHelpAndExit("You must specify at least one assembly.");
+                                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one assembly.");
                             }
 
                             mode = Mode.Initial;
@@ -119,7 +120,7 @@ namespace DocsPortingTool
                             {
                                 case "-h":
                                 case "-help":
-                                    Log.PrintHelp();
+                                    PrintHelp();
                                     Environment.Exit(0);
                                     break;
 
@@ -144,7 +145,7 @@ namespace DocsPortingTool
                                     break;
 
                                 default:
-                                    Log.LogErrorPrintHelpAndExit(string.Format("Unrecognized argument '{0}'.", arg));
+                                    Log.LogErrorPrintHelpAndExit(PrintHelp, string.Format("Unrecognized argument '{0}'.", arg));
                                     break;
                             }
                             break;
@@ -186,7 +187,7 @@ namespace DocsPortingTool
                             }
                             else
                             {
-                                Log.LogErrorPrintHelpAndExit("You must specify at least one path containing triple slash xml files.");
+                                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one path containing triple slash xml files.");
                             }
 
                             mode = Mode.Initial;
@@ -195,7 +196,7 @@ namespace DocsPortingTool
 
                     default:
                         {
-                            Log.LogErrorPrintHelpAndExit("Unexpected mode.");
+                            Log.LogErrorPrintHelpAndExit(PrintHelp, "Unexpected mode.");
                             break;
                         }
                 }
@@ -203,22 +204,22 @@ namespace DocsPortingTool
 
             if (mode != Mode.Initial)
             {
-                Log.LogErrorPrintHelpAndExit("You missed an argument value.");
+                Log.LogErrorPrintHelpAndExit(PrintHelp, "You missed an argument value.");
             }
 
             if (PathDocsXml == null)
             {
-                Log.LogErrorPrintHelpAndExit("You must specify a path to the dotnet-api-docs xml folder with -docs.");
+                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify a path to the dotnet-api-docs xml folder with -docs.");
             }
 
             if (PathsTripleSlashXmls.Count == 0)
             {
-                Log.LogErrorPrintHelpAndExit("You must specify at least one triple slash xml folder path with -tripleslash.");
+                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one triple slash xml folder path with -tripleslash.");
             }
 
             if (IncludedAssemblies.Count == 0)
             {
-                Log.LogErrorPrintHelpAndExit("You must specify at least one assembly with -include.");
+                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one assembly with -include.");
             }
         }
 
@@ -233,6 +234,52 @@ namespace DocsPortingTool
             }
 
             return false;
+        }
+
+        public static void PrintHelp()
+        {
+            Log.Print(true, ConsoleColor.Cyan, @"
+This tool finds and ports triple slash comments found in .NET repos but do not yet exist in the dotnet-api-docs repo.
+
+Options:
+
+    no arguments:   -h or -help             Optional. Displays this help message. If used, nothing else will be processed.
+
+
+    folder path:    -docs                   Mandatory. The absolute directory path to the Docs repo.
+
+                                                Usage example:
+                                                    -docs %SourceRepos%\dotnet-api-docs
+
+
+    string list:    -exclude                Optional. Comma separated list (no spaces) of specific .NET assemblies to ignore. Default is empty.
+                                                Usage example:
+                                                    -exclude System.IO.Compression,System.IO.Pipes
+
+
+    string:         -include                Mandatory. Comma separated list (no spaces) of assemblies to include.
+
+                                                Usage example:
+                                                    System.IO,System.Runtime.Intrinsics
+
+
+    bool:           -save                   Optional. Wether we want to save the changes in the dotnet-api-docs xml files. Default is false.
+                                                Usage example:
+                                                    -save true
+
+
+    folder paths:   -tripleslash            Mandatory. List of absolute directory paths (comma separated) where we should look for triple slash comment xml files.
+
+                                                Known locations:
+                                                    > CoreCLR:   coreclr\bin\Product\Windows_NT.x64.Debug\IL\
+                                                    > CoreFX:    corefx\artifacts\bin\
+                                                    > WinForms:  winforms\artifacts\bin\
+                                                    > WPF:       wpf\.tools\native\bin\dotnet-api-docs_netcoreapp3.0\0.0.0.1\_intellisense\\netcore-3.0\
+
+                                                Usage example:
+                                                    -tripleslash %SourceRepos%\corefx\artifacts\bin\,%SourceRepos%\coreclr\bin\Product\Windows_NT.x64.Debug\IL\
+
+            ");
         }
 
         #endregion

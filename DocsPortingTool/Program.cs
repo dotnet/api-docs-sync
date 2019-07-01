@@ -1,5 +1,6 @@
 ﻿using DocsPortingTool.Docs;
 using DocsPortingTool.TripleSlash;
+using Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,6 +57,7 @@ namespace DocsPortingTool
 
             docsComments.Load();
             tripleSlashComments.Load();
+
             PortMissingComments();
         }
 

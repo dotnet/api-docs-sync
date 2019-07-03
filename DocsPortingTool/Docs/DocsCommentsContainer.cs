@@ -44,7 +44,8 @@ namespace DocsPortingTool.Docs
     {
         private XDocument xDoc = null;
 
-        public List<DocsType> Types = new List<DocsType>();
+        public readonly List<DocsType> Containers = new List<DocsType>();
+        public readonly List<DocsMember> Members = new List<DocsMember>();
 
         public DocsCommentsContainer()
         {
@@ -53,13 +54,16 @@ namespace DocsPortingTool.Docs
         public void Load()
         {
             Log.Info("Loading Docs xml files...");
-            foreach (DirectoryInfo subDir in CLArgumentVerifier.PathDocsXml.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+            foreach (DirectoryInfo subDir in CLArgumentVerifier.DirDocsXml.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
             {
-                if (CLArgumentVerifier.HasAllowedAssemblyPrefix(subDir.Name))
+                if (!CLArgumentVerifier.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
                 {
                     foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
                     {
-                        LoadFile(fileInfo);
+                        if (CLArgumentVerifier.HasAllowedAssemblyPrefix(subDir.Name))
+                        {
+                            LoadFile(fileInfo);
+                        }
                     }
                 }
             }
@@ -124,7 +128,19 @@ namespace DocsPortingTool.Docs
 
             if (add)
             {
-                Types.Add(docsType);
+                Containers.Add(docsType);
+
+                XElement xeMembers = XmlHelper.GetChildElement(xDoc.Root, "Members");
+
+                if (xeMembers != null)
+                {
+                    foreach (XElement xeMember in xeMembers.Elements("Member"))
+                    {
+                        DocsMember member = new DocsMember(fileInfo.FullName, xDoc, xeMember);
+                        Members.Add(member);
+                    }
+                }
+
                 Log.Success("Docs xml file included: {0}", fileInfo.FullName);
             }
         }

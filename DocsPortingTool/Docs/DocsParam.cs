@@ -22,7 +22,7 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SetElementValue(FilePath, XEDocsParam, value);
+                XmlHelper.SaveNonRemark(FilePath, XDoc, XEDocsParam, value);
             }
         }
         public DocsParam(string filePath, XDocument xDoc, XElement xeDocsParam)

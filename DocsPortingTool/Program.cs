@@ -7,26 +7,6 @@ using System.Linq;
 
 namespace DocsPortingTool
 {
-    /// <summary>
-    /// Provides generic extension methods.
-    /// </summary>
-    public static class Extensions
-    {
-        /// <summary>
-        /// Adds a string to a list of strings if the element is not there yet. The method makes sure to escape unexpected curly brackets to prevent formatting exceptions.
-        /// </summary>
-        /// <param name="list">A string list.</param>
-        /// <param name="element">A string.</param>
-        public static void AddIfNotExists(this List<string> list, string element)
-        {
-            string cleanedElement = element.Replace("{", "{{").Replace("}", "}}");
-            if (!list.Contains(cleanedElement))
-            {
-                list.Add(cleanedElement);
-            }
-        }
-    }
-
     class Program
     {
         #region Private fields
@@ -34,13 +14,13 @@ namespace DocsPortingTool
         private static readonly DocsCommentsContainer docsComments = new DocsCommentsContainer();
         private static readonly TripleSlashCommentsContainer tripleSlashComments = new TripleSlashCommentsContainer();
 
-        private static readonly List<string> modifiedFiles = new List<string>();
-        private static readonly List<string> modifiedAssemblies = new List<string>();
-        private static readonly List<string> modifiedContainers = new List<string>();
-        private static readonly List<string> modifiedAPIs = new List<string>();
-        private static readonly List<string> problematicAPIs = new List<string>();
-        private static readonly List<string> addedExceptions = new List<string>();
-        private static int totalModifiedIndividualElements = 0;
+        private static readonly List<string> ModifiedFiles = new List<string>();
+        private static readonly List<string> ModifiedAssemblies = new List<string>();
+        private static readonly List<string> ModifiedContainers = new List<string>();
+        private static readonly List<string> ModifiedAPIs = new List<string>();
+        private static readonly List<string> ProblematicAPIs = new List<string>();
+        private static readonly List<string> AddedExceptions = new List<string>();
+        private static int TotalModifiedIndividualElements = 0;
 
         #endregion
 
@@ -55,10 +35,13 @@ namespace DocsPortingTool
         {
             CLArgumentVerifier.Verify(args);
 
-            docsComments.Load();
             tripleSlashComments.Load();
+            docsComments.Load();
 
             PortMissingComments();
+
+            PrintUndocumentedAPIs();
+            PrintSummary();
         }
 
         #endregion
@@ -71,204 +54,213 @@ namespace DocsPortingTool
         private static void PortMissingComments()
         {
             Log.Info("Looking for triple slash comments that can be ported...");
-            foreach (TripleSlashAssembly tsAssembly in tripleSlashComments.Assemblies)
+            foreach (TripleSlashMember tsMember in tripleSlashComments.Members)
             {
-                foreach (DocsType dType in docsComments.Types.Where(x =>
-                    x.AssemblyInfos.Count(y => y.AssemblyName == tsAssembly.Name) > 0)
-                )
+                if (tsMember.Name.StartsWith("T:"))
                 {
-                    if (TryPortMissingCommentsForAssembly(tsAssembly, dType))
+                    foreach (DocsType dType in docsComments.Containers.Where(x => x.DocId == tsMember.Name))
                     {
-                        modifiedAssemblies.AddIfNotExists(tsAssembly.Name);
-                        modifiedFiles.AddIfNotExists(dType.FilePath);
+                        if (TryPortMissingCommentsForContainer(tsMember, dType))
+                        {
+                            ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
+                            ModifiedFiles.AddIfNotExists(dType.FilePath);
 
-                        // SaveXml only saves if CLArgumentVerifier.Save is true
-                        dType.SaveXml();
-                    }
-                }
-            }
-
-            PrintSummary();
-    }
-
-        /// <summary>
-        /// Will compare all the member APIs of the passed triple slash assembly with the member APIs of the passed Docs type, and will port any missing comment or add any unexpectedly missing element.
-        /// </summary>
-        /// <param name="tsAssembly">A triple slash assembly.</param>
-        /// <param name="dType">A docs type.</param>
-        /// <returns>True if the passed docs type was modified in any way, false otherwise.</returns>
-        private static bool TryPortMissingCommentsForAssembly(TripleSlashAssembly tsAssembly, DocsType dType)
-        {
-            bool modified = false;
-
-            foreach (TripleSlashMember tsMember in tsAssembly.Members)
-            {
-                if (tsMember.Name == dType.DocId)
-                {
-                    // The triple slash member is referring to the base type (container) in the docs xml
-                    if (!IsEmpty(tsMember.Summary) && IsEmpty(dType.Summary))
-                    {
-                        PrintModifiedMember("TYPE SUMMARY", dType.FilePath, tsMember.Name, dType.DocId, tsMember.Summary, dType.Summary);
-
-                        dType.Summary = tsMember.Summary;
-                        totalModifiedIndividualElements++;
-                        modified = true;
-                    }
-
-                    if (!IsEmpty(tsMember.Remarks) && IsEmpty(dType.Remarks))
-                    {
-                        PrintModifiedMember("TYPE REMARKS", dType.FilePath, tsMember.Name, dType.DocId, tsMember.Remarks, dType.Remarks);
-
-                        dType.Remarks = tsMember.Remarks;
-                        totalModifiedIndividualElements++;
-                        modified = true;
-                    }
-
-                    if (modified)
-                    {
-                        modifiedContainers.AddIfNotExists(dType.DocId);
+                            dType.SaveXml();
+                        }
                     }
                 }
                 else
                 {
-                    // The triple slash member is referring to internal members of the Docs type
-                    foreach (DocsMember dMember in dType.Members.FindAll(dx => dx.DocId == tsMember.Name))
+                    foreach (DocsMember dMember in docsComments.Members.Where(x => x.DocId == tsMember.Name))
                     {
-                        if (!IsEmpty(tsMember.Summary) && IsEmpty(dMember.Summary))
+                        if (TryPortMissingCommentsForMember(tsMember, dMember))
                         {
-                            // Any member can have an empty summary
-                            PrintModifiedMember("MEMBER SUMMARY", dMember.FilePath, tsMember.Name, dMember.DocId, tsMember.Summary, dMember.Summary);
+                            ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
+                            ModifiedFiles.AddIfNotExists(dMember.FilePath);
 
-                            dMember.Summary = tsMember.Summary;
-                            totalModifiedIndividualElements++;
-                            modified = true;
-                        }
-
-                        if (!IsEmpty(tsMember.Remarks) && IsEmpty(dMember.Remarks))
-                        {
-                            // Any member can have an empty remark
-                            PrintModifiedMember("MEMBER REMARKS", dMember.FilePath, tsMember.Name, dMember.DocId, tsMember.Remarks, dMember.Remarks);
-
-                            dMember.Remarks = tsMember.Remarks;
-                            totalModifiedIndividualElements++;
-                            modified = true;
-                        }
-
-                        // Properties and method returns save their values in different locations
-                        if (dMember.MemberType == "Property")
-                        {
-                            if (!IsEmpty(tsMember.Returns) && IsEmpty(dMember.Value))
-                            {
-                                PrintModifiedMember("PROPERTY", dMember.FilePath, tsMember.Name, dMember.DocId, tsMember.Returns, dMember.Value);
-
-                                dMember.Value = tsMember.Returns;
-                                totalModifiedIndividualElements++;
-                                modified = true;
-                            }
-                        }
-                        else if (dMember.MemberType == "Method")
-                        {
-                            if (!IsEmpty(tsMember.Returns) && IsEmpty(dMember.Returns))
-                            {
-                                if (tsMember.Returns != null && dMember.ReturnType == "System.Void")
-                                {
-                                    problematicAPIs.AddIfNotExists($"Returns=[{tsMember.Returns}] in Method=[{dMember.DocId}]");
-                                }
-                                else
-                                {
-                                    PrintModifiedMember("METHOD RETURN", dMember.FilePath, tsMember.Name, dMember.DocId, tsMember.Returns, dMember.Returns);
-
-                                    dMember.Returns = tsMember.Returns;
-                                    totalModifiedIndividualElements++;
-                                    modified = true;
-                                }
-                            }
-                        }
-
-                        // Triple slash params may cause errors if they are missing in the code side
-                        foreach (TripleSlashParam tsParam in tsMember.Params)
-                        {
-                            DocsParam dParam = dMember.Params.FirstOrDefault(x => x.Name == tsParam.Name);
-                            bool created = false;
-
-                            if (dParam == null)
-                            {
-                                problematicAPIs.AddIfNotExists($"Param=[{tsParam.Name}] in Member DocId=[{dMember.DocId}]");
-
-                                created = TryPromptParam(tsParam, dMember, out dParam);
-                            }
-
-                            if (created || (!IsEmpty(tsParam.Value) && IsEmpty(dParam.Value)))
-                            {
-                                PrintModifiedMember(string.Format("PARAM ({0})", created ? "CREATED" : "MODIFIED"), dParam.FilePath, tsParam.Name, dParam.Name, tsParam.Value, dParam.Value);
-
-                                if (!created)
-                                {
-                                    dParam.Value = tsParam.Value;
-                                }
-                                totalModifiedIndividualElements++;
-                                modified = true;
-                            }
-                        }
-
-                        // Exceptions are a special case: If a new one is found in code, but does not exist in docs, the whole element needs to be added
-                        foreach (TripleSlashException tsException in tsMember.Exceptions)
-                        {
-                            DocsException dException = dMember.Exceptions.FirstOrDefault(x => x.Cref.EndsWith(tsException.Cref));
-                            bool created = false;
-
-                            if (dException == null)
-                            {
-                                dException = dMember.SaveException(tsException.XEException);
-                                addedExceptions.AddIfNotExists($"{dException.Cref} in {dMember.DocId}");
-                                created = true;
-                            }
-
-                            if (created || (!IsEmpty(tsException.Value) && IsEmpty(dException.Value)))
-                            {
-                                PrintModifiedMember(string.Format("EXCEPTION ({0})", created ? "CREATED" : "MODIFIED"), dException.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
-
-                                if (!created)
-                                {
-                                    dException.Value = tsException.Value;
-                                }
-                                totalModifiedIndividualElements++;
-                                modified = true;
-                            }
-                        }
-
-                        foreach (TripleSlashTypeParam tsTypeParam in tsMember.TypeParams)
-                        {
-                            DocsTypeParam dTypeParam = dMember.TypeParams.FirstOrDefault(x => x.Name == tsTypeParam.Name);
-                            bool created = false;
-
-                            if (dTypeParam == null)
-                            {
-                                problematicAPIs.AddIfNotExists($"TypeParam=[{tsTypeParam.Name}] in Member=[{dMember.DocId}]");
-                                dTypeParam = dMember.SaveTypeParam(tsTypeParam.XETypeParam);
-                                created = true;
-                            }
-
-                            if (created || (!IsEmpty(tsTypeParam.Value) && IsEmpty(dTypeParam.Value)))
-                            {
-                                PrintModifiedMember(string.Format("TYPE PARAM ({0})", created ? "CREATED" : "MODIFIED"), dTypeParam.FilePath, tsTypeParam.Name, dTypeParam.Name, tsTypeParam.Value, dTypeParam.Value);
-
-                                if (!created)
-                                {
-                                    dTypeParam.Value = tsTypeParam.Value;
-                                }
-                                totalModifiedIndividualElements++;
-                                modified = true;
-                            }
-                        }
-
-
-                        if (modified)
-                        {
-                            modifiedAPIs.AddIfNotExists(dMember.DocId);
+                            dMember.SaveXml();
                         }
                     }
                 }
+            }
+
+            Log.Line();
+        }
+
+        private static bool TryPortMissingCommentsForContainer(TripleSlashMember tsMember, DocsType dType)
+        {
+            bool modified = false;
+
+            if (tsMember.Name == dType.DocId)
+            {
+                // The triple slash member is referring to the base type (container) in the docs xml
+                if (!IsEmpty(tsMember.Summary) && IsEmpty(dType.Summary))
+                {
+                    PrintModifiedMember("CONTAINER SUMMARY", dType.FilePath, tsMember.Name, dType.DocId, tsMember.Summary, dType.Summary);
+
+                    dType.Summary = tsMember.Summary;
+                    TotalModifiedIndividualElements++;
+                    modified = true;
+                }
+
+                if (!IsEmpty(tsMember.Remarks) && IsEmpty(dType.Remarks))
+                {
+                    PrintModifiedMember("CONTAINER REMARKS", dType.FilePath, tsMember.Name, dType.DocId, tsMember.Remarks, dType.Remarks);
+
+                    dType.Remarks = tsMember.Remarks;
+                    TotalModifiedIndividualElements++;
+                    modified = true;
+                }
+
+                if (modified)
+                {
+                    ModifiedContainers.AddIfNotExists(dType.DocId);
+                }
+            }
+
+            if (modified)
+            {
+                ModifiedAPIs.AddIfNotExists(dType.DocId);
+            }
+
+            return modified;
+        }
+
+        private static bool TryPortMissingCommentsForMember(TripleSlashMember tsMember, DocsMember dMember)
+        {
+            bool modified = false;
+
+            if (!IsEmpty(tsMember.Summary) && IsEmpty(dMember.Summary))
+            {
+                // Any member can have an empty summary
+                PrintModifiedMember("MEMBER SUMMARY", dMember.FilePath, tsMember.Name, dMember.DocId, tsMember.Summary, dMember.Summary);
+
+                dMember.Summary = tsMember.Summary;
+                TotalModifiedIndividualElements++;
+                modified = true;
+            }
+
+            if (!IsEmpty(tsMember.Remarks) && IsEmpty(dMember.Remarks))
+            {
+                // Any member can have an empty remark
+                PrintModifiedMember("MEMBER REMARKS", dMember.FilePath, tsMember.Name, dMember.DocId, tsMember.Remarks, dMember.Remarks);
+
+                dMember.Remarks = tsMember.Remarks;
+                TotalModifiedIndividualElements++;
+                modified = true;
+            }
+
+            // Properties and method returns save their values in different locations
+            if (dMember.MemberType == "Property")
+            {
+                if (!IsEmpty(tsMember.Returns) && IsEmpty(dMember.Value))
+                {
+                    PrintModifiedMember("PROPERTY", dMember.FilePath, tsMember.Name, dMember.DocId, tsMember.Returns, dMember.Value);
+
+                    dMember.Value = tsMember.Returns;
+                    TotalModifiedIndividualElements++;
+                    modified = true;
+                }
+            }
+            else if (dMember.MemberType == "Method")
+            {
+                if (!IsEmpty(tsMember.Returns) && IsEmpty(dMember.Returns))
+                {
+                    if (tsMember.Returns != null && dMember.ReturnType == "System.Void")
+                    {
+                        ProblematicAPIs.AddIfNotExists($"Returns=[{tsMember.Returns}] in Method=[{dMember.DocId}]");
+                    }
+                    else
+                    {
+                        PrintModifiedMember("METHOD RETURN", dMember.FilePath, tsMember.Name, dMember.DocId, tsMember.Returns, dMember.Returns);
+
+                        dMember.Returns = tsMember.Returns;
+                        TotalModifiedIndividualElements++;
+                        modified = true;
+                    }
+                }
+            }
+
+            // Triple slash params may cause errors if they are missing in the code side
+            foreach (TripleSlashParam tsParam in tsMember.Params)
+            {
+                DocsParam dParam = dMember.Params.FirstOrDefault(x => x.Name == tsParam.Name);
+                bool created = false;
+
+                if (dParam == null)
+                {
+                    ProblematicAPIs.AddIfNotExists($"Param=[{tsParam.Name}] in Member DocId=[{dMember.DocId}]");
+
+                    created = TryPromptParam(tsParam, dMember, out dParam);
+                }
+
+                if (created || (!IsEmpty(tsParam.Value) && IsEmpty(dParam.Value)))
+                {
+                    PrintModifiedMember(string.Format("PARAM ({0})", created ? "CREATED" : "MODIFIED"), dParam.FilePath, tsParam.Name, dParam.Name, tsParam.Value, dParam.Value);
+
+                    if (!created)
+                    {
+                        dParam.Value = tsParam.Value;
+                    }
+                    TotalModifiedIndividualElements++;
+                    modified = true;
+                }
+            }
+
+            // Exceptions are a special case: If a new one is found in code, but does not exist in docs, the whole element needs to be added
+            foreach (TripleSlashException tsException in tsMember.Exceptions)
+            {
+                DocsException dException = dMember.Exceptions.FirstOrDefault(x => x.Cref.EndsWith(tsException.Cref));
+                bool created = false;
+
+                if (dException == null)
+                {
+                    dException = dMember.SaveException(tsException.XEException);
+                    AddedExceptions.AddIfNotExists($"{dException.Cref} in {dMember.DocId}");
+                    created = true;
+                }
+
+                if (created || (!IsEmpty(tsException.Value) && IsEmpty(dException.Value)))
+                {
+                    PrintModifiedMember(string.Format("EXCEPTION ({0})", created ? "CREATED" : "MODIFIED"), dException.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
+
+                    if (!created)
+                    {
+                        dException.Value = tsException.Value;
+                    }
+                    TotalModifiedIndividualElements++;
+                    modified = true;
+                }
+            }
+
+            foreach (TripleSlashTypeParam tsTypeParam in tsMember.TypeParams)
+            {
+                DocsTypeParam dTypeParam = dMember.TypeParams.FirstOrDefault(x => x.Name == tsTypeParam.Name);
+                bool created = false;
+
+                if (dTypeParam == null)
+                {
+                    ProblematicAPIs.AddIfNotExists($"TypeParam=[{tsTypeParam.Name}] in Member=[{dMember.DocId}]");
+                    dTypeParam = dMember.SaveTypeParam(tsTypeParam.XETypeParam);
+                    created = true;
+                }
+
+                if (created || (!IsEmpty(tsTypeParam.Value) && IsEmpty(dTypeParam.Value)))
+                {
+                    PrintModifiedMember(string.Format("TYPE PARAM ({0})", created ? "CREATED" : "MODIFIED"), dTypeParam.FilePath, tsTypeParam.Name, dTypeParam.Name, tsTypeParam.Value, dTypeParam.Value);
+
+                    if (!created)
+                    {
+                        dTypeParam.Value = tsTypeParam.Value;
+                    }
+                    TotalModifiedIndividualElements++;
+                    modified = true;
+                }
+            }
+
+            if (modified)
+            {
+                ModifiedAPIs.AddIfNotExists(dMember.DocId);
             }
 
             return modified;
@@ -317,10 +309,11 @@ namespace DocsPortingTool
             int option = -1;
             while (option == -1)
             {
-                Log.Warning("The param '{0}' probably exists, but the src name does not match the ref name in corefx. What would you like to do?", tsParam.Name);
-                Log.Warning("    1 - Type the correct name and attempt to detect it.");
-                Log.Warning("    2 - Add the newly detected param to the dotnet-api-docs xml.");
-                Log.Warning("        Note: Whatever your choice, make sure to double check the dotnet-api-docs xml file after the tool finishes executing.");
+                Log.Error("Problem in member {0} in file {1}!", dMember.DocId, dMember.FilePath);
+                Log.Warning("The param from triple slash called '{0}' probably exists in code, but the name was not found in Docs. What would you like to do?", tsParam.Name);
+                Log.Warning("    1 - Type the correct name as it shows up in Docs.");
+                Log.Warning("    2 - Add the newly detected param to the Docs file (not recommended).");
+                Log.Warning("        Note: Whatever your choice, make sure to double check the affected Docs file after the tool finishes executing.");
                 Log.Info(false, "Your answer [1,2]: ");
 
                 if (!int.TryParse(Console.ReadLine(), out option))
@@ -386,6 +379,120 @@ namespace DocsPortingTool
         }
 
         /// <summary>
+        /// Prints all the undocumented APIs.
+        /// </summary>
+        private static void PrintUndocumentedAPIs()
+        {
+            if (CLArgumentVerifier.PrintUndoc)
+            {
+                Log.Line();
+                Log.Success("-----------------");
+                Log.Success("UNDOCUMENTED APIS");
+                Log.Success("-----------------");
+
+                Log.Line();
+
+                static void TryPrintType(ref bool undocAPI, string typeDocId)
+                {
+                    if (!undocAPI)
+                    {
+                        Log.Info("    Type: {0}", typeDocId);
+                        undocAPI = true;
+                    }
+                };
+
+                static void TryPrintMember(ref bool undocMember, string memberDocId)
+                {
+                    if (!undocMember)
+                    {
+                        Log.Info("            {0}", memberDocId);
+                        undocMember = true;
+                    }
+                };
+
+                int typeSummaries = 0;
+                int memberSummaries = 0;
+                int memberReturns = 0;
+                int memberParams = 0;
+                int memberTypeParams = 0;
+                int exceptions = 0;
+
+                Log.Info("Undocumented APIs:");
+                foreach (DocsType docsType in docsComments.Containers)
+                {
+                    bool undocAPI = false;
+                    if (IsEmpty(docsType.Summary))
+                    {
+                        TryPrintType(ref undocAPI, docsType.DocId);
+                        Log.Error($"        Container Summary: {docsType.Summary}");
+                        typeSummaries++;
+                    }
+                }
+
+                foreach (DocsMember member in docsComments.Members)
+                {
+                    bool undocMember = false;
+
+                    if (IsEmpty(member.Summary))
+                    {
+                        TryPrintMember(ref undocMember, member.DocId);
+
+                        Log.Error($"        Member Summary: {member.Summary}");
+                        memberSummaries++;
+                    }
+                    if (member.Returns == "To be added.")
+                    {
+                        TryPrintMember(ref undocMember, member.DocId);
+
+                        Log.Error($"        Member Returns: {member.Returns}");
+                        memberReturns++;
+                    }
+                    foreach (DocsParam param in member.Params)
+                    {
+                        if (IsEmpty(param.Value))
+                        {
+                            TryPrintMember(ref undocMember, member.DocId);
+
+                            Log.Error($"        Member Param: {param.Name}: {param.Value}");
+                            memberParams++;
+                        }
+                    }
+
+                    foreach (DocsTypeParam typeParam in member.TypeParams)
+                    {
+                        if (IsEmpty(typeParam.Value))
+                        {
+                            TryPrintMember(ref undocMember, member.DocId);
+
+                            Log.Error($"        Member Type Param: {typeParam.Name}: {typeParam.Value}");
+                            memberTypeParams++;
+                        }
+                    }
+
+                    foreach (DocsException exception in member.Exceptions)
+                    {
+                        if (IsEmpty(exception.Value))
+                        {
+                            TryPrintMember(ref undocMember, member.DocId);
+
+                            Log.Error($"        Member Exception: {exception.Cref}: {exception.Value}");
+                            exceptions++;
+                        }
+                    }
+                }
+
+                Log.Info($" Undocumented type summaries: {typeSummaries}");
+                Log.Info($" Undocumented member summaries: {memberSummaries}");
+                Log.Info($" Undocumented member returns: {memberReturns}");
+                Log.Info($" Undocumented member params: {memberParams}");
+                Log.Info($" Undocumented member type params: {memberTypeParams}");
+                Log.Info($" Undocumented exceptions: {exceptions}");
+
+                Log.Line();
+            }
+        }
+
+        /// <summary>
         /// Prints a final summary of the execution findings.
         /// </summary>
         private static void PrintSummary()
@@ -396,50 +503,50 @@ namespace DocsPortingTool
             Log.Success("---------");
 
             Log.Line();
-            Log.Info($"Total modified files: {modifiedFiles.Count}");
-            foreach (string file in modifiedFiles)
+            Log.Info($"Total modified files: {ModifiedFiles.Count}");
+            foreach (string file in ModifiedFiles)
             {
                 Log.Warning($"    - {file}");
             }
 
             Log.Line();
-            Log.Info($"Total modified assemblies: {modifiedAssemblies.Count}");
-            foreach (string assembly in modifiedAssemblies)
+            Log.Info($"Total modified assemblies: {ModifiedAssemblies.Count}");
+            foreach (string assembly in ModifiedAssemblies)
             {
                 Log.Warning($"    - {assembly}");
             }
 
             Log.Line();
-            Log.Info($"Total modified containers: {modifiedContainers.Count}");
-            foreach (string container in modifiedContainers)
+            Log.Info($"Total modified containers: {ModifiedContainers.Count}");
+            foreach (string container in ModifiedContainers)
             {
                 Log.Warning($"    - {container}");
             }
 
             Log.Line();
-            Log.Info($"Total modified APIs: {modifiedAPIs.Count}");
-            foreach (string api in modifiedAPIs)
+            Log.Info($"Total modified APIs: {ModifiedAPIs.Count}");
+            foreach (string api in ModifiedAPIs)
             {
                 Log.Warning($"    - {api}");
             }
 
             Log.Line();
-            Log.Info($"Total problematic APIs: {problematicAPIs.Count}");
-            foreach (string api in problematicAPIs)
+            Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
+            foreach (string api in ProblematicAPIs)
             {
                 Log.Warning($"    - {api}");
             }
 
             Log.Line();
-            Log.Info($"Total added exceptions: {addedExceptions.Count}");
-            foreach (string exception in addedExceptions)
+            Log.Info($"Total added exceptions: {AddedExceptions.Count}");
+            foreach (string exception in AddedExceptions)
             {
                 Log.Warning($"    - {exception}");
             }
 
             Log.Line();
             Log.Info(false, "Total modified individual elements: ");
-            Log.Warning($"{totalModifiedIndividualElements}");
+            Log.Warning($"{TotalModifiedIndividualElements}");
         }
 
         #endregion

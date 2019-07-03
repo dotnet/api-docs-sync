@@ -207,6 +207,11 @@ namespace DocsPortingTool.Docs
             }
             set
             {
+                XElement xeReturns = XmlHelper.GetChildElement(Docs, "returns");
+                if (xeReturns != null)
+                {
+                    XmlHelper.SaveNonRemark(FilePath, XDoc, xeReturns, value);
+                }
                 XmlHelper.SetChildElementValue(FilePath, Docs, "returns", value);
             }
         }
@@ -218,7 +223,11 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SetChildElementValue(FilePath, Docs, "summary", value);
+                XElement xeSummary = XmlHelper.GetChildElement(Docs, "summary");
+                if (xeSummary != null)
+                {
+                    XmlHelper.SaveNonRemark(FilePath, XDoc, xeSummary, value);
+                }
             }
         }
         public string Remarks
@@ -240,7 +249,11 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SetChildElementValue(FilePath, Docs, "value", value);
+                XElement xeValue = XmlHelper.GetChildElement(Docs, "value");
+                if (xeValue != null)
+                {
+                    XmlHelper.SaveNonRemark(FilePath, XDoc, xeValue, value);
+                }
             }
         }
         private List<string> _altMemberCref;
@@ -313,6 +326,11 @@ namespace DocsPortingTool.Docs
             XElement xeDocsParam = XmlHelper.SaveChildElement(FilePath, XDoc, Docs, xeCoreFXParam);
             DocsParam docsParam = new DocsParam(FilePath, XDoc, xeDocsParam);
             return docsParam;
+        }
+
+        public void SaveXml()
+        {
+            XmlHelper.SaveXml(FilePath, XDoc);
         }
 
         #region Private methods

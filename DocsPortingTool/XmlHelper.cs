@@ -9,7 +9,38 @@ namespace DocsPortingTool
     {
         #region Private members
 
-        private static readonly Dictionary<string, string> replaceablePatterns = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> replaceableNonRemarkPatterns = new Dictionary<string, string> {
+            { "<c>null</c>",                "<see langword=\"null\" />"},
+            { "<c>true</c>",                "<see langword=\"true\" />"},
+            { "<c>false</c>",               "<see langword=\"false\" />"},
+            { " null ", " <see langword=\"null\" /> " },
+            { " true ", " <see langword=\"true\" /> " },
+            { " false ", " <see langword=\"false\" /> " },
+            { " null,", " <see langword=\"null\" />," },
+            { " true,", " <see langword=\"true\" />," },
+            { " false,", " <see langword=\"false\" />," },
+            { " null.", " <see langword=\"null\" />." },
+            { " true.", " <see langword=\"true\" />." },
+            { " false.", " <see langword=\"false\" />." },
+            { "Null ", "<see langword=\"null\" /> " },
+            { "True ", "<see langword=\"true\" /> " },
+            { "False ", "<see langword=\"false\" /> " },
+            { "<c>",     "" },
+            { "</c>",    "" },
+            { "<para>",  "" },
+            { "</para>", "" },
+        };
+
+        private static readonly Dictionary<string, string> replaceableRemarkPatterns = new Dictionary<string, string> {
+            { "<see langword=\"null\"/>",   "`null`" },
+            { "<see langword=\"null\" />",  "`null`" },
+            { "<see langword=\"true\"/>",   "`true`" },
+            { "<see langword=\"true\" />",  "`true`" },
+            { "<see langword=\"false\"/>",  "`false`" },
+            { "<see langword=\"false\" />", "`false`" },
+            { "<c>null</c>",                "`null`"},
+            { "<c>true</c>",                "`true`"},
+            { "<c>false</c>",               "`false`"},
             { " null ",            " `null` " },
             { "'null'",            "`null`" },
             { " null.",            " `null`." },
@@ -22,6 +53,8 @@ namespace DocsPortingTool
             { "'true'",            "`true`" },
             { " true.",            " `true`." },
             { " true,",            " `true`," },
+            { "<note type=\"inheritinfo\">", ""},
+            { "</note>",           "" },
             { "<see cref=\"T:",    "<xref:" },
             { "<see cref=\"F:",    "<xref:" },
             { "<see cref=\"M:",    "<xref:" },
@@ -220,7 +253,7 @@ namespace DocsPortingTool
         {
             string updatedRemark = originalRemark;
 
-            foreach (KeyValuePair<string, string> kvp in replaceablePatterns)
+            foreach (KeyValuePair<string, string> kvp in replaceableRemarkPatterns)
             {
                 if (updatedRemark.Contains(kvp.Key))
                 {
@@ -229,6 +262,21 @@ namespace DocsPortingTool
             }
 
             return updatedRemark;
+        }
+
+        public static string UpdatedNonRemark(string value)
+        {
+            string updated = value;
+
+            foreach (KeyValuePair<string, string> kvp in replaceableNonRemarkPatterns)
+            {
+                if (updated.Contains(kvp.Key))
+                {
+                    updated = updated.Replace(kvp.Key, kvp.Value);
+                }
+            }
+
+            return updated;
         }
 
         public static void SaveRemark(string filePath, XDocument xDoc, XElement xeRemarks, string value)
@@ -243,6 +291,13 @@ namespace DocsPortingTool
             formatElement.SetAttributeValue("type", "text/markdown");
 
             SaveChildElement(filePath, xDoc, xeRemarks, formatElement, true);
+        }
+
+        public static void SaveNonRemark(string filePath, XDocument xDoc, XElement xeElement, string value)
+        {
+            // Empty the contents, because SaveChildElement will add a child to the parent, not replace it
+            xeElement.Value = value; // UpdatedNonRemark(value); // TODO: Substitute special strings but avoid escaping html characters in content
+            SaveXml(filePath, xDoc);
         }
 
         private static void EnsureParsedValue(XElement element, string value)

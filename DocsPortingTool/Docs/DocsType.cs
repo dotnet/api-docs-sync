@@ -175,7 +175,11 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SetChildElementValue(FilePath, Docs, "summary", value);
+                XElement xeSummary = XmlHelper.GetChildElement(Docs, "summary");
+                if (xeSummary != null)
+                {
+                    XmlHelper.SaveNonRemark(FilePath, XDoc, xeSummary, value);
+                }
             }
         }
 
@@ -192,27 +196,6 @@ namespace DocsPortingTool.Docs
             set
             {
                 XmlHelper.SaveRemark(FilePath, XDoc, XERemarks, value);
-            }
-        }
-
-        private List<DocsMember> _members;
-        public List<DocsMember> Members
-        {
-            get
-            {
-                if (_members == null)
-                {
-                    XElement members = XmlHelper.GetChildElement(XERoot, "Members");
-                    if (members != null)
-                    {
-                        _members = members.Elements("Member").Select(x => new DocsMember(FilePath, XDoc, x)).ToList();
-                    }
-                    else
-                    {
-                        _members = new List<DocsMember>();
-                    }
-                }
-                return _members;
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using Shared;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 
 namespace DocsPortingTool
@@ -17,6 +18,7 @@ namespace DocsPortingTool
             Initial,
             Docs,
             Exclude,
+            PrintUndoc,
             Save,
             TripleSlash
         }
@@ -26,14 +28,17 @@ namespace DocsPortingTool
         #region Public members
 
         public static readonly string[] AllowedAssemblyPrefixes = new string[] { "System", "Microsoft", "Windows" };
+        public static readonly string[] ForbiddenDirectories = new[] { "binplacePackages", "docs", "mscorlib", "native", "netfx", "netstandard", "pkg", "Product", "ref", "runtime", "shimsTargetRuntime", "tests", "winrt" };
 
-        public static readonly List<DirectoryInfo> PathsTripleSlashXmls = new List<DirectoryInfo>();
-        public static DirectoryInfo PathDocsXml { get; private set; }
+        public static readonly List<DirectoryInfo> DirsTripleSlashXmls = new List<DirectoryInfo>();
+
+        public static DirectoryInfo DirDocsXml { get; private set; }
 
         public static readonly List<string> IncludedAssemblies = new List<string>();
         public static readonly List<string> ExcludedAssemblies = new List<string>();
 
         public static bool Save { get; private set; }
+        public static bool PrintUndoc { get; private set; }
 
         #endregion
 
@@ -60,7 +65,7 @@ namespace DocsPortingTool
 
                             if (splittedArg.Length > 0)
                             {
-                                Log.Print(true, ConsoleColor.Cyan, "Included assemblies:");
+                                Log.Working("Included assemblies:");
                                 foreach (string assembly in splittedArg)
                                 {
                                     IncludedAssemblies.Add(assembly);
@@ -78,15 +83,15 @@ namespace DocsPortingTool
 
                     case Mode.Docs:
                         {
-                            PathDocsXml = new DirectoryInfo(Path.Combine(arg, "xml"));
+                            DirDocsXml = new DirectoryInfo(arg);
 
-                            if (!PathDocsXml.Exists)
+                            if (!DirDocsXml.Exists)
                             {
-                                Log.LogErrorAndExit(string.Format("The dotnet-api-docs/xml folder does not exist: {0}", PathDocsXml));
+                                Log.LogErrorAndExit(string.Format("The documentation folder does not exist: {0}", DirDocsXml));
                             }
 
-                            Log.Print(true, ConsoleColor.Cyan, $"Specified dotnet-api-docs/xml location:");
-                            Log.Info($"  -  {PathDocsXml}");
+                            Log.Working($"Specified documentation location:");
+                            Log.Info($"  -  {DirDocsXml}");
 
                             mode = Mode.Initial;
                             break;
@@ -98,7 +103,7 @@ namespace DocsPortingTool
 
                             if (splittedArg.Length > 0)
                             {
-                                Log.Print(true, ConsoleColor.Cyan, "Excluded assemblies:");
+                                Log.Working("Excluded assemblies:");
                                 foreach (string assembly in splittedArg)
                                 {
                                     ExcludedAssemblies.Add(assembly);
@@ -116,7 +121,7 @@ namespace DocsPortingTool
 
                     case Mode.Initial:
                         {
-                            switch (arg.ToLower())
+                            switch (arg.ToLowerInvariant())
                             {
                                 case "-h":
                                 case "-help":
@@ -144,10 +149,30 @@ namespace DocsPortingTool
                                     mode = Mode.TripleSlash;
                                     break;
 
+                                //case "-dlls":
+                                //    mode = Mode.DLLs;
+                                //    break;
+
                                 default:
                                     Log.LogErrorPrintHelpAndExit(PrintHelp, string.Format("Unrecognized argument '{0}'.", arg));
                                     break;
                             }
+                            break;
+                        }
+
+                    case Mode.PrintUndoc:
+                        {
+                            if (!bool.TryParse(arg, out bool printUndoc))
+                            {
+                                Log.LogErrorAndExit("Invalid boolean value for the printundoc argument: {0}", arg);
+                            }
+
+                            PrintUndoc = printUndoc;
+
+                            Log.Working("Print undocumented:");
+                            Log.Info($"  -  {PrintUndoc}");
+
+                            mode = Mode.Initial;
                             break;
                         }
 
@@ -160,7 +185,7 @@ namespace DocsPortingTool
 
                             Save = save;
 
-                            Log.Print(true, ConsoleColor.Cyan, "Save:");
+                            Log.Working("Save:");
                             Log.Info($"  -  {Save}");
 
                             mode = Mode.Initial;
@@ -169,25 +194,19 @@ namespace DocsPortingTool
 
                     case Mode.TripleSlash:
                         {
-                            string[] splittedArg = arg.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+                            string[] splittedDirPaths = arg.Split(',', StringSplitOptions.RemoveEmptyEntries);
 
-                            if (splittedArg.Length > 0)
+                            Log.Working($"Specified triple slash locations:");
+                            foreach (string dirPath in splittedDirPaths)
                             {
-                                Log.Print(true, ConsoleColor.Cyan, "Triple slash locations:");
-                                foreach (string dirPath in splittedArg)
+                                DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
+                                if (!dirInfo.Exists)
                                 {
-                                    DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
-                                    if (!dirInfo.Exists)
-                                    {
-                                        Log.LogErrorAndExit(string.Format("The triple slash xml directory does not exist: {0}", dirPath));
-                                    }
-                                    PathsTripleSlashXmls.Add(dirInfo);
-                                    Log.Info($"  -  {dirInfo.FullName}");
+                                    Log.LogErrorAndExit(string.Format("This triple slash xml directory does not exist: {0}", dirPath));
                                 }
-                            }
-                            else
-                            {
-                                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one path containing triple slash xml files.");
+
+                                DirsTripleSlashXmls.Add(dirInfo);
+                                Log.Info($"  -  {dirPath}");
                             }
 
                             mode = Mode.Initial;
@@ -207,12 +226,12 @@ namespace DocsPortingTool
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You missed an argument value.");
             }
 
-            if (PathDocsXml == null)
+            if (DirDocsXml == null)
             {
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify a path to the dotnet-api-docs xml folder with -docs.");
             }
 
-            if (PathsTripleSlashXmls.Count == 0)
+            if (DirsTripleSlashXmls.Count == 0)
             {
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one triple slash xml folder path with -tripleslash.");
             }
@@ -238,23 +257,34 @@ namespace DocsPortingTool
 
         public static void PrintHelp()
         {
-            Log.Print(true, ConsoleColor.Cyan, @"
+            Log.Working(@"
 This tool finds and ports triple slash comments found in .NET repos but do not yet exist in the dotnet-api-docs repo.
+
+Change %SourceRepos% to match the location of all your cloned git repos.
 
 Options:
 
     no arguments:   -h or -help             Optional. Displays this help message. If used, nothing else will be processed.
 
 
-    folder path:    -docs                   Mandatory. The absolute directory path to the Docs repo.
+
+    folder path:    -docs                   Mandatory. The absolute directory path where your documentation xml files are located.
+
+                                                Known locations:
+                                                    > CoreFX and CoreCLR: %SourceRepos%\dotnet-api-docs\xml
+                                                    > WPF:                ? (TODO)
+                                                    > WinForms:           ? (TODO)
 
                                                 Usage example:
-                                                    -docs %SourceRepos%\dotnet-api-docs
+                                                    -docs %SourceRepos%\dotnet-api-docs\xml
+
 
 
     string list:    -exclude                Optional. Comma separated list (no spaces) of specific .NET assemblies to ignore. Default is empty.
+
                                                 Usage example:
                                                     -exclude System.IO.Compression,System.IO.Pipes
+
 
 
     string:         -include                Mandatory. Comma separated list (no spaces) of assemblies to include.
@@ -263,21 +293,31 @@ Options:
                                                     System.IO,System.Runtime.Intrinsics
 
 
+
+    boo:            -printundoc             Optional. Will print a detailed summary of all the docs APIs that are undocumented. Default is false.
+
+                                                Usage example:
+                                                    -printundoc true
+
+
+
     bool:           -save                   Optional. Wether we want to save the changes in the dotnet-api-docs xml files. Default is false.
+
                                                 Usage example:
                                                     -save true
 
 
-    folder paths:   -tripleslash            Mandatory. List of absolute directory paths (comma separated) where we should look for triple slash comment xml files.
+
+    folder path:   -tripleslash             Mandatory. A comma separated list (no spaces) of absolute directory paths where we should recursively look for triple slash comment xml files.
 
                                                 Known locations:
-                                                    > CoreCLR:   coreclr\bin\Product\Windows_NT.x64.Debug\IL\
-                                                    > CoreFX:    corefx\artifacts\bin\
-                                                    > WinForms:  winforms\artifacts\bin\
-                                                    > WPF:       wpf\.tools\native\bin\dotnet-api-docs_netcoreapp3.0\0.0.0.1\_intellisense\\netcore-3.0\
+                                                    > CoreCLR:   %SourceRepos%\coreclr\bin\Product\Windows_NT.x64.Debug\IL\
+                                                    > CoreFX:    %SourceRepos%\corefx\artifacts\bin\
+                                                    > WinForms:  %SourceRepos%\winforms\artifacts\bin\
+                                                    > WPF:       %SourceRepos%\wpf\.tools\native\bin\dotnet-api-docs_netcoreapp3.0\0.0.0.1\_intellisense\\netcore-3.0\
 
                                                 Usage example:
-                                                    -tripleslash %SourceRepos%\corefx\artifacts\bin\,%SourceRepos%\coreclr\bin\Product\Windows_NT.x64.Debug\IL\
+                                                    -tripleslash %SourceRepos%\corefx\artifacts\bin\
 
             ");
         }

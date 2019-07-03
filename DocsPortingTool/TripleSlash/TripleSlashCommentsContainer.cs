@@ -32,11 +32,9 @@ namespace DocsPortingTool.TripleSlash
 {
     class TripleSlashCommentsContainer
     {
-        private static readonly string[] ForbiddenDirectories = new[] { "binplacePackages", "docs", "mscorlib", "native", "netfx", "netstandard", "pkg", "Product", "ref", "runtime", "shimsTargetRuntime", "tests", "winrt" };
-
         private XDocument xDoc = null;
 
-        public List<TripleSlashAssembly> Assemblies = new List<TripleSlashAssembly>();
+        public List<TripleSlashMember> Members = new List<TripleSlashMember>();
 
         public TripleSlashCommentsContainer()
         {
@@ -44,27 +42,35 @@ namespace DocsPortingTool.TripleSlash
 
         public void Load()
         {
-            Log.Info("Loading triple slash xml files...");
-            foreach (DirectoryInfo tripleSlashDir in CLArgumentVerifier.PathsTripleSlashXmls)
+            Log.Info("Reading triple slash xml files...");
+
+            foreach (DirectoryInfo dirInfo in CLArgumentVerifier.DirsTripleSlashXmls)
             {
-                foreach (DirectoryInfo subDir in tripleSlashDir.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+                // 1) Find all the xml files inside the subdirectories within the triple slash xml directory
+                foreach (DirectoryInfo subDir in dirInfo.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
                 {
-                    // Find all the xml files inside the subdirectories within the triple slash xml directory
-                    if (!ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
+                    if (!CLArgumentVerifier.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
                     {
                         foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
                         {
-                            LoadFile(fileInfo);
+                            if (CLArgumentVerifier.HasAllowedAssemblyPrefix(fileInfo.Name))
+                            {
+                                LoadFile(fileInfo);
+                            }
                         }
                     }
                 }
 
-                foreach (FileInfo fileInfo in tripleSlashDir.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
+                // 2) Find all the xml files in the top directory
+                foreach (FileInfo fileInfo in dirInfo.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
                 {
-                    // Now analyze the xml files directly inside the triple slash xml directory
-                    LoadFile(fileInfo);
+                    if (CLArgumentVerifier.HasAllowedAssemblyPrefix(fileInfo.Name))
+                    {
+                        LoadFile(fileInfo);
+                    }
                 }
             }
+            
             Log.Info("Finished loading triple slash xml files!");
         }
 
@@ -98,43 +104,48 @@ namespace DocsPortingTool.TripleSlash
 
             if (xDoc.Root.Elements("assembly").Count() != 1)
             {
-                Log.Error("Tripls slash xml file does not contain a doc/assembly element: {0}", fileInfo.FullName);
+                Log.Error("Tripls slash xml file does not contain exactly 1 'assembly' element: {0}", fileInfo.FullName);
                 return;
             }
 
             if (xDoc.Root.Elements("members").Count() != 1)
             {
-                Log.Error("Triple slash xml file does not contain a doc/members element: {0}", fileInfo.FullName);
+                Log.Error("Triple slash xml file does not contain exactly 1 'members' element: {0}", fileInfo.FullName);
                 return;
             }
 
-            TripleSlashAssembly assembly = new TripleSlashAssembly(fileInfo.FullName, xDoc.Root);
+            XElement xeMembers = XmlHelper.GetChildElement(xDoc.Root, "members");
 
-            bool add = false;
-            foreach (string included in CLArgumentVerifier.IncludedAssemblies)
+            foreach (XElement xeMember in xeMembers.Elements("member"))
             {
-                if (assembly.Name.StartsWith(included))
+                TripleSlashMember member = new TripleSlashMember(xeMember);
+
+                bool add = false;
+                foreach (string included in CLArgumentVerifier.IncludedAssemblies)
                 {
-                    add = true;
-                    break;
+                    if (member.Assembly.StartsWith(included))
+                    {
+                        add = true;
+                        break;
+                    }
+                }
+
+                foreach (string excluded in CLArgumentVerifier.ExcludedAssemblies)
+                {
+                    if (member.Assembly.StartsWith(excluded))
+                    {
+                        add = false;
+                        break;
+                    }
+                }
+
+                if (add)
+                {
+                    Members.Add(member);
                 }
             }
 
-            foreach (string excluded in CLArgumentVerifier.ExcludedAssemblies)
-            {
-                if (assembly.Name.StartsWith(excluded))
-                {
-                    add = false;
-                    Log.Warning("Triple slash xml file excluded: {0}", fileInfo.FullName);
-                    break;
-                }
-            }
-
-            if (add)
-            {
-                Assemblies.Add(assembly);
-                Log.Success("Triple slash xml file included: {0}", fileInfo.FullName);
-            }
+            Log.Success("Triple slash xml file included: {0}", fileInfo.FullName);
         }
     }
 }

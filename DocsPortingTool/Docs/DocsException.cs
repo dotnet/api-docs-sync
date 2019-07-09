@@ -23,7 +23,7 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SaveNonRemark(FilePath, XDoc, XEException, value);
+                XmlHelper.SaveAsNonRemark(FilePath, XDoc, XEException, value);
             }
         }
 

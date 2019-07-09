@@ -210,9 +210,9 @@ namespace DocsPortingTool.Docs
                 XElement xeReturns = XmlHelper.GetChildElement(Docs, "returns");
                 if (xeReturns != null)
                 {
-                    XmlHelper.SaveNonRemark(FilePath, XDoc, xeReturns, value);
+                    XmlHelper.SaveAsNonRemark(FilePath, XDoc, xeReturns, value);
                 }
-                XmlHelper.SetChildElementValue(FilePath, Docs, "returns", value);
+                XmlHelper.SaveAsNonRemark(FilePath, XDoc, xeReturns, value);
             }
         }
         public string Summary
@@ -226,7 +226,7 @@ namespace DocsPortingTool.Docs
                 XElement xeSummary = XmlHelper.GetChildElement(Docs, "summary");
                 if (xeSummary != null)
                 {
-                    XmlHelper.SaveNonRemark(FilePath, XDoc, xeSummary, value);
+                    XmlHelper.SaveAsNonRemark(FilePath, XDoc, xeSummary, value);
                 }
             }
         }
@@ -238,7 +238,7 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SaveRemark(FilePath, XDoc, XERemarks, value);
+                XmlHelper.SaveAsRemark(FilePath, XDoc, XERemarks, value);
             }
         }
         public string Value
@@ -252,7 +252,7 @@ namespace DocsPortingTool.Docs
                 XElement xeValue = XmlHelper.GetChildElement(Docs, "value");
                 if (xeValue != null)
                 {
-                    XmlHelper.SaveNonRemark(FilePath, XDoc, xeValue, value);
+                    XmlHelper.SaveAsNonRemark(FilePath, XDoc, xeValue, value);
                 }
             }
         }
@@ -309,26 +309,26 @@ namespace DocsPortingTool.Docs
 
         public DocsException SaveException(XElement xeCoreFXException)
         {
-            XElement xeDocsException = XmlHelper.SaveChildElement(FilePath, XDoc, Docs, xeCoreFXException);
+            XElement xeDocsException = XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, xeCoreFXException);
             DocsException docsException = new DocsException(FilePath, XDoc, xeDocsException);
             return docsException;
         }
 
         public DocsTypeParam SaveTypeParam(XElement xeCoreFXTypeParam)
         {
-            XElement xeDocsTypeParam = XmlHelper.SaveChildElement(FilePath, XDoc, Docs, xeCoreFXTypeParam);
+            XElement xeDocsTypeParam = XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, xeCoreFXTypeParam);
             DocsTypeParam docsTypeParam = new DocsTypeParam(FilePath, XDoc, xeDocsTypeParam);
             return docsTypeParam;
         }
 
         public DocsParam SaveParam(XElement xeCoreFXParam)
         {
-            XElement xeDocsParam = XmlHelper.SaveChildElement(FilePath, XDoc, Docs, xeCoreFXParam);
+            XElement xeDocsParam = XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, xeCoreFXParam);
             DocsParam docsParam = new DocsParam(FilePath, XDoc, xeDocsParam);
             return docsParam;
         }
 
-        public void SaveXml()
+        public void Save()
         {
             XmlHelper.SaveXml(FilePath, XDoc);
         }
@@ -345,7 +345,7 @@ namespace DocsPortingTool.Docs
                     xeRemarks = XmlHelper.GetChildElement(Docs, "remarks");
                     if (xeRemarks == null)
                     {
-                        XmlHelper.SaveChildElement(FilePath, XDoc, Docs, new XElement("remarks", "To be added."), true);
+                        XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, new XElement("remarks", "To be added."), true);
                         xeRemarks = XmlHelper.GetChildElement(Docs, "remarks");
                     }
                 }

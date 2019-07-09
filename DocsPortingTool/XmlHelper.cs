@@ -22,13 +22,16 @@ namespace DocsPortingTool
             { " null.", " <see langword=\"null\" />." },
             { " true.", " <see langword=\"true\" />." },
             { " false.", " <see langword=\"false\" />." },
+            { "null ", "<see langword=\"null\" /> " },
+            { "true ", "<see langword=\"true\" /> " },
+            { "false ", "<see langword=\"false\" /> " },
             { "Null ", "<see langword=\"null\" /> " },
             { "True ", "<see langword=\"true\" /> " },
             { "False ", "<see langword=\"false\" /> " },
             { "<c>",     "" },
             { "</c>",    "" },
             { "<para>",  "" },
-            { "</para>", "" },
+            { "</para>", "" }
         };
 
         private static readonly Dictionary<string, string> replaceableRemarkPatterns = new Dictionary<string, string> {
@@ -53,6 +56,12 @@ namespace DocsPortingTool
             { "'true'",            "`true`" },
             { " true.",            " `true`." },
             { " true,",            " `true`," },
+            { "null ", "`null` " },
+            { "true ", "`true` " },
+            { "false ", "`false` " },
+            { "Null ", "`null` " },
+            { "True ", "`true` " },
+            { "False ", "`false` " },
             { "<note type=\"inheritinfo\">", ""},
             { "</note>",           "" },
             { "<see cref=\"T:",    "<xref:" },
@@ -156,85 +165,7 @@ namespace DocsPortingTool
 
         #region Public methods
 
-        public static void SetElementValueOld(string filePath, XElement element, string value)
-        {
-            if (element == null)
-            {
-                Log.Error("A null element was passed when attempting to set its value to '{0}'. File: {1}", value, filePath);
-            }
-            else
-            {
-                element.Value = value;
-            }
-        }
-
-        public static void SetElementValue(string filePath, XElement element, string value)
-        {
-            if (element == null)
-            {
-                Log.Error("A null element was passed when attempting to set its value to '{0}'. File: {1}", value, filePath);
-            }
-            else
-            {
-                EnsureParsedValue(element, value);
-            }
-        }
-
-        public static void SetChildElementValue(string filePath, XElement parent, string name, string value, bool errorCheck=false)
-        {
-            if (parent == null)
-            {
-                if (errorCheck)
-                {
-                    Log.Error("A null XElement parent was passed when attempting to save a child element value: {0}->{1}", name, value);
-                }
-            }
-            else
-            {
-                XElement child = GetChildElement(parent, name, errorCheck);
-                SetElementValue(filePath, child, value);
-            }
-        }
-
-        public static XElement SaveChildElement(string filePath, XDocument doc, XElement parent, XElement child, bool errorCheck=false)
-        {
-            if (doc == null)
-            {
-                if (errorCheck)
-                {
-                    Log.Error("A null XDocument was passed when attempting to save a new child element");
-                }
-            }
-            else if (parent == null)
-            {
-                if (errorCheck)
-                {
-                    Log.Error("A null XElement parent was passed when attempting to save a new child element");
-                }
-            }
-            else if (child == null)
-            {
-                if (errorCheck)
-                {
-                    Log.Error("A null XElement child was passed when attempting to save a new child element");
-                }
-            }
-            else
-            {
-                //EnsureParsedValue(child);
-                parent.Add(child);
-                SaveXml(filePath, doc);
-            }
-            return child;
-        }
-
-        public static XElement SaveChildElement(string filePath, XDocument doc, XElement parent, string name, string value, bool errorCheck=false)
-        {
-            XElement child = new XElement(name, value);
-            return SaveChildElement(filePath, doc, parent, child, errorCheck);
-        }
-
-        public static void SaveXml(string filePath, XDocument doc)
+        public static void SaveXml(string filePath, XDocument xDoc)
         {
             if (CLArgumentVerifier.Save)
             {
@@ -243,76 +174,126 @@ namespace DocsPortingTool
                 using (XmlWriter xw = XmlWriter.Create(filePath, xws))
                 {
                     Log.Info(xw.Settings.OutputMethod.ToString());
-                    doc.Save(xw);
+                    xDoc.Save(xw);
                     Log.Success("        [Saved]");
                 }
             }
         }
 
-        public static string UpdatedRemark(string originalRemark)
+        public static XElement SaveChildAsRemark(string filePath, XDocument xDoc, XElement xeParent, XElement xeChild, bool errorCheck = false)
         {
-            string updatedRemark = originalRemark;
-
-            foreach (KeyValuePair<string, string> kvp in replaceableRemarkPatterns)
+            if (VerifySaveChildParams(xDoc, xeParent, xeChild, errorCheck))
             {
-                if (updatedRemark.Contains(kvp.Key))
-                {
-                    updatedRemark = updatedRemark.Replace(kvp.Key, kvp.Value);
-                }
+                xeParent.Add(xeChild);
+                SaveAsRemark(filePath, xDoc, xeChild, xeChild.Value);
             }
-
-            return updatedRemark;
+            return xeChild;
         }
 
-        public static string UpdatedNonRemark(string value)
+        public static XElement SaveChildAsNonRemark(string filePath, XDocument xDoc, XElement xParent, XElement xeChild, bool errorCheck=false)
         {
-            string updated = value;
-
-            foreach (KeyValuePair<string, string> kvp in replaceableNonRemarkPatterns)
+            if (VerifySaveChildParams(xDoc, xParent, xeChild, errorCheck))
             {
-                if (updated.Contains(kvp.Key))
-                {
-                    updated = updated.Replace(kvp.Key, kvp.Value);
-                }
+                xParent.Add(xeChild);
+                SaveAsNonRemark(filePath, xDoc, xeChild, xeChild.Value);
             }
-
-            return updated;
+            return xeChild;
         }
 
-        public static void SaveRemark(string filePath, XDocument xDoc, XElement xeRemarks, string value)
+        public static void SaveAsRemark(string filePath, XDocument xDoc, XElement xeRemarks, string value)
         {
             // Empty the contents, because SaveChildElement will add a child to the parent, not replace it
             xeRemarks.Value = string.Empty;
 
-            XElement formatElement = new XElement("format");
+            XElement xeFormat = new XElement("format");
 
-            string updatedRemark = UpdatedRemark(value);
-            formatElement.ReplaceAll(new XCData(updatedRemark));
-            formatElement.SetAttributeValue("type", "text/markdown");
+            string updatedValue = value;
 
-            SaveChildElement(filePath, xDoc, xeRemarks, formatElement, true);
-        }
+            foreach (KeyValuePair<string, string> kvp in replaceableRemarkPatterns)
+            {
+                if (updatedValue.Contains(kvp.Key))
+                {
+                    updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
+                }
+            }
+            xeFormat.ReplaceAll(new XCData("\r\n" + updatedValue + "\r\n          "));
 
-        public static void SaveNonRemark(string filePath, XDocument xDoc, XElement xeElement, string value)
-        {
-            // Empty the contents, because SaveChildElement will add a child to the parent, not replace it
-            xeElement.Value = value; // UpdatedNonRemark(value); // TODO: Substitute special strings but avoid escaping html characters in content
+            // Attribute at the end, otherwise it would be replaced by ReplaceAll
+            xeFormat.SetAttributeValue("type", "text/markdown");
+
+            xeRemarks.Add(xeFormat);
+
             SaveXml(filePath, xDoc);
         }
 
-        private static void EnsureParsedValue(XElement element, string value)
+        public static void SaveAsNonRemark(string filePath, XDocument xDoc, XElement xeElement, string value)
         {
-            // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed in the next line.
-            XElement parsedElement = XElement.Parse("<x>" + value + "</x>");
-            element.ReplaceNodes(parsedElement.Nodes());
-        }
+            if (xeElement == null)
+            {
+                Log.Error("A null element was passed when attempting to set its value to '{0}'. File: {1}", value, filePath);
+            }
+            else
+            {
+                string updatedValue = value;
+                foreach (KeyValuePair<string, string> kvp in replaceableNonRemarkPatterns)
+                {
+                    if (updatedValue.Contains(kvp.Key))
+                    {
+                        updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
+                    }
+                }
 
-        private static void EnsureParsedValue(XElement element)
-        {
-            EnsureParsedValue(element, element.Value);
+                // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed in the next line.
+                XElement parsedElement = null;
+                try
+                {
+                    parsedElement = XElement.Parse("<x>" + updatedValue + "</x>");
+                }
+                catch (System.Xml.XmlException)
+                {
+                    parsedElement = XElement.Parse("<x>" + updatedValue.Replace("<", "&lt;").Replace(">", "&gt;") + "</x>");
+                }
+                xeElement.ReplaceNodes(parsedElement.Nodes());
+
+                SaveXml(filePath, xDoc);
+            }
         }
 
         #endregion
+
+        #endregion
+
+        #region Private methods
+
+        private static bool VerifySaveChildParams(XDocument doc, XElement parent, XElement child, bool errorCheck = false)
+        {
+            if (doc == null)
+            {
+                if (errorCheck)
+                {
+                    Log.Error("A null XDocument was passed when attempting to save a new child element");
+                }
+                return false;
+            }
+            else if (parent == null)
+            {
+                if (errorCheck)
+                {
+                    Log.Error("A null XElement parent was passed when attempting to save a new child element");
+                }
+                return false;
+            }
+            else if (child == null)
+            {
+                if (errorCheck)
+                {
+                    Log.Error("A null XElement child was passed when attempting to save a new child element");
+                }
+                return false;
+            }
+
+            return true;
+        }
 
         #endregion
     }

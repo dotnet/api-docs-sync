@@ -65,7 +65,7 @@ namespace DocsPortingTool
                             ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
                             ModifiedFiles.AddIfNotExists(dType.FilePath);
 
-                            dType.SaveXml();
+                            dType.Save();
                         }
                     }
                 }
@@ -78,7 +78,7 @@ namespace DocsPortingTool
                             ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
                             ModifiedFiles.AddIfNotExists(dMember.FilePath);
 
-                            dMember.SaveXml();
+                            dMember.Save();
                         }
                     }
                 }

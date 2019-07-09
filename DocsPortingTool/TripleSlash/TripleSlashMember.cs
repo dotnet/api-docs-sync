@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -7,6 +8,24 @@ namespace DocsPortingTool.TripleSlash
     public class TripleSlashMember
     {
         private XElement XEMember = null;
+
+        private string _assembly = string.Empty;
+        public string Assembly
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(_assembly))
+                {
+                    string[] splittedParenthesis = Name.Split('(', StringSplitOptions.RemoveEmptyEntries);
+                    string withoutParenthesisAndPrefix = splittedParenthesis[0].Substring(2);
+                    string[] splittedDots = withoutParenthesisAndPrefix.Split('.', StringSplitOptions.RemoveEmptyEntries);
+
+                    _assembly = string.Join('.', splittedDots.Take(splittedDots.Length - 1));
+                }
+
+                return _assembly;
+            }
+        }
 
         private string _name = string.Empty;
         public string Name

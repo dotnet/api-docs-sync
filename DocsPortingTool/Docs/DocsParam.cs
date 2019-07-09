@@ -2,36 +2,34 @@
 
 namespace DocsPortingTool.Docs
 {
-    public class DocsException
+    public class DocsParam
     {
         private XDocument XDoc = null;
-        private XElement XEException = null;
+        private XElement XEDocsParam = null;
         public string FilePath { get; private set; }
-
-        public string Cref
+        public string Name
         {
             get
             {
-                return XmlHelper.GetAttributeValue(XEException, "cref");
+                return XmlHelper.GetAttributeValue(XEDocsParam, "name");
             }
         }
         public string Value
         {
             get
             {
-                return XmlHelper.GetRealValue(XEException);
+                return XmlHelper.GetRealValue(XEDocsParam);
             }
             set
             {
-                XmlHelper.SetElementValue(FilePath, XEException, value);
+                XmlHelper.SaveAsNonRemark(FilePath, XDoc, XEDocsParam, value);
             }
         }
-
-        public DocsException(string filePath, XDocument xDoc, XElement xeException)
+        public DocsParam(string filePath, XDocument xDoc, XElement xeDocsParam)
         {
             FilePath = filePath;
             XDoc = xDoc;
-            XEException = xeException;
+            XEDocsParam = xeDocsParam;
         }
     }
 }

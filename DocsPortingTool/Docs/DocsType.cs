@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Shared;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -174,7 +175,11 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SetChildElementValue(FilePath, Docs, "summary", value);
+                XElement xeSummary = XmlHelper.GetChildElement(Docs, "summary");
+                if (xeSummary != null)
+                {
+                    XmlHelper.SaveAsNonRemark(FilePath, XDoc, xeSummary, value);
+                }
             }
         }
 
@@ -190,28 +195,7 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SaveRemark(FilePath, XDoc, XERemarks, value);
-            }
-        }
-
-        private List<DocsMember> _members;
-        public List<DocsMember> Members
-        {
-            get
-            {
-                if (_members == null)
-                {
-                    XElement members = XmlHelper.GetChildElement(XERoot, "Members");
-                    if (members != null)
-                    {
-                        _members = members.Elements("Member").Select(x => new DocsMember(FilePath, XDoc, x)).ToList();
-                    }
-                    else
-                    {
-                        _members = new List<DocsMember>();
-                    }
-                }
-                return _members;
+                XmlHelper.SaveAsRemark(FilePath, XDoc, XERemarks, value);
             }
         }
 
@@ -222,7 +206,7 @@ namespace DocsPortingTool.Docs
             XERoot = xeRoot;
         }
 
-        public void SaveXml()
+        public void Save()
         {
             XmlHelper.SaveXml(FilePath, XDoc);
         }
@@ -244,7 +228,7 @@ namespace DocsPortingTool.Docs
                     xeRemarks = XmlHelper.GetChildElement(Docs, "remarks");
                     if (xeRemarks == null)
                     {
-                        XmlHelper.SaveChildElement(FilePath, XDoc, Docs, new XElement("remarks", "To be added."), true);
+                        XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, new XElement("remarks", "To be added."), true);
                         xeRemarks = XmlHelper.GetChildElement(Docs, "remarks");
                     }
                 }

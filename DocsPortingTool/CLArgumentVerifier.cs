@@ -141,6 +141,10 @@ namespace DocsPortingTool
                                     mode = Mode.Include;
                                     break;
 
+                                case "-printundoc":
+                                    mode = Mode.PrintUndoc;
+                                    break;
+
                                 case "-save":
                                     mode = Mode.Save;
                                     break;
@@ -148,11 +152,6 @@ namespace DocsPortingTool
                                 case "-tripleslash":
                                     mode = Mode.TripleSlash;
                                     break;
-
-                                //case "-dlls":
-                                //    mode = Mode.DLLs;
-                                //    break;
-
                                 default:
                                     Log.LogErrorPrintHelpAndExit(PrintHelp, string.Format("Unrecognized argument '{0}'.", arg));
                                     break;

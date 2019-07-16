@@ -14,8 +14,6 @@ namespace FullXmlDiff
             Right
         }
 
-        public static bool Verbose { get; private set; }
-
         public static DirectoryInfo[] LeftDirectories { get; private set; }
 
         public static DirectoryInfo[] RightDirectories { get; private set; }
@@ -44,12 +42,6 @@ namespace FullXmlDiff
                                 case "-right":
                                     {
                                         mode = Mode.Right;
-                                        break;
-                                    }
-                                case "-verbose":
-                                    {
-                                        Verbose = true;
-                                        mode = Mode.Initial;
                                         break;
                                     }
                                 default:

@@ -30,7 +30,7 @@ root
 */
 namespace DocsPortingTool.TripleSlash
 {
-    class TripleSlashCommentsContainer
+    public class TripleSlashCommentsContainer
     {
         private XDocument xDoc = null;
 
@@ -55,7 +55,7 @@ namespace DocsPortingTool.TripleSlash
                         {
                             if (CLArgumentVerifier.HasAllowedAssemblyPrefix(fileInfo.Name))
                             {
-                                LoadFile(fileInfo);
+                                LoadFile(fileInfo, CLArgumentVerifier.IncludedAssemblies, CLArgumentVerifier.ExcludedAssemblies, true);
                             }
                         }
                     }
@@ -66,7 +66,7 @@ namespace DocsPortingTool.TripleSlash
                 {
                     if (CLArgumentVerifier.HasAllowedAssemblyPrefix(fileInfo.Name))
                     {
-                        LoadFile(fileInfo);
+                        LoadFile(fileInfo, CLArgumentVerifier.IncludedAssemblies, CLArgumentVerifier.ExcludedAssemblies, true);
                     }
                 }
             }
@@ -74,7 +74,7 @@ namespace DocsPortingTool.TripleSlash
             Log.Info("Finished loading triple slash xml files!");
         }
 
-        private void LoadFile(FileInfo fileInfo)
+        public void LoadFile(FileInfo fileInfo, List<string> includedAssemblies, List<string> excludedAssemblies, bool printSuccess)
         {
             if (!fileInfo.Exists)
             {
@@ -121,7 +121,7 @@ namespace DocsPortingTool.TripleSlash
                 TripleSlashMember member = new TripleSlashMember(xeMember);
 
                 bool add = false;
-                foreach (string included in CLArgumentVerifier.IncludedAssemblies)
+                foreach (string included in includedAssemblies)
                 {
                     if (member.Assembly.StartsWith(included))
                     {
@@ -130,7 +130,7 @@ namespace DocsPortingTool.TripleSlash
                     }
                 }
 
-                foreach (string excluded in CLArgumentVerifier.ExcludedAssemblies)
+                foreach (string excluded in excludedAssemblies)
                 {
                     if (member.Assembly.StartsWith(excluded))
                     {
@@ -145,7 +145,10 @@ namespace DocsPortingTool.TripleSlash
                 }
             }
 
-            Log.Success("Triple slash xml file included: {0}", fileInfo.FullName);
+            if (printSuccess)
+            {
+                Log.Success("Triple slash xml file included: {0}", fileInfo.FullName);
+            }
         }
     }
 }

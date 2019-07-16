@@ -11,134 +11,113 @@ namespace FullXmlDiff
     {
         static void Main(string[] args)
         {
-            //CLArgumentVerifier.Verify(args);
+            CLArgumentVerifier.Verify(args);
 
-            //List<FileInfo> filesLeft  = CollectFiles(CLArgumentVerifier.LeftDirectories, "left");
-            //List<FileInfo> filesRight = CollectFiles(CLArgumentVerifier.RightDirectories, "right");
+            List<FileInfo> filesLeft = CollectFiles(CLArgumentVerifier.LeftDirectories, "left");
+            List<FileInfo> filesRight = CollectFiles(CLArgumentVerifier.RightDirectories, "right");
 
-            //List<TripleSlashAssembly> assembliesLeft  = CollectAssemblies(filesLeft, "left");
-            //List<TripleSlashAssembly> assembliesRight = CollectAssemblies(filesRight, "right");
+            List<FileInfo> missingOnRight = GetFileDiff(filesLeft, filesRight);
 
-            //CompareAssemblies(assembliesLeft, assembliesRight);
+            TripleSlashCommentsContainer containerLeft = CollectMembers(filesLeft, "left");
+            TripleSlashCommentsContainer containerRight = CollectMembers(filesRight, "right");
+
+            CompareMembers(containerLeft, containerRight);
         }
 
-        //private static List<FileInfo> CollectFiles(DirectoryInfo[] directories, string side)
-        //{
-        //    if (CLArgumentVerifier.Verbose)
-        //        Log.Working($"Collecting {side} files...");
+        private static List<FileInfo> GetFileDiff(List<FileInfo> filesLeft, List<FileInfo> filesRight)
+        {
+            Log.Working("Looking for files that are on the left side but not on the right side...");
+            Log.Line();
 
-        //    List<FileInfo> files = new List<FileInfo>();
+            List<FileInfo> missingOnRight = new List<FileInfo>();
+            foreach (FileInfo leftFile in filesLeft)
+            {
+                if (filesRight.Count(x => x.Name == leftFile.Name) == 0)
+                {
+                    Log.Error($"    {leftFile.Name}");
+                    missingOnRight.Add(leftFile);
+                }
+            }
 
-        //    foreach (DirectoryInfo directory in directories)
-        //    {
-        //        if (CLArgumentVerifier.Verbose)
-        //            Log.Working($"    - Visiting directory '{directory.FullName}'...");
+            Log.Line();
 
-        //        foreach (FileInfo file in directory.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
-        //        {
-        //            if (files.Count(x => x.FullName == file.FullName) == 0)
-        //            {
-        //                files.Add(file);
-        //                if (CLArgumentVerifier.Verbose)
-        //                    Log.Success($"        - Added file '{file.FullName}'");
-        //            }
-        //            else
-        //            {
-        //                if (CLArgumentVerifier.Verbose)
-        //                    Log.Warning($"        - Skipped adding existing file '{file.FullName}'");
-        //            }
-        //        }
-        //    }
+            return missingOnRight;
+        }
 
-        //    return files;
-        //}
+        private static List<FileInfo> CollectFiles(DirectoryInfo[] directories, string side)
+        {
+            Log.Working($"Collecting {side} files...");
 
-        //private static List<TripleSlashAssembly> CollectAssemblies(List<FileInfo> files, string side)
-        //{
-        //    if (CLArgumentVerifier.Verbose)
-        //        Log.Working($"Collecting {side} assemblies...");
+            List<FileInfo> files = new List<FileInfo>();
 
-        //    List<TripleSlashAssembly> assemblies = new List<TripleSlashAssembly>();
+            foreach (DirectoryInfo directory in directories)
+            {
+                Log.Working($"    - Visiting directory '{directory.FullName}'...");
 
-        //    foreach (FileInfo file in files)
-        //    {
-        //        XDocument xDoc = XDocument.Load(file.FullName);
-        //        TripleSlashAssembly assembly = new TripleSlashAssembly(file.FullName, xDoc.Root);
-        //        if (assemblies.Count(x => x.Name == assembly.Name) == 0)
-        //        {
-        //            assemblies.Add(assembly);
-        //        }
-        //    }
+                foreach (FileInfo file in directory.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
+                {
+                    if (files.Count(x => x.FullName == file.FullName) == 0)
+                    {
+                        files.Add(file);
+                    }
+                    else
+                    {
+                        Log.Warning($"          - Skipped adding existing file '{file.FullName}'");
+                    }
+                }
+            }
 
-        //    return assemblies;
-        //}
+            return files;
+        }
 
-        //private static void CompareAssemblies(List<TripleSlashAssembly> assembliesLeft, List<TripleSlashAssembly> assembliesRight)
-        //{
-        //    if (assembliesLeft.Count < assembliesRight.Count)
-        //    {
-        //        Log.Success(false, "Total right assemblies are a superset of left!");
-        //    }
-        //    else if (assembliesLeft.Count > assembliesRight.Count)
-        //    {
-        //        Log.Error(false, "Total right assemblies are NOT a superset of left!");
-        //    }
-        //    else
-        //    {
-        //        Log.Success(false, "Total assemblies match on left and right!");
-        //    }
-        //    Log.Info($" Left: {assembliesLeft.Count}, Right {assembliesRight.Count}");
-        //    Log.Line();
+        private static TripleSlashCommentsContainer CollectMembers(List<FileInfo> fileInfos, string side)
+        {
+            Log.Working($"Collecting {side} members...");
+            Log.Line();
 
-        //    foreach (TripleSlashAssembly leftAssembly in assembliesLeft)
-        //    {
-        //        if (CLArgumentVerifier.Verbose)
-        //            Log.Info($"Comparing assembly '{leftAssembly.Name}'...");
+            TripleSlashCommentsContainer container = new TripleSlashCommentsContainer();
 
-        //        bool assemblyExistsRight = false;
-        //        foreach (TripleSlashAssembly rightAssembly in assembliesRight.Where(x => x.Name == leftAssembly.Name))
-        //        {
-        //            if (assemblyExistsRight)
-        //            {
-        //                Log.Error($"        Assembly '{leftAssembly.Name}' was found more than once on right!");
-        //                break;
-        //            }
+            foreach (FileInfo fileInfo in fileInfos)
+            {
+                container.LoadFile(fileInfo, new List<string> { "System", "Microsoft", "Windows" }, new List<string>(), printSuccess: false);
+            }
 
-        //            assemblyExistsRight = true;
+            Log.Success($"    Total {side} members: {container.Members.Count}");
+            Log.Line();
 
-        //            bool printMessage = false;
-        //            if (leftAssembly.Members.Count < rightAssembly.Members.Count)
-        //            {
-        //                if (CLArgumentVerifier.Verbose)
-        //                {
-        //                    printMessage = true;
-        //                    Log.Warning(false, $"    Members in right '{leftAssembly.Name}' are a superset of left!");
-        //                }
-        //            }
-        //            else if (leftAssembly.Members.Count > rightAssembly.Members.Count)
-        //            {
-        //                printMessage = true;
-        //                Log.Error(false, $"    Members in right '{leftAssembly.Name}' are NOT a superset of left!");
-        //            }
-        //            else
-        //            {
-        //                if (CLArgumentVerifier.Verbose)
-        //                {
-        //                    printMessage = true;
-        //                    Log.Success(false, $"    Total members in '{leftAssembly.Name}' match!");
-        //                }
-        //            }
-        //            if (printMessage)
-        //            {
-        //                Log.Info($" Left: {leftAssembly.Members.Count}, Right {rightAssembly.Members.Count}");
-        //            }
-        //        }
+            return container;
+        }
 
-        //        if (!assemblyExistsRight)
-        //        {
-        //            Log.Error($"        Assembly '{leftAssembly.Name}' was not found on the right side!");
-        //        }
-        //    }
-        //}
+        private static void CompareMembers(TripleSlashCommentsContainer containerLeft, TripleSlashCommentsContainer containerRight)
+        {
+            Log.Working("Comparing members...");
+            Log.Line();
+
+            Log.Info($"Left: {containerLeft.Members.Count}, Right {containerRight.Members.Count}");
+            if (containerLeft.Members.Count < containerRight.Members.Count)
+            {
+                Log.Success(false, "    Total right assemblies are a superset of left!");
+            }
+            else if (containerLeft.Members.Count > containerRight.Members.Count)
+            {
+                Log.Error(false, "    Total right assemblies are NOT a superset of left!");
+            }
+            else
+            {
+                Log.Success(false, "    Total assemblies match on left and right!");
+            }
+            Log.Line();
+
+            Log.Working("Looking for left members that are not on the right...");
+            foreach (TripleSlashMember leftMember in containerLeft.Members)
+            {
+                if (containerRight.Members.Count(x => x.Name == leftMember.Name) == 0)
+                {
+                    Log.Error("    " + leftMember.Name.Replace("{", "{{").Replace("}", "}}"));
+                }
+            }
+
+            Log.Line();
+        }
     }
 }

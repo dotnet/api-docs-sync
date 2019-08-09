@@ -1,6 +1,7 @@
 # DocsPortingTool
 
-This tool finds and ports triple slash comments found in .NET repos but do not yet exist in the dotnet-api-docs repo.
+This tool finds and ports triple slash comments found in .NET repos but **do not yet exist** in the dotnet-api-docs repo.
+If an API is already documented in dotnet-api-docs, it will be ignored and skipped.
 
 ### Usage example:
 

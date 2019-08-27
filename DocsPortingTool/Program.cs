@@ -383,57 +383,71 @@ namespace DocsPortingTool
             int option = -1;
             while (option == -1)
             {
-                Log.Error("Problem in member {0} in file {1}!", dMember.DocId, dMember.FilePath);
-                Log.Warning("The param from triple slash called '{0}' probably exists in code, but the name was not found in Docs. What would you like to do?", tsParam.Name);
-                Log.Warning("    1 - Type the correct name as it shows up in Docs.");
-                Log.Warning("    2 - Add the newly detected param to the Docs file (not recommended).");
+                Log.Error($"Problem in param '{tsParam.Name}' in member '{dMember.DocId}' in file '{dMember.FilePath}'");
+                Log.Error($"The param probably exists in code, but the exact name was not found in Docs. What would you like to do?");
+                Log.Warning("    0 - Exit program.");
+                Log.Info("    1 - Select the correct param from the existing ones detected in Docs for this member.");
+                Log.Info("    2 - Overwrite the param name in the Docs file with the detected one (not recommended).");
                 Log.Warning("        Note: Whatever your choice, make sure to double check the affected Docs file after the tool finishes executing.");
-                Log.Info(false, "Your answer [1,2]: ");
+                Log.Working(false, "Your answer [0,1,2]: ");
 
                 if (!int.TryParse(Console.ReadLine(), out option))
                 {
-                    Log.Error("Invalid selection. Try again.");
+                    Log.Error("Not a number. Try again.");
                     option = -1;
                 }
                 else
                 {
                     switch (option)
                     {
+                        case 0:
+                            Log.Info("Goodbye!");
+                            Environment.Exit(0);
+                            break;
                         case 1:
                             {
-                                string newName = string.Empty;
-                                while (string.IsNullOrWhiteSpace(newName))
+                                int paramSelection = -1;
+                                while (paramSelection == -1)
                                 {
-                                    Log.Info(false, "Type the new name: ");
-                                    newName = Console.ReadLine().Trim();
-                                    if (string.IsNullOrWhiteSpace(newName))
+                                    Log.Info($"Params detected in member '{dMember.MemberName}':");
+                                    Log.Warning("    0 - Exit program.");
+                                    int paramCounter = 1;
+                                    foreach (DocsParam param in dMember.Params)
+                                    {
+                                        Log.Info($"    {paramCounter} - {param.Name}");
+                                        paramCounter++;
+                                    }
+
+                                    Log.Working(false, $"Your answer to match param '{tsParam.Name}'? [0..{paramCounter - 1}]: ");
+
+                                    if (!int.TryParse(Console.ReadLine(), out paramSelection))
+                                    {
+                                        Log.Error("Not a number. Try again.");
+                                        paramSelection = -1;
+                                    }
+                                    else if (paramSelection < 0 || paramSelection >= paramCounter)
                                     {
                                         Log.Error("Invalid selection. Try again.");
+                                        paramSelection = -1;
                                     }
-                                    else if (newName == tsParam.Name)
+                                    else if (paramSelection == 0)
                                     {
-                                        Log.Error("You specified the same name. Try again.");
-                                        newName = string.Empty;
+                                        Log.Info("Goodbye!");
+                                        Environment.Exit(0);
                                     }
                                     else
                                     {
-                                        dParam = dMember.Params.FirstOrDefault(x => x.Name == newName);
-                                        if (dParam == null)
-                                        {
-                                            Log.Error("Could not find the param with the selected name. Try again.");
-                                            newName = string.Empty;
-                                        }
-                                        else
-                                        {
-                                            Log.Success("Found the param with the selected name!");
-                                        }
+                                        dParam = dMember.Params[paramSelection-1];
+                                        Log.Success($"Selected: {dParam.Name}");
                                     }
                                 }
+
                                 break;
                             }
 
                         case 2:
                             {
+                                Log.Warning("Overwriting param...");
                                 dParam = dMember.SaveParam(tsParam.XEParam);
                                 created = true;
                                 break;

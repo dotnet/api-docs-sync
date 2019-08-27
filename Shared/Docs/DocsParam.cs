@@ -31,5 +31,9 @@ namespace DocsPortingTool.Docs
             XDoc = xDoc;
             XEDocsParam = xeDocsParam;
         }
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

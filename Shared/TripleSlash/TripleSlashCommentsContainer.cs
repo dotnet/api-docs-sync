@@ -40,40 +40,6 @@ namespace DocsPortingTool.TripleSlash
         {
         }
 
-        public void Load()
-        {
-            Log.Info("Reading triple slash xml files...");
-
-            foreach (DirectoryInfo dirInfo in CLArgumentVerifier.DirsTripleSlashXmls)
-            {
-                // 1) Find all the xml files inside the subdirectories within the triple slash xml directory
-                foreach (DirectoryInfo subDir in dirInfo.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
-                {
-                    if (!CLArgumentVerifier.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
-                    {
-                        foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
-                        {
-                            if (CLArgumentVerifier.HasAllowedAssemblyPrefix(fileInfo.Name))
-                            {
-                                LoadFile(fileInfo, CLArgumentVerifier.IncludedAssemblies, CLArgumentVerifier.ExcludedAssemblies, true);
-                            }
-                        }
-                    }
-                }
-
-                // 2) Find all the xml files in the top directory
-                foreach (FileInfo fileInfo in dirInfo.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
-                {
-                    if (CLArgumentVerifier.HasAllowedAssemblyPrefix(fileInfo.Name))
-                    {
-                        LoadFile(fileInfo, CLArgumentVerifier.IncludedAssemblies, CLArgumentVerifier.ExcludedAssemblies, true);
-                    }
-                }
-            }
-            
-            Log.Info("Finished loading triple slash xml files!");
-        }
-
         public void LoadFile(FileInfo fileInfo, List<string> includedAssemblies, List<string> excludedAssemblies, bool printSuccess)
         {
             if (!fileInfo.Exists)

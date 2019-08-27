@@ -51,26 +51,9 @@ namespace DocsPortingTool.Docs
         {
         }
 
-        public void Load()
-        {
-            Log.Info("Loading Docs xml files...");
-            foreach (DirectoryInfo subDir in CLArgumentVerifier.DirDocsXml.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
-            {
-                if (!CLArgumentVerifier.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
-                {
-                    foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
-                    {
-                        if (CLArgumentVerifier.HasAllowedAssemblyPrefix(subDir.Name))
-                        {
-                            LoadFile(fileInfo);
-                        }
-                    }
-                }
-            }
-            Log.Info("Finished loading Docs xml files!");
-        }
+        
 
-        private void LoadFile(FileInfo fileInfo)
+        public void LoadFile(FileInfo fileInfo, Configuration config)
         {
             if (!fileInfo.Exists)
             {
@@ -107,7 +90,7 @@ namespace DocsPortingTool.Docs
             DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root);
 
             bool add = false;
-            foreach (string included in CLArgumentVerifier.IncludedAssemblies)
+            foreach (string included in config.IncludedAssemblies)
             {
                 if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0)
                 {
@@ -116,7 +99,7 @@ namespace DocsPortingTool.Docs
                 }
             }
 
-            foreach (string excluded in CLArgumentVerifier.ExcludedAssemblies)
+            foreach (string excluded in config.ExcludedAssemblies)
             {
                 if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(excluded)) > 0)
                 {

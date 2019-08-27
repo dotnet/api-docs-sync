@@ -1,7 +1,5 @@
 ﻿using Shared;
 using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 
 namespace DocsPortingTool
@@ -25,27 +23,12 @@ namespace DocsPortingTool
 
         #endregion
 
-        #region Public members
-
-        public static readonly string[] AllowedAssemblyPrefixes = new string[] { "System", "Microsoft", "Windows" };
-        public static readonly string[] ForbiddenDirectories = new[] { "binplacePackages", "docs", "mscorlib", "native", "netfx", "netstandard", "pkg", "Product", "ref", "runtime", "shimsTargetRuntime", "tests", "winrt" };
-
-        public static readonly List<DirectoryInfo> DirsTripleSlashXmls = new List<DirectoryInfo>();
-
-        public static DirectoryInfo DirDocsXml { get; private set; }
-
-        public static readonly List<string> IncludedAssemblies = new List<string>();
-        public static readonly List<string> ExcludedAssemblies = new List<string>();
-
-        public static bool Save { get; private set; }
-        public static bool PrintUndoc { get; private set; }
-
-        #endregion
-
         #region Public methods
 
-        public static void Verify(string[] args)
+        public static Configuration GetConfiguration(string[] args)
         {
+            Configuration config = new Configuration();
+
             Mode mode = Mode.Initial;
 
             Log.Info("Verifying CLI arguments...");
@@ -68,7 +51,7 @@ namespace DocsPortingTool
                                 Log.Working("Included assemblies:");
                                 foreach (string assembly in splittedArg)
                                 {
-                                    IncludedAssemblies.Add(assembly);
+                                    config.IncludedAssemblies.Add(assembly);
                                     Log.Info($"  -  {assembly}");
                                 }
                             }
@@ -83,15 +66,15 @@ namespace DocsPortingTool
 
                     case Mode.Docs:
                         {
-                            DirDocsXml = new DirectoryInfo(arg);
+                            config.DirDocsXml = new DirectoryInfo(arg);
 
-                            if (!DirDocsXml.Exists)
+                            if (!config.DirDocsXml.Exists)
                             {
-                                Log.LogErrorAndExit(string.Format("The documentation folder does not exist: {0}", DirDocsXml));
+                                Log.LogErrorAndExit(string.Format("The documentation folder does not exist: {0}", config.DirDocsXml));
                             }
 
                             Log.Working($"Specified documentation location:");
-                            Log.Info($"  -  {DirDocsXml}");
+                            Log.Info($"  -  {config.DirDocsXml}");
 
                             mode = Mode.Initial;
                             break;
@@ -106,7 +89,7 @@ namespace DocsPortingTool
                                 Log.Working("Excluded assemblies:");
                                 foreach (string assembly in splittedArg)
                                 {
-                                    ExcludedAssemblies.Add(assembly);
+                                    config.ExcludedAssemblies.Add(assembly);
                                     Log.Info($"  -  {assembly}");
                                 }
                             }
@@ -166,10 +149,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit("Invalid boolean value for the printundoc argument: {0}", arg);
                             }
 
-                            PrintUndoc = printUndoc;
+                            config.PrintUndoc = printUndoc;
 
                             Log.Working("Print undocumented:");
-                            Log.Info($"  -  {PrintUndoc}");
+                            Log.Info($"  -  {config.PrintUndoc}");
 
                             mode = Mode.Initial;
                             break;
@@ -182,10 +165,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit("Invalid boolean value for the save argument: {0}", arg);
                             }
 
-                            Save = save;
+                            config.Save = save;
 
                             Log.Working("Save:");
-                            Log.Info($"  -  {Save}");
+                            Log.Info($"  -  {config.Save}");
 
                             mode = Mode.Initial;
                             break;
@@ -204,7 +187,7 @@ namespace DocsPortingTool
                                     Log.LogErrorAndExit(string.Format("This triple slash xml directory does not exist: {0}", dirPath));
                                 }
 
-                                DirsTripleSlashXmls.Add(dirInfo);
+                                config.DirsTripleSlashXmls.Add(dirInfo);
                                 Log.Info($"  -  {dirPath}");
                             }
 
@@ -225,33 +208,22 @@ namespace DocsPortingTool
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You missed an argument value.");
             }
 
-            if (DirDocsXml == null)
+            if (config.DirDocsXml == null)
             {
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify a path to the dotnet-api-docs xml folder with -docs.");
             }
 
-            if (DirsTripleSlashXmls.Count == 0)
+            if (config.DirsTripleSlashXmls.Count == 0)
             {
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one triple slash xml folder path with -tripleslash.");
             }
 
-            if (IncludedAssemblies.Count == 0)
+            if (config.IncludedAssemblies.Count == 0)
             {
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one assembly with -include.");
             }
-        }
 
-        public static bool HasAllowedAssemblyPrefix(string pathName)
-        {
-            foreach (string prefix in AllowedAssemblyPrefixes)
-            {
-                if (pathName.StartsWith(prefix))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return config;
         }
 
         public static void PrintHelp()

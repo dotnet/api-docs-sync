@@ -3,6 +3,7 @@ using DocsPortingTool.TripleSlash;
 using Shared;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace DocsPortingTool
@@ -11,16 +12,17 @@ namespace DocsPortingTool
     {
         #region Private fields
 
-        private static readonly DocsCommentsContainer docsComments = new DocsCommentsContainer();
-        private static readonly TripleSlashCommentsContainer tripleSlashComments = new TripleSlashCommentsContainer();
-
         private static readonly List<string> ModifiedFiles = new List<string>();
         private static readonly List<string> ModifiedAssemblies = new List<string>();
         private static readonly List<string> ModifiedContainers = new List<string>();
         private static readonly List<string> ModifiedAPIs = new List<string>();
         private static readonly List<string> ProblematicAPIs = new List<string>();
         private static readonly List<string> AddedExceptions = new List<string>();
+
         private static int TotalModifiedIndividualElements = 0;
+
+        private static DocsCommentsContainer docsComments = new DocsCommentsContainer();
+        private static TripleSlashCommentsContainer tripleSlashComments = new TripleSlashCommentsContainer();
 
         #endregion
 
@@ -33,20 +35,92 @@ namespace DocsPortingTool
 
         public static void Main(string[] args)
         {
-            CLArgumentVerifier.Verify(args);
+            Configuration config = CLArgumentVerifier.GetConfiguration(args);
 
-            tripleSlashComments.Load();
-            docsComments.Load();
+            XmlHelper.Save = true;
+
+            foreach (FileInfo fileInfo in GetTripleSlashXmlFiles(config))
+            {
+                tripleSlashComments.LoadFile(fileInfo, config.IncludedAssemblies, config.ExcludedAssemblies, printSuccess: true);
+            }
+
+            foreach (FileInfo fileInfo in GetDocsCommentsXmlFiles(config))
+            {
+                docsComments.LoadFile(fileInfo, config);
+            }
 
             PortMissingComments();
 
-            PrintUndocumentedAPIs();
+            PrintUndocumentedAPIs(config.PrintUndoc);
             PrintSummary();
         }
 
         #endregion
 
         #region Private methods
+
+        private static List<FileInfo> GetDocsCommentsXmlFiles(Configuration config)
+        {
+            Log.Info("Looking for Docs xml files...");
+
+            List<FileInfo> fileInfos = new List<FileInfo>();
+
+            foreach (DirectoryInfo subDir in config.DirDocsXml.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+            {
+                if (!config.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
+                {
+                    foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
+                    {
+                        if (config.HasAllowedAssemblyPrefix(subDir.Name))
+                        {
+                            fileInfos.Add(fileInfo);
+                        }
+                    }
+                }
+            }
+
+            Log.Success("Finished looking for Docs xml files");
+
+            return fileInfos;
+        }
+
+        private static List<FileInfo> GetTripleSlashXmlFiles(Configuration config)
+        {
+            Log.Info("Looking for triple slash xml files...");
+
+            List<FileInfo> fileInfos = new List<FileInfo>();
+
+            foreach (DirectoryInfo dirInfo in config.DirsTripleSlashXmls)
+            {
+                // 1) Find all the xml files inside the subdirectories within the triple slash xml directory
+                foreach (DirectoryInfo subDir in dirInfo.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+                {
+                    if (!config.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
+                    {
+                        foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
+                        {
+                            if (config.HasAllowedAssemblyPrefix(fileInfo.Name))
+                            {
+                                fileInfos.Add(fileInfo);
+                            }
+                        }
+                    }
+                }
+
+                // 2) Find all the xml files in the top directory
+                foreach (FileInfo fileInfo in dirInfo.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
+                {
+                    if (config.HasAllowedAssemblyPrefix(fileInfo.Name))
+                    {
+                        fileInfos.Add(fileInfo);
+                    }
+                }
+            }
+
+            Log.Success("Finished looking for triple slash xml files");
+
+            return fileInfos;
+        }
 
         /// <summary>
         /// Iterates through all the found triple slash assembly files, finds all Docs types that belong to the same assembly, and looks for comments that can be ported.
@@ -381,9 +455,9 @@ namespace DocsPortingTool
         /// <summary>
         /// Prints all the undocumented APIs.
         /// </summary>
-        private static void PrintUndocumentedAPIs()
+        private static void PrintUndocumentedAPIs(bool printUndoc)
         {
-            if (CLArgumentVerifier.PrintUndoc)
+            if (printUndoc)
             {
                 Log.Line();
                 Log.Success("-----------------");

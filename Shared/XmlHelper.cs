@@ -5,8 +5,14 @@ using System.Xml.Linq;
 
 namespace DocsPortingTool
 {
-    class XmlHelper
+    public class XmlHelper
     {
+        #region Public properties
+
+        public static bool Save { get; set; }
+
+        #endregion
+
         #region Private members
 
         private static readonly Dictionary<string, string> replaceableNonRemarkPatterns = new Dictionary<string, string> {
@@ -167,7 +173,7 @@ namespace DocsPortingTool
 
         public static void SaveXml(string filePath, XDocument xDoc)
         {
-            if (CLArgumentVerifier.Save)
+            if (Save)
             {
                 // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
                 XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true };

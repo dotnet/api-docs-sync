@@ -2,7 +2,7 @@
   "profiles": {
     "DocsPortingTool": {
       "commandName": "Project",
-      "commandLineArgs": "-docs D:\\dotnet-api-docs\\xml -include System.Runtime.InteropServices -save false -tripleslash D:\\coreclr\\bin\\Product\\Windows_NT.x64.Release\\IL\\",
+      "commandLineArgs": "-docs D:\\dotnet-api-docs\\xml -include System.Text.Json -save true -tripleslash D:\\corefx\\artifacts\\bin",
       "environmentVariables": {
         "DOCS_COREFX": "D:\\corefx\\artifacts\\bin\\",
         "DOCS_CORECLR": "D:\\coreclr\\bin\\Product\\Windows_NT.x64.Debug\\IL\\",

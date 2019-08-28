@@ -249,13 +249,13 @@ namespace DocsPortingTool
                     }
                 }
 
-                // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed in the next line.
+                // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed by replacing the nodes.
                 XElement parsedElement = null;
                 try
                 {
                     parsedElement = XElement.Parse("<x>" + updatedValue + "</x>");
                 }
-                catch (System.Xml.XmlException)
+                catch (XmlException)
                 {
                     parsedElement = XElement.Parse("<x>" + updatedValue.Replace("<", "&lt;").Replace(">", "&gt;") + "</x>");
                 }

@@ -130,29 +130,32 @@ namespace DocsPortingTool
             Log.Info("Looking for triple slash comments that can be ported...");
             foreach (TripleSlashMember tsMember in tripleSlashComments.Members)
             {
-                if (tsMember.Name.StartsWith("T:"))
+                if (tsMember.Name.Contains("System.Text.Json.Utf8JsonReader"))
                 {
-                    foreach (DocsType dType in docsComments.Containers.Where(x => x.DocId == tsMember.Name))
+                    if (tsMember.Name.StartsWith("T:"))
                     {
-                        if (TryPortMissingCommentsForContainer(tsMember, dType))
+                        foreach (DocsType dType in docsComments.Containers.Where(x => x.DocId == tsMember.Name))
                         {
-                            ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
-                            ModifiedFiles.AddIfNotExists(dType.FilePath);
+                            if (TryPortMissingCommentsForContainer(tsMember, dType))
+                            {
+                                ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
+                                ModifiedFiles.AddIfNotExists(dType.FilePath);
 
-                            dType.Save();
+                                dType.Save();
+                            }
                         }
                     }
-                }
-                else
-                {
-                    foreach (DocsMember dMember in docsComments.Members.Where(x => x.DocId == tsMember.Name))
+                    else
                     {
-                        if (TryPortMissingCommentsForMember(tsMember, dMember))
+                        foreach (DocsMember dMember in docsComments.Members.Where(x => x.DocId == tsMember.Name))
                         {
-                            ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
-                            ModifiedFiles.AddIfNotExists(dMember.FilePath);
+                            if (TryPortMissingCommentsForMember(tsMember, dMember))
+                            {
+                                ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
+                                ModifiedFiles.AddIfNotExists(dMember.FilePath);
 
-                            dMember.Save();
+                                dMember.Save();
+                            }
                         }
                     }
                 }
@@ -310,24 +313,18 @@ namespace DocsPortingTool
             // Exceptions are a special case: If a new one is found in code, but does not exist in docs, the whole element needs to be added
             foreach (TripleSlashException tsException in tsMemberToPort.Exceptions)
             {
-                DocsException dException = dMemberToUpdate.Exceptions.FirstOrDefault(x => x.Cref.EndsWith(tsException.Cref));
-                bool created = false;
+                bool created = dMemberToUpdate.AddException(tsException.Cref, tsException.Value, out DocsException dException);
 
-                if (dException == null)
+                if (created)
                 {
-                    dException = dMemberToUpdate.SaveException(tsException.XEException);
                     AddedExceptions.AddIfNotExists($"{dException.Cref} in {dMemberToUpdate.DocId}");
-                    created = true;
+                    PrintModifiedMember("EXCEPTION CREATED", dException.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
                 }
-
-                if (created || (!IsEmpty(tsException.Value) && IsEmpty(dException.Value)))
+                else if (!IsEmpty(tsException.Value) && IsEmpty(dException.Value))
                 {
-                    PrintModifiedMember(string.Format("EXCEPTION ({0})", created ? "CREATED" : "MODIFIED"), dException.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
+                    dException.Value = tsException.Value;
+                    PrintModifiedMember("EXCEPTION MODIFIED", dException.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
 
-                    if (!created)
-                    {
-                        dException.Value = tsException.Value;
-                    }
                     TotalModifiedIndividualElements++;
                     modified = true;
                 }
@@ -379,17 +376,17 @@ namespace DocsPortingTool
         /// <summary>
         /// Standard formatted print message for a modified element.
         /// </summary>
-        /// <param name="descriptionAPI">The friendly description of the modified API.</param>
+        /// <param name="message">The friendly description of the modified API.</param>
         /// <param name="docsFile">The file where the modified API lives.</param>
-        /// <param name="codeAPI">The API name in the triple slash file.</param>
+        /// <param name="tripleSlashAPI">The API name in the triple slash file.</param>
         /// <param name="docsAPI">The API name in the Docs file.</param>
-        /// <param name="codeValue">The value that was found in the triple slash file.</param>
+        /// <param name="tripleSlashValue">The value that was found in the triple slash file.</param>
         /// <param name="docsValue">The value that was found in the Docs file.</param>
-        private static void PrintModifiedMember(string descriptionAPI, string docsFile, string codeAPI, string docsAPI, string codeValue, string docsValue)
+        private static void PrintModifiedMember(string message, string docsFile, string tripleSlashAPI, string docsAPI, string tripleSlashValue, string docsValue)
         {
             Log.Warning("    File: {0}", docsFile);
-            Log.Warning("        {0}", descriptionAPI);
-            Log.Warning("            Code: {0} => {1}", codeAPI, codeValue);
+            Log.Warning("        {0}", message);
+            Log.Warning("            Code: {0} => {1}", tripleSlashAPI, tripleSlashValue);
             Log.Warning("            Docs: {0} => {1}", docsAPI, docsValue);
             Log.Info("---------------------------------------------------");
         }

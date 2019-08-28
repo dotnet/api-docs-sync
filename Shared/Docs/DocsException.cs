@@ -6,6 +6,8 @@ namespace DocsPortingTool.Docs
     {
         private XDocument XDoc = null;
         private XElement XEException = null;
+        private XElement Docs = null;
+
         public string FilePath { get; private set; }
 
         public string Cref
@@ -27,11 +29,31 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        public DocsException(string filePath, XDocument xDoc, XElement xeException)
+        public string OriginalValue { get; private set; }
+
+        public DocsException(string filePath, XDocument xDoc, XElement docs, string cref, string value)
         {
             FilePath = filePath;
             XDoc = xDoc;
-            XEException = xeException;
+            Docs = docs;
+            OriginalValue = value;
+            XElement xException = new XElement("exception", value);
+            xException.SetAttributeValue("cref", cref);
+            XEException = XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, xException);
+        }
+
+        public DocsException(string filePath, XDocument xDoc, XElement docs, XElement xException)
+        {
+            FilePath = filePath;
+            XDoc = xDoc;
+            Docs = docs;
+            XEException = xException;
+            OriginalValue = Value;
+        }
+
+        public override string ToString()
+        {
+            return $"{Cref} - {Value}";
         }
     }
 }

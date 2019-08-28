@@ -282,7 +282,7 @@ namespace DocsPortingTool.Docs
                 {
                     if (Docs != null)
                     {
-                        _exceptions = Docs.Elements("exception").Select(x => new DocsException(FilePath, XDoc, x)).ToList();
+                        _exceptions = Docs.Elements("exception").Select(x => new DocsException(FilePath, XDoc, Docs, x)).ToList();
                     }
                     else
                     {
@@ -305,11 +305,22 @@ namespace DocsPortingTool.Docs
             return DocId;
         }
 
-        public DocsException SaveException(XElement xeCoreFXException)
+        public bool AddException(string cref, string value, out DocsException exception)
         {
-            XElement xeDocsException = XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, xeCoreFXException);
-            DocsException docsException = new DocsException(FilePath, XDoc, xeDocsException);
-            return docsException;
+            // Some devs add multiple exceptions with the same cref but for separate conditions
+            // In Docs, we merge all those messages into one single exception, but when porting we don't have a way to know if it's there or not
+            // So this tool will add the exception if cref+value is not found (not just cref)
+            exception = Exceptions.FirstOrDefault(x => x.Cref == cref && x.OriginalValue.Trim() == value.Trim());
+            bool created = false;
+
+            if (exception == null)
+            {
+                exception = new DocsException(FilePath, XDoc, Docs, cref, value);
+                Exceptions.Add(exception);
+                created = true;
+            }
+
+            return created;
         }
 
         public DocsTypeParam SaveTypeParam(XElement xeCoreFXTypeParam)

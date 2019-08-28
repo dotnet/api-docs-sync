@@ -40,5 +40,10 @@ namespace DocsPortingTool.TripleSlash
         {
             XEException = xeException;
         }
+
+        public override string ToString()
+        {
+            return $"{Cref} - {Value}";
+        }
     }
 }

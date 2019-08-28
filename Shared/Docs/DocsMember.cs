@@ -6,12 +6,10 @@ using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
 {
-    public class DocsMember
+    public class DocsMember : DocsParamWrapper
     {
-        private XDocument XDoc = null;
         private XElement XEMember = null;
 
-        public string FilePath { get; private set; }
         public string MemberName
         {
             get
@@ -34,7 +32,7 @@ namespace DocsPortingTool.Docs
         }
 
         private string _docId = null;
-        public string DocId
+        public override string DocId
         {
             get
             {
@@ -101,7 +99,7 @@ namespace DocsPortingTool.Docs
             }
         }
         private List<DocsParameter> _parameters;
-        public List<DocsParameter> Parameters
+        public override List<DocsParameter> Parameters
         {
             get
             {
@@ -165,7 +163,7 @@ namespace DocsPortingTool.Docs
                 return _typeParams;
             }
         }
-        public XElement Docs
+        public override XElement Docs
         {
             get
             {
@@ -173,7 +171,7 @@ namespace DocsPortingTool.Docs
             }
         }
         private List<DocsParam> _params;
-        public List<DocsParam> Params
+        public override List<DocsParam> Params
         {
             get
             {
@@ -319,13 +317,6 @@ namespace DocsPortingTool.Docs
             XElement xeDocsTypeParam = XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, xeCoreFXTypeParam);
             DocsTypeParam docsTypeParam = new DocsTypeParam(FilePath, XDoc, xeDocsTypeParam);
             return docsTypeParam;
-        }
-
-        public DocsParam SaveParam(XElement xeCoreFXParam)
-        {
-            XElement xeDocsParam = XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, xeCoreFXParam);
-            DocsParam docsParam = new DocsParam(FilePath, XDoc, xeDocsParam);
-            return docsParam;
         }
 
         public void Save()

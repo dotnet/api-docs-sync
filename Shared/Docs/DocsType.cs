@@ -9,19 +9,16 @@ namespace DocsPortingTool.Docs
     /// <summary>
     /// Represents the root xml element (unique) of a Docs xml file, called Type.
     /// </summary>
-    public class DocsType
+    public class DocsType : DocsParamWrapper
     {
-        private XDocument XDoc = null;
         private XElement XERoot = null;
 
-        public string FilePath { get; private set; }
-
-        private string _name = string.Empty;
+        private string _name = null;
         public string Name
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_name))
+                if (_name == null)
                 {
                     _name = XmlHelper.GetAttributeValue(XERoot, "Name");
                 }
@@ -29,12 +26,12 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _fullName = string.Empty;
+        private string _fullName = null;
         public string FullName
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_fullName))
+                if (_fullName == null)
                 {
                     _fullName = XmlHelper.GetAttributeValue(XERoot, "FullName");
                 }
@@ -42,12 +39,12 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _namespace = string.Empty;
+        private string _namespace = null;
         public string Namespace
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_namespace))
+                if (_namespace == null)
                 {
                     int lastDotPosition = FullName.LastIndexOf('.');
                     _namespace = lastDotPosition < 0 ? FullName : FullName.Substring(0, lastDotPosition);
@@ -69,19 +66,23 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        public string DocId
+        private string _docId = null;
+        public override string DocId
         {
             get
             {
-                DocsTypeSignature dts = TypeSignatures.FirstOrDefault(x => x.Language == "DocId");
-                if (dts == null)
+                if (_docId == null)
                 {
-                    string message = $"DocId TypeSignature not found for FullName";
-                    Log.Error($"DocId TypeSignature not found for FullName");
-                    throw new Exception(message);
+                    DocsTypeSignature dts = TypeSignatures.FirstOrDefault(x => x.Language == "DocId");
+                    if (dts == null)
+                    {
+                        string message = $"DocId TypeSignature not found for FullName";
+                        Log.Error($"DocId TypeSignature not found for FullName");
+                        throw new Exception(message);
+                    }
+                    _docId = dts.Value;
                 }
-
-                return dts.Value;
+                return _docId;
             }
         }
 
@@ -105,12 +106,12 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _baseTypeName = string.Empty;
+        private string _baseTypeName = null;
         public string BaseTypeName
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_baseTypeName))
+                if (_baseTypeName == null)
                 {
                     _baseTypeName = XmlHelper.GetChildElementValue(Base, "BaseTypeName");
                 }
@@ -154,20 +155,62 @@ namespace DocsPortingTool.Docs
                 return _attributes;
             }
         }
-        public XElement Docs
+
+        private List<DocsParameter> _parameters;
+        public override List<DocsParameter> Parameters
+        {
+            get
+            {
+                if (_parameters == null)
+                {
+                    XElement xeParameters = XmlHelper.GetChildElement(XERoot, "Parameters");
+                    if (xeParameters != null)
+                    {
+                        _parameters = xeParameters.Elements("Parameter").Select(x => new DocsParameter(x)).ToList();
+                    }
+                    else
+                    {
+                        _parameters = new List<DocsParameter>();
+                    }
+                }
+                return _parameters;
+            }
+        }
+        
+        public override XElement Docs
         {
             get
             {
                 return XmlHelper.GetChildElement(XERoot, "Docs");
             }
         }
+        
+        private List<DocsParam> _params;
+        public override List<DocsParam> Params
+        {
+            get
+            {
+                if (_params == null)
+                {
+                    if (Docs != null)
+                    {
+                        _params = Docs.Elements("param").Select(x => new DocsParam(FilePath, XDoc, x)).ToList();
+                    }
+                    else
+                    {
+                        _params = new List<DocsParam>();
+                    }
+                }
+                return _params;
+            }
+        }
 
-        private string _summary = string.Empty;
+        private string _summary = null;
         public string Summary
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_summary))
+                if (_summary == null)
                 {
                     _summary = XmlHelper.GetChildElementValue(Docs, "summary");
                 }

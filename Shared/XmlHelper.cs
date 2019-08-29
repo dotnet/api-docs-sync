@@ -1,5 +1,6 @@
 ﻿using Shared;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -15,7 +16,7 @@ namespace DocsPortingTool
 
         #region Private members
 
-        private static readonly Dictionary<string, string> replaceableNonRemarkPatterns = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> _replaceableNonRemarkPatterns = new Dictionary<string, string> {
             { "<c>null</c>",                "<see langword=\"null\" />"},
             { "<c>true</c>",                "<see langword=\"true\" />"},
             { "<c>false</c>",               "<see langword=\"false\" />"},
@@ -40,7 +41,7 @@ namespace DocsPortingTool
             { "</para>", "" }
         };
 
-        private static readonly Dictionary<string, string> replaceableRemarkPatterns = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> _replaceableRemarkPatterns = new Dictionary<string, string> {
             { "<see langword=\"null\"/>",   "`null`" },
             { "<see langword=\"null\" />",  "`null`" },
             { "<see langword=\"true\"/>",   "`true`" },
@@ -75,13 +76,16 @@ namespace DocsPortingTool
             { "<see cref=\"M:",    "<xref:" },
             { "<see cref=\"P:",    "<xref:" },
             { "<see cref=\"",      "<xref:" },
-            { "<paramref name=\"", "<xref:" },
-            { "<seealso cref=\"",  "<xref:" },
             { "<para>",            "" },
             { "</para>",           "" },
             { "\" />",             ">" },
             { "<![CDATA[",         "" },
             { "]]>",               "" }
+        };
+
+        private static readonly Dictionary<string, string> _replaceableRemarkRegexPatterns = new Dictionary<string, string> {
+            { @"\<paramref name\=""(?'paramrefContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${paramrefContents}`" },
+            { @"\<seealso cref\=""(?'seealsoContents'.+)""[ ]*\/\>",      @"seealsoContents" },
         };
 
         #endregion
@@ -213,16 +217,24 @@ namespace DocsPortingTool
 
             XElement xeFormat = new XElement("format");
 
-            string updatedValue = value;
+            string updatedValue = RemoveUndesiredEndlines(value);
+            updatedValue = SubstituteRemarksRegexPatterns(updatedValue);
 
-            foreach (KeyValuePair<string, string> kvp in replaceableRemarkPatterns)
+            foreach (KeyValuePair<string, string> kvp in _replaceableRemarkPatterns)
             {
                 if (updatedValue.Contains(kvp.Key))
                 {
                     updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
                 }
             }
-            xeFormat.ReplaceAll(new XCData("\r\n" + updatedValue + "\r\n          "));
+
+            string remarksTitle = string.Empty;
+            if (!updatedValue.Contains("## Remarks"))
+            {
+                remarksTitle = "## Remarks\r\n\r\n";
+            }
+
+            xeFormat.ReplaceAll(new XCData("\r\n\r\n" + remarksTitle + updatedValue + "\r\n\r\n          "));
 
             // Attribute at the end, otherwise it would be replaced by ReplaceAll
             xeFormat.SetAttributeValue("type", "text/markdown");
@@ -240,8 +252,9 @@ namespace DocsPortingTool
             }
             else
             {
-                string updatedValue = value;
-                foreach (KeyValuePair<string, string> kvp in replaceableNonRemarkPatterns)
+                string updatedValue = RemoveUndesiredEndlines(value);
+
+                foreach (KeyValuePair<string, string> kvp in _replaceableNonRemarkPatterns)
                 {
                     if (updatedValue.Contains(kvp.Key))
                     {
@@ -299,6 +312,35 @@ namespace DocsPortingTool
             }
 
             return true;
+        }
+
+        private static string RemoveUndesiredEndlines(string value)
+        {
+            Regex regex = new Regex(@"((?'undesiredEndlinePrefix'[^\.\:])[\r\n]+[ \t]*)");
+            if (regex.IsMatch(value))
+            {
+                value = regex.Replace(value, @"${undesiredEndlinePrefix} ");
+            }
+            return value;
+        }
+
+        private static string SubstituteRemarksRegexPatterns(string value)
+        {
+            return SubstituteRegexPatterns(value, _replaceableRemarkRegexPatterns);
+        }
+
+        private static string SubstituteRegexPatterns(string value, Dictionary<string, string> replaceableRegexPatterns)
+        {
+            foreach (KeyValuePair<string, string> pattern in replaceableRegexPatterns)
+            {
+                Regex regex = new Regex(pattern.Key);
+                if (regex.IsMatch(value))
+                {
+                    value = regex.Replace(value, pattern.Value);
+                }
+            }
+
+            return value;
         }
 
         #endregion

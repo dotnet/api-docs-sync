@@ -82,6 +82,7 @@ namespace DocsPortingTool.TripleSlash
 
             XElement xeMembers = XmlHelper.GetChildElement(xDoc.Root, "members");
 
+            int totalAdded = 0;
             foreach (XElement xeMember in xeMembers.Elements("member"))
             {
                 TripleSlashMember member = new TripleSlashMember(xeMember);
@@ -89,7 +90,7 @@ namespace DocsPortingTool.TripleSlash
                 bool add = false;
                 foreach (string included in includedAssemblies)
                 {
-                    if (member.Assembly.StartsWith(included))
+                    if (member.Assembly.StartsWith(included) || member.Name.Substring(2).StartsWith(included))
                     {
                         add = true;
                         break;
@@ -98,7 +99,7 @@ namespace DocsPortingTool.TripleSlash
 
                 foreach (string excluded in excludedAssemblies)
                 {
-                    if (member.Assembly.StartsWith(excluded))
+                    if (member.Assembly.StartsWith(excluded) || member.Name.Substring(2).StartsWith(excluded))
                     {
                         add = false;
                         break;
@@ -107,13 +108,14 @@ namespace DocsPortingTool.TripleSlash
 
                 if (add)
                 {
+                    totalAdded++;
                     Members.Add(member);
                 }
             }
 
             if (printSuccess)
             {
-                Log.Success("Triple slash xml file included: {0}", fileInfo.FullName);
+                Log.Success($"{totalAdded} triple slash member(s) added from xml file '{fileInfo.FullName}'");
             }
         }
     }

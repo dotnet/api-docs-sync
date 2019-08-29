@@ -92,7 +92,7 @@ namespace DocsPortingTool.Docs
             bool add = false;
             foreach (string included in config.IncludedAssemblies)
             {
-                if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0)
+                if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 || docsType.FullName.StartsWith(included))
                 {
                     add = true;
                     break;
@@ -101,7 +101,7 @@ namespace DocsPortingTool.Docs
 
             foreach (string excluded in config.ExcludedAssemblies)
             {
-                if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(excluded)) > 0)
+                if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(excluded)) > 0 || docsType.FullName.StartsWith(excluded))
                 {
                     add = false;
                     Log.Warning("Docs xml file excluded: {0}", fileInfo.FullName);
@@ -109,8 +109,11 @@ namespace DocsPortingTool.Docs
                 }
             }
 
+            int totalContainersAdded = 0;
+            int totalMembersAdded = 0;
             if (add)
             {
+                totalContainersAdded++;
                 Containers.Add(docsType);
 
                 XElement xeMembers = XmlHelper.GetChildElement(xDoc.Root, "Members");
@@ -120,11 +123,12 @@ namespace DocsPortingTool.Docs
                     foreach (XElement xeMember in xeMembers.Elements("Member"))
                     {
                         DocsMember member = new DocsMember(fileInfo.FullName, xDoc, xeMember);
+                        totalMembersAdded++;
                         Members.Add(member);
                     }
                 }
 
-                Log.Success("Docs xml file included: {0}", fileInfo.FullName);
+                Log.Success($"{totalContainersAdded} container(s) added and {totalMembersAdded} member(s) added from file '{fileInfo.FullName}'");
             }
         }
     }

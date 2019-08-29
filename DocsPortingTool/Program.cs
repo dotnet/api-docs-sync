@@ -130,32 +130,29 @@ namespace DocsPortingTool
             Log.Info("Looking for triple slash comments that can be ported...");
             foreach (TripleSlashMember tsMember in tripleSlashComments.Members)
             {
-                if (tsMember.Name.Contains("System.Text.Json.Utf8JsonReader"))
+                if (tsMember.Name.StartsWith("T:"))
                 {
-                    if (tsMember.Name.StartsWith("T:"))
+                    foreach (DocsType dType in docsComments.Containers.Where(x => x.DocId == tsMember.Name))
                     {
-                        foreach (DocsType dType in docsComments.Containers.Where(x => x.DocId == tsMember.Name))
+                        if (TryPortMissingCommentsForContainer(tsMember, dType))
                         {
-                            if (TryPortMissingCommentsForContainer(tsMember, dType))
-                            {
-                                ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
-                                ModifiedFiles.AddIfNotExists(dType.FilePath);
+                            ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
+                            ModifiedFiles.AddIfNotExists(dType.FilePath);
 
-                                dType.Save();
-                            }
+                            dType.Save();
                         }
                     }
-                    else
+                }
+                else
+                {
+                    foreach (DocsMember dMember in docsComments.Members.Where(x => x.DocId == tsMember.Name))
                     {
-                        foreach (DocsMember dMember in docsComments.Members.Where(x => x.DocId == tsMember.Name))
+                        if (TryPortMissingCommentsForMember(tsMember, dMember))
                         {
-                            if (TryPortMissingCommentsForMember(tsMember, dMember))
-                            {
-                                ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
-                                ModifiedFiles.AddIfNotExists(dMember.FilePath);
+                            ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
+                            ModifiedFiles.AddIfNotExists(dMember.FilePath);
 
-                                dMember.Save();
-                            }
+                            dMember.Save();
                         }
                     }
                 }

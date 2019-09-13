@@ -250,14 +250,24 @@ namespace DocsPortingTool
                 modified = true;
             }
 
-            // Properties and method returns save their values in different locations
+            // Properties sometimes don't have a <value> but have a <returns>
             if (dMemberToUpdate.MemberType == "Property")
             {
+                string value = string.Empty;
+                if (!IsEmpty(tsMemberToPort.Value) && IsEmpty(dMemberToUpdate.Value))
+                {
+                    value = tsMemberToPort.Value;
+                }
                 if (!IsEmpty(tsMemberToPort.Returns) && IsEmpty(dMemberToUpdate.Value))
+                {
+                    value = tsMemberToPort.Returns;
+                }
+
+                if (!string.IsNullOrWhiteSpace(value))
                 {
                     PrintModifiedMember("PROPERTY", dMemberToUpdate.FilePath, tsMemberToPort.Name, dMemberToUpdate.DocId, tsMemberToPort.Returns, dMemberToUpdate.Value);
 
-                    dMemberToUpdate.Value = tsMemberToPort.Returns;
+                    dMemberToUpdate.Value = value;
                     TotalModifiedIndividualElements++;
                     modified = true;
                 }
@@ -266,6 +276,7 @@ namespace DocsPortingTool
             {
                 if (!IsEmpty(tsMemberToPort.Returns) && IsEmpty(dMemberToUpdate.Returns))
                 {
+                    // Methods that return void should NOT have any <returns> documentation
                     if (tsMemberToPort.Returns != null && dMemberToUpdate.ReturnType == "System.Void")
                     {
                         ProblematicAPIs.AddIfNotExists($"Returns=[{tsMemberToPort.Returns}] in Method=[{dMemberToUpdate.DocId}]");

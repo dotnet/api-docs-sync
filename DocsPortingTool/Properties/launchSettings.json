@@ -2,9 +2,10 @@
   "profiles": {
     "DocsPortingTool": {
       "commandName": "Project",
-      "commandLineArgs": "-docs D:\\dotnet-api-docs\\xml -include System.Text.Json.Serialization -save false -tripleslash D:\\corefx\\artifacts\\bin\\System.Text.Json",
+      "commandLineArgs": "-docs D:\\dotnet-api-docs\\xml -include System.Text.Json -save false -tripleslash D:\\corefx\\artifacts\\bin",
       "environmentVariables": {
         "DOCS_COREFX": "D:\\corefx\\artifacts\\bin\\",
+        "DOCS_IOT": "D:\\iot\\artifacts\\bin",
         "DOCS_CORECLR": "D:\\coreclr\\bin\\Product\\Windows_NT.x64.Debug\\IL\\",
         "DOCS_WINFORMS": "D:\\winforms\\artifacts\\bin\\",
         "DOCS_WPF": "D:\\wpf\\.tools\\native\\bin\\dotnet-api-docs_netcoreapp3.0\\0.0.0.1\\_intellisense\\\\netcore-3.0\\"

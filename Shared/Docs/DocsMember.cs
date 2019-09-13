@@ -307,10 +307,7 @@ namespace DocsPortingTool.Docs
 
         public bool AddException(string cref, string value, out DocsException exception)
         {
-            // Some devs add multiple exceptions with the same cref but for separate conditions
-            // In Docs, we merge all those messages into one single exception, but when porting we don't have a way to know if it's there or not
-            // So this tool will add the exception if cref+value is not found (not just cref)
-            exception = Exceptions.FirstOrDefault(x => x.Cref == cref && x.OriginalValue.Trim() == value.Trim());
+            exception = Exceptions.FirstOrDefault(x => x.Cref == cref);
             bool created = false;
 
             if (exception == null)

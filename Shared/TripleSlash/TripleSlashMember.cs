@@ -92,6 +92,19 @@ namespace DocsPortingTool.TripleSlash
             }
         }
 
+        public string _value = string.Empty;
+        public string Value
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(_value))
+                {
+                    _value = XmlHelper.GetChildElementValue(XEMember, "value");
+                }
+                return _value;
+            }
+        }
+
         private string _returns = string.Empty;
         public string Returns
         {

@@ -135,14 +135,13 @@ namespace DocsPortingTool.Docs
 
         public void Save()
         {
-            foreach (var member in Members)
-            {
-                member.Dispose();
-            }
+            var modifiedFilesContainers = Containers.Where(x => x.Changed);
+            var modifiedFilesAll = Members.Where(x => x.Changed && modifiedFilesContainers.Count(y => y.FilePath == x.FilePath) == 0);
 
-            foreach (var container in Containers)
+            foreach (var m in modifiedFilesAll)
             {
-                container.Dispose();
+                Log.Warning(false, $"Saving file: {m.FilePath}");
+                XmlHelper.SaveXml(m.XDoc, m.FilePath);
             }
         }
     }

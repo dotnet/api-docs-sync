@@ -1,6 +1,7 @@
 ﻿using DocsPortingTool.Docs;
 using Shared;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -169,7 +170,21 @@ namespace DocsPortingTool
         #region Write actions
 
         #region Public methods
-        
+
+        public static void SaveXml(XDocument xDoc, string filePath)
+        {
+            if (Configuration.Save)
+            {
+                // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
+                XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true, Encoding = Encoding.GetEncoding("ISO-8859-1") };
+                using (XmlWriter xw = XmlWriter.Create(filePath, xws))
+                {
+                    xDoc.Save(xw);
+                    Log.Success(" [Saved]");
+                }
+            }
+        }
+
         public static void FormatAsMarkdown(IDocsAPI api, XElement xeElement, string value)
         {
             // Empty value because SaveChildElement will add a child to the parent, not replace it

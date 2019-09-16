@@ -1,16 +1,19 @@
 ﻿using Shared;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
 {
-    public interface IDocsAPI : IDisposable
+    public interface IDocsAPI
     {
         public abstract XDocument XDoc { get; set; }
         public abstract bool Changed { get; set; }
         public abstract string FilePath { get; set; }
+        public abstract Encoding OriginalEncoding { get; set; }
         public abstract string DocId { get; }
         public abstract XElement Docs { get; }
         public abstract List<DocsParameter> Parameters { get; }
@@ -24,6 +27,7 @@ namespace DocsPortingTool.Docs
         public XDocument XDoc { get; set; } = null;
         public bool Changed { get; set; } = false;
         public string FilePath { get; set; } = string.Empty;
+        public Encoding OriginalEncoding { get; set; } = null;
         public abstract string DocId { get; }
         public abstract XElement Docs { get; }
         public abstract List<DocsParameter> Parameters { get; }
@@ -75,30 +79,6 @@ namespace DocsPortingTool.Docs
             }
 
             return true;
-        }
-
-        public void Dispose()
-        {
-            if (Changed)
-            {
-                Log.Warning($"Saving file: {FilePath}");
-                SaveXml();
-            }
-        }
-
-        private void SaveXml()
-        {
-            if (Configuration.Save)
-            {
-                // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true };
-                using (XmlWriter xw = XmlWriter.Create(FilePath, xws))
-                {
-                    Log.Info(xw.Settings.OutputMethod.ToString());
-                    XDoc.Save(xw);
-                    Log.Success("        [Saved]");
-                }
-            }
         }
     }
 }

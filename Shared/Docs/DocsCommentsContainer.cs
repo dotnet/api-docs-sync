@@ -51,9 +51,7 @@ namespace DocsPortingTool.Docs
         {
         }
 
-        
-
-        public void LoadFile(FileInfo fileInfo, Configuration config)
+        public void LoadFile(FileInfo fileInfo)
         {
             if (!fileInfo.Exists)
             {
@@ -90,7 +88,7 @@ namespace DocsPortingTool.Docs
             DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root);
 
             bool add = false;
-            foreach (string included in config.IncludedAssemblies)
+            foreach (string included in Configuration.IncludedAssemblies)
             {
                 if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 || docsType.FullName.StartsWith(included))
                 {
@@ -99,7 +97,7 @@ namespace DocsPortingTool.Docs
                 }
             }
 
-            foreach (string excluded in config.ExcludedAssemblies)
+            foreach (string excluded in Configuration.ExcludedAssemblies)
             {
                 if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(excluded)) > 0 || docsType.FullName.StartsWith(excluded))
                 {
@@ -128,7 +126,23 @@ namespace DocsPortingTool.Docs
                     }
                 }
 
-                Log.Success($"{totalContainersAdded} container(s) added and {totalMembersAdded} member(s) added from file '{fileInfo.FullName}'");
+                if (totalContainersAdded > 0 || totalMembersAdded > 0)
+                {
+                    Log.Success($"{totalContainersAdded} container(s) added and {totalMembersAdded} member(s) added from file '{fileInfo.FullName}'");
+                }
+            }
+        }
+
+        public void Save()
+        {
+            foreach (var member in Members)
+            {
+                member.Dispose();
+            }
+
+            foreach (var container in Containers)
+            {
+                container.Dispose();
             }
         }
     }

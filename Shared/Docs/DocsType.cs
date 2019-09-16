@@ -9,7 +9,7 @@ namespace DocsPortingTool.Docs
     /// <summary>
     /// Represents the root xml element (unique) of a Docs xml file, called Type.
     /// </summary>
-    public class DocsType : DocsParamWrapper
+    public class DocsType : DocsAPI
     {
         private XElement XERoot = null;
 
@@ -194,7 +194,7 @@ namespace DocsPortingTool.Docs
                 {
                     if (Docs != null)
                     {
-                        _params = Docs.Elements("param").Select(x => new DocsParam(FilePath, XDoc, x)).ToList();
+                        _params = Docs.Elements("param").Select(x => new DocsParam(this, x)).ToList();
                     }
                     else
                     {
@@ -219,10 +219,12 @@ namespace DocsPortingTool.Docs
             set
             {
                 XElement xeSummary = XmlHelper.GetChildElement(Docs, "summary");
-                if (xeSummary != null)
+                if (xeSummary == null)
                 {
-                    XmlHelper.SaveAsNonRemark(FilePath, XDoc, xeSummary, value);
+                    xeSummary = new XElement("summary", "To be added.");
+                    AddChildAsNormalElement(Docs, xeSummary, true);
                 }
+                XmlHelper.FormatAsNormalElement(this, xeSummary, value);
             }
         }
 
@@ -230,15 +232,11 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                if (XERemarks != null)
-                {
-                    return XERemarks.Value;
-                }
-                return string.Empty;
+                return XERemarks.Value;
             }
             set
             {
-                XmlHelper.SaveAsRemark(FilePath, XDoc, XERemarks, value);
+                XmlHelper.FormatAsMarkdown(this, XERemarks, value);
             }
         }
 
@@ -249,11 +247,6 @@ namespace DocsPortingTool.Docs
             XERoot = xeRoot;
         }
 
-        public void Save()
-        {
-            XmlHelper.SaveXml(FilePath, XDoc);
-        }
-
         public override string ToString()
         {
             return FullName;
@@ -261,22 +254,23 @@ namespace DocsPortingTool.Docs
 
         #region Private members
 
+        private XElement _xeRemarks = null;
         private XElement XERemarks
         {
             get
             {
-                XElement xeRemarks = null;
+                _xeRemarks = null;
                 if (Docs != null)
                 {
-                    xeRemarks = XmlHelper.GetChildElement(Docs, "remarks");
-                    if (xeRemarks == null)
+                    _xeRemarks = XmlHelper.GetChildElement(Docs, "remarks");
+                    if (_xeRemarks == null)
                     {
-                        XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, new XElement("remarks", "To be added."), true);
-                        xeRemarks = XmlHelper.GetChildElement(Docs, "remarks");
+                        _xeRemarks = new XElement("remarks", "To be added.");
+                        AddChildAsNormalElement(Docs, _xeRemarks, true);
                     }
                 }
 
-                return xeRemarks;
+                return _xeRemarks;
             }
         }
 

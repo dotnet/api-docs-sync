@@ -7,9 +7,11 @@ namespace DocsPortingTool.Docs
     /// </summary>
     public class DocsTypeParam
     {
-        private XDocument XDoc = null;
         private XElement XETypeParam = null;
-        public string FilePath { get; private set; }
+        public IDocsAPI ParentAPI
+        {
+            get; private set;
+        }
         public string Name
         {
             get
@@ -25,14 +27,13 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SaveAsNonRemark(FilePath, XDoc, XETypeParam, value);
+                XmlHelper.FormatAsNormalElement(ParentAPI, XETypeParam, value);
             }
         }
 
-        public DocsTypeParam(string filePath, XDocument xDoc, XElement xeTypeParam)
+        public DocsTypeParam(IDocsAPI parentAPI, XElement xeTypeParam)
         {
-            FilePath = filePath;
-            XDoc = xDoc;
+            ParentAPI = parentAPI;
             XETypeParam = xeTypeParam;
         }
     }

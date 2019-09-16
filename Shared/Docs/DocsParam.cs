@@ -4,9 +4,11 @@ namespace DocsPortingTool.Docs
 {
     public class DocsParam
     {
-        private XDocument XDoc = null;
         private XElement XEDocsParam = null;
-        public string FilePath { get; private set; }
+        public IDocsAPI ParentAPI
+        {
+            get; private set;
+        }
         public string Name
         {
             get
@@ -22,13 +24,12 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SaveAsNonRemark(FilePath, XDoc, XEDocsParam, value);
+                XmlHelper.FormatAsNormalElement(ParentAPI, XEDocsParam, value);
             }
         }
-        public DocsParam(string filePath, XDocument xDoc, XElement xeDocsParam)
+        public DocsParam(IDocsAPI parentAPI, XElement xeDocsParam)
         {
-            FilePath = filePath;
-            XDoc = xDoc;
+            ParentAPI = parentAPI;
             XEDocsParam = xeDocsParam;
         }
         public override string ToString()

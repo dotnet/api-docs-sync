@@ -4,11 +4,12 @@ namespace DocsPortingTool.Docs
 {
     public class DocsException
     {
-        private XDocument XDoc = null;
         private XElement XEException = null;
-        private XElement Docs = null;
 
-        public string FilePath { get; private set; }
+        public IDocsAPI ParentAPI
+        {
+            get; private set;
+        }
 
         public string Cref
         {
@@ -25,28 +26,24 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.SaveAsNonRemark(FilePath, XDoc, XEException, value);
+                XmlHelper.FormatAsNormalElement(ParentAPI, XEException, value);
             }
         }
 
         public string OriginalValue { get; private set; }
 
-        public DocsException(string filePath, XDocument xDoc, XElement docs, string cref, string value)
+        public DocsException(IDocsAPI parentAPI, string cref, string value)
         {
-            FilePath = filePath;
-            XDoc = xDoc;
-            Docs = docs;
+            ParentAPI = parentAPI;
             OriginalValue = value;
-            XElement xException = new XElement("exception", value);
-            xException.SetAttributeValue("cref", cref);
-            XEException = XmlHelper.SaveChildAsNonRemark(FilePath, XDoc, Docs, xException);
+            XEException = new XElement("exception", string.Empty);
+            XEException.SetAttributeValue("cref", cref);
+            Value = value; // Ensure correct formatting
         }
 
-        public DocsException(string filePath, XDocument xDoc, XElement docs, XElement xException)
+        public DocsException(IDocsAPI parentAPI, XElement xException)
         {
-            FilePath = filePath;
-            XDoc = xDoc;
-            Docs = docs;
+            ParentAPI = parentAPI;
             XEException = xException;
             OriginalValue = Value;
         }

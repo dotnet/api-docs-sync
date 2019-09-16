@@ -21,13 +21,8 @@ namespace DocsPortingTool
 
         private static int TotalModifiedIndividualElements = 0;
 
-        private static DocsCommentsContainer docsComments = new DocsCommentsContainer();
-        private static TripleSlashCommentsContainer tripleSlashComments = new TripleSlashCommentsContainer();
-
-        #endregion
-
-        #region Public fields
-
+        private static TripleSlashCommentsContainer TripleSlashComments = new TripleSlashCommentsContainer();
+        private static DocsCommentsContainer DocsComments = new DocsCommentsContainer();
 
         #endregion
 
@@ -35,23 +30,22 @@ namespace DocsPortingTool
 
         public static void Main(string[] args)
         {
-            Configuration config = CLArgumentVerifier.GetConfiguration(args);
+            CLArgumentVerifier.GetConfiguration(args);
 
-            XmlHelper.Save = true;
-
-            foreach (FileInfo fileInfo in GetTripleSlashXmlFiles(config))
+            foreach (FileInfo fileInfo in GetTripleSlashXmlFiles())
             {
-                tripleSlashComments.LoadFile(fileInfo, config.IncludedAssemblies, config.ExcludedAssemblies, printSuccess: true);
+                TripleSlashComments.LoadFile(fileInfo, printSuccess: true);
             }
 
-            foreach (FileInfo fileInfo in GetDocsCommentsXmlFiles(config))
+            foreach (FileInfo fileInfo in GetDocsCommentsXmlFiles())
             {
-                docsComments.LoadFile(fileInfo, config);
+                DocsComments.LoadFile(fileInfo);
             }
 
             PortMissingComments();
+            DocsComments.Save();
 
-            PrintUndocumentedAPIs(config.PrintUndoc);
+            PrintUndocumentedAPIs();
             PrintSummary();
         }
 
@@ -59,19 +53,19 @@ namespace DocsPortingTool
 
         #region Private methods
 
-        private static List<FileInfo> GetDocsCommentsXmlFiles(Configuration config)
+        private static List<FileInfo> GetDocsCommentsXmlFiles()
         {
             Log.Info("Looking for Docs xml files...");
 
             List<FileInfo> fileInfos = new List<FileInfo>();
 
-            foreach (DirectoryInfo subDir in config.DirDocsXml.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+            foreach (DirectoryInfo subDir in Configuration.DirDocsXml.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
             {
-                if (!config.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
+                if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
                 {
                     foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
                     {
-                        if (config.HasAllowedAssemblyPrefix(subDir.Name))
+                        if (Configuration.HasAllowedAssemblyPrefix(subDir.Name))
                         {
                             fileInfos.Add(fileInfo);
                         }
@@ -84,22 +78,22 @@ namespace DocsPortingTool
             return fileInfos;
         }
 
-        private static List<FileInfo> GetTripleSlashXmlFiles(Configuration config)
+        private static List<FileInfo> GetTripleSlashXmlFiles()
         {
             Log.Info("Looking for triple slash xml files...");
 
             List<FileInfo> fileInfos = new List<FileInfo>();
 
-            foreach (DirectoryInfo dirInfo in config.DirsTripleSlashXmls)
+            foreach (DirectoryInfo dirInfo in Configuration.DirsTripleSlashXmls)
             {
                 // 1) Find all the xml files inside the subdirectories within the triple slash xml directory
                 foreach (DirectoryInfo subDir in dirInfo.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
                 {
-                    if (!config.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
+                    if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
                     {
                         foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
                         {
-                            if (config.HasAllowedAssemblyPrefix(fileInfo.Name))
+                            if (Configuration.HasAllowedAssemblyPrefix(fileInfo.Name))
                             {
                                 fileInfos.Add(fileInfo);
                             }
@@ -110,14 +104,14 @@ namespace DocsPortingTool
                 // 2) Find all the xml files in the top directory
                 foreach (FileInfo fileInfo in dirInfo.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
                 {
-                    if (config.HasAllowedAssemblyPrefix(fileInfo.Name))
+                    if (Configuration.HasAllowedAssemblyPrefix(fileInfo.Name))
                     {
                         fileInfos.Add(fileInfo);
                     }
                 }
             }
 
-            Log.Success("Finished looking for triple slash xml files");
+            Log.Success("Finished looking for triple slash xml files.");
 
             return fileInfos;
         }
@@ -128,43 +122,28 @@ namespace DocsPortingTool
         private static void PortMissingComments()
         {
             Log.Info("Looking for triple slash comments that can be ported...");
-            foreach (TripleSlashMember tsMember in tripleSlashComments.Members)
+            foreach (TripleSlashMember tsMember in TripleSlashComments.Members)
             {
                 if (tsMember.Name.StartsWith("T:"))
                 {
-                    foreach (DocsType dType in docsComments.Containers.Where(x => x.DocId == tsMember.Name))
+                    foreach (DocsType dType in DocsComments.Containers.Where(x => x.DocId == tsMember.Name))
                     {
-                        if (TryPortMissingCommentsForContainer(tsMember, dType))
-                        {
-                            ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
-                            ModifiedFiles.AddIfNotExists(dType.FilePath);
-
-                            dType.Save();
-                        }
+                        PortMissingCommentsForContainer(tsMember, dType);
                     }
                 }
                 else
                 {
-                    foreach (DocsMember dMember in docsComments.Members.Where(x => x.DocId == tsMember.Name))
+                    foreach (DocsMember dMember in DocsComments.Members.Where(x => x.DocId == tsMember.Name))
                     {
-                        if (TryPortMissingCommentsForMember(tsMember, dMember))
-                        {
-                            ModifiedAssemblies.AddIfNotExists(tsMember.Assembly);
-                            ModifiedFiles.AddIfNotExists(dMember.FilePath);
-
-                            dMember.Save();
-                        }
+                        PortMissingCommentsForMember(tsMember, dMember);
                     }
                 }
             }
-
             Log.Line();
         }
 
-        private static bool TryPortMissingCommentsForContainer(TripleSlashMember tsMemberToPort, DocsType dTypeToUpdate)
+        private static void PortMissingCommentsForContainer(TripleSlashMember tsMemberToPort, DocsType dTypeToUpdate)
         {
-            bool modified = false;
-
             if (tsMemberToPort.Name == dTypeToUpdate.DocId)
             {
                 // The triple slash member is referring to the base type (container) in the docs xml
@@ -174,7 +153,6 @@ namespace DocsPortingTool
 
                     dTypeToUpdate.Summary = tsMemberToPort.Summary;
                     TotalModifiedIndividualElements++;
-                    modified = true;
                 }
 
                 if (!IsEmpty(tsMemberToPort.Remarks) && IsEmpty(dTypeToUpdate.Remarks))
@@ -183,7 +161,6 @@ namespace DocsPortingTool
 
                     dTypeToUpdate.Remarks = tsMemberToPort.Remarks;
                     TotalModifiedIndividualElements++;
-                    modified = true;
                 }
 
                 // Some types (for example: delegates) have params
@@ -201,35 +178,33 @@ namespace DocsPortingTool
 
                     if (created || (!IsEmpty(tsParam.Value) && IsEmpty(dParam.Value)))
                     {
-                        PrintModifiedMember(string.Format("PARAM ({0})", created ? "CREATED" : "MODIFIED"), dParam.FilePath, tsParam.Name, dParam.Name, tsParam.Value, dParam.Value);
+                        string message = string.Format("PARAM ({0})", created ? "CREATED" : "MODIFIED");
+                        PrintModifiedMember(message, dParam.ParentAPI.FilePath, tsParam.Name, dParam.Name, tsParam.Value, dParam.Value);
 
                         if (!created)
                         {
                             dParam.Value = tsParam.Value;
                         }
                         TotalModifiedIndividualElements++;
-                        modified = true;
                     }
                 }
 
-                if (modified)
+                if (dTypeToUpdate.Changed)
                 {
                     ModifiedContainers.AddIfNotExists(dTypeToUpdate.DocId);
                 }
             }
 
-            if (modified)
+            if (dTypeToUpdate.Changed)
             {
                 ModifiedAPIs.AddIfNotExists(dTypeToUpdate.DocId);
+                ModifiedAssemblies.AddIfNotExists(tsMemberToPort.Assembly);
+                ModifiedFiles.AddIfNotExists(dTypeToUpdate.FilePath);
             }
-
-            return modified;
         }
 
-        private static bool TryPortMissingCommentsForMember(TripleSlashMember tsMemberToPort, DocsMember dMemberToUpdate)
+        private static void PortMissingCommentsForMember(TripleSlashMember tsMemberToPort, DocsMember dMemberToUpdate)
         {
-            bool modified = false;
-
             if (!IsEmpty(tsMemberToPort.Summary) && IsEmpty(dMemberToUpdate.Summary))
             {
                 // Any member can have an empty summary
@@ -237,7 +212,6 @@ namespace DocsPortingTool
 
                 dMemberToUpdate.Summary = tsMemberToPort.Summary;
                 TotalModifiedIndividualElements++;
-                modified = true;
             }
 
             if (!IsEmpty(tsMemberToPort.Remarks) && IsEmpty(dMemberToUpdate.Remarks))
@@ -247,7 +221,6 @@ namespace DocsPortingTool
 
                 dMemberToUpdate.Remarks = tsMemberToPort.Remarks;
                 TotalModifiedIndividualElements++;
-                modified = true;
             }
 
             // Properties sometimes don't have a <value> but have a <returns>
@@ -269,7 +242,6 @@ namespace DocsPortingTool
 
                     dMemberToUpdate.Value = value;
                     TotalModifiedIndividualElements++;
-                    modified = true;
                 }
             }
             else if (dMemberToUpdate.MemberType == "Method")
@@ -287,7 +259,6 @@ namespace DocsPortingTool
 
                         dMemberToUpdate.Returns = tsMemberToPort.Returns;
                         TotalModifiedIndividualElements++;
-                        modified = true;
                     }
                 }
             }
@@ -307,14 +278,14 @@ namespace DocsPortingTool
 
                 if (created || (!IsEmpty(tsParam.Value) && IsEmpty(dParam.Value)))
                 {
-                    PrintModifiedMember(string.Format("PARAM ({0})", created ? "CREATED" : "MODIFIED"), dParam.FilePath, tsParam.Name, dParam.Name, tsParam.Value, dParam.Value);
+                    string message = string.Format("PARAM ({0})", created ? "CREATED" : "MODIFIED");
+                    PrintModifiedMember(message, dParam.ParentAPI.FilePath, tsParam.Name, dParam.Name, tsParam.Value, dParam.Value);
 
                     if (!created)
                     {
                         dParam.Value = tsParam.Value;
                     }
                     TotalModifiedIndividualElements++;
-                    modified = true;
                 }
             }
 
@@ -326,15 +297,14 @@ namespace DocsPortingTool
                 if (created)
                 {
                     AddedExceptions.AddIfNotExists($"{dException.Cref} in {dMemberToUpdate.DocId}");
-                    PrintModifiedMember("EXCEPTION CREATED", dException.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
+                    PrintModifiedMember("EXCEPTION CREATED", dException.ParentAPI.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
                 }
                 else if (!IsEmpty(tsException.Value) && IsEmpty(dException.Value))
                 {
                     dException.Value = tsException.Value;
-                    PrintModifiedMember("EXCEPTION MODIFIED", dException.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
+                    PrintModifiedMember("EXCEPTION MODIFIED", dException.ParentAPI.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
 
                     TotalModifiedIndividualElements++;
-                    modified = true;
                 }
             }
 
@@ -346,29 +316,29 @@ namespace DocsPortingTool
                 if (dTypeParam == null)
                 {
                     ProblematicAPIs.AddIfNotExists($"TypeParam=[{tsTypeParam.Name}] in Member=[{dMemberToUpdate.DocId}]");
-                    dTypeParam = dMemberToUpdate.SaveTypeParam(tsTypeParam.XETypeParam);
+                    dTypeParam = dMemberToUpdate.AddTypeParam(tsTypeParam.XETypeParam);
                     created = true;
                 }
 
                 if (created || (!IsEmpty(tsTypeParam.Value) && IsEmpty(dTypeParam.Value)))
                 {
-                    PrintModifiedMember(string.Format("TYPE PARAM ({0})", created ? "CREATED" : "MODIFIED"), dTypeParam.FilePath, tsTypeParam.Name, dTypeParam.Name, tsTypeParam.Value, dTypeParam.Value);
+                    string message = string.Format("TYPE PARAM ({0})", created ? "CREATED" : "MODIFIED");
+                    PrintModifiedMember(message, dTypeParam.ParentAPI.FilePath, tsTypeParam.Name, dTypeParam.Name, tsTypeParam.Value, dTypeParam.Value);
 
                     if (!created)
                     {
                         dTypeParam.Value = tsTypeParam.Value;
                     }
                     TotalModifiedIndividualElements++;
-                    modified = true;
                 }
             }
 
-            if (modified)
+            if (dMemberToUpdate.Changed)
             {
                 ModifiedAPIs.AddIfNotExists(dMemberToUpdate.DocId);
+                ModifiedAssemblies.AddIfNotExists(tsMemberToPort.Assembly);
+                ModifiedFiles.AddIfNotExists(dMemberToUpdate.FilePath);
             }
-
-            return modified;
         }
 
         /// <summary>
@@ -406,7 +376,7 @@ namespace DocsPortingTool
         /// <param name="dMember">The docs member where the param lives.</param>
         /// <param name="dParam">The docs param that was found to not match the triple slash param.</param>
         /// <returns></returns>
-        private static bool TryPromptParam(TripleSlashParam tsParam, IDocsParamWrapper paramWrapper, out DocsParam dParam)
+        private static bool TryPromptParam(TripleSlashParam tsParam, IDocsAPI paramWrapper, out DocsParam dParam)
         {
             dParam = null;
             bool created = false;
@@ -500,9 +470,9 @@ namespace DocsPortingTool
         /// <summary>
         /// Prints all the undocumented APIs.
         /// </summary>
-        private static void PrintUndocumentedAPIs(bool printUndoc)
+        private static void PrintUndocumentedAPIs()
         {
-            if (printUndoc)
+            if (Configuration.PrintUndoc)
             {
                 Log.Line();
                 Log.Success("-----------------");
@@ -537,7 +507,7 @@ namespace DocsPortingTool
                 int exceptions = 0;
 
                 Log.Info("Undocumented APIs:");
-                foreach (DocsType docsType in docsComments.Containers)
+                foreach (DocsType docsType in DocsComments.Containers)
                 {
                     bool undocAPI = false;
                     if (IsEmpty(docsType.Summary))
@@ -548,7 +518,7 @@ namespace DocsPortingTool
                     }
                 }
 
-                foreach (DocsMember member in docsComments.Members)
+                foreach (DocsMember member in DocsComments.Members)
                 {
                     bool undocMember = false;
 

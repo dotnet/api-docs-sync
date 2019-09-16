@@ -40,7 +40,7 @@ namespace DocsPortingTool.TripleSlash
         {
         }
 
-        public void LoadFile(FileInfo fileInfo, List<string> includedAssemblies, List<string> excludedAssemblies, bool printSuccess)
+        public void LoadFile(FileInfo fileInfo, bool printSuccess)
         {
             if (!fileInfo.Exists)
             {
@@ -88,7 +88,7 @@ namespace DocsPortingTool.TripleSlash
                 TripleSlashMember member = new TripleSlashMember(xeMember);
 
                 bool add = false;
-                foreach (string included in includedAssemblies)
+                foreach (string included in Configuration.IncludedAssemblies)
                 {
                     if (member.Assembly.StartsWith(included) || member.Name.Substring(2).StartsWith(included))
                     {
@@ -97,7 +97,7 @@ namespace DocsPortingTool.TripleSlash
                     }
                 }
 
-                foreach (string excluded in excludedAssemblies)
+                foreach (string excluded in Configuration.ExcludedAssemblies)
                 {
                     if (member.Assembly.StartsWith(excluded) || member.Name.Substring(2).StartsWith(excluded))
                     {
@@ -113,7 +113,7 @@ namespace DocsPortingTool.TripleSlash
                 }
             }
 
-            if (printSuccess)
+            if (printSuccess && totalAdded > 0)
             {
                 Log.Success($"{totalAdded} triple slash member(s) added from xml file '{fileInfo.FullName}'");
             }

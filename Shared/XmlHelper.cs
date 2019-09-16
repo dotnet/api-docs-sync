@@ -1,4 +1,5 @@
-﻿using Shared;
+﻿using DocsPortingTool.Docs;
+using Shared;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -8,15 +9,9 @@ namespace DocsPortingTool
 {
     public class XmlHelper
     {
-        #region Public properties
-
-        public static bool Save { get; set; }
-
-        #endregion
-
         #region Private members
 
-        private static readonly Dictionary<string, string> _replaceableNonRemarkPatterns = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> _replaceableNormalElementPatterns = new Dictionary<string, string> {
             { "<c>null</c>",                "<see langword=\"null\" />"},
             { "<c>true</c>",                "<see langword=\"true\" />"},
             { "<c>false</c>",               "<see langword=\"false\" />"},
@@ -41,7 +36,7 @@ namespace DocsPortingTool
             { "</para>", "" }
         };
 
-        private static readonly Dictionary<string, string> _replaceableRemarkPatterns = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> _replaceableMarkdownPatterns = new Dictionary<string, string> {
             { "<see langword=\"null\"/>",   "`null`" },
             { "<see langword=\"null\" />",  "`null`" },
             { "<see langword=\"true\"/>",   "`true`" },
@@ -83,7 +78,7 @@ namespace DocsPortingTool
             { "]]>",               "" }
         };
 
-        private static readonly Dictionary<string, string> _replaceableRemarkRegexPatterns = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> _replaceableMarkdownRegexPatterns = new Dictionary<string, string> {
             { @"\<paramref name\=""(?'paramrefContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${paramrefContents}`" },
             { @"\<seealso cref\=""(?'seealsoContents'.+)""[ ]*\/\>",      @"seealsoContents" },
         };
@@ -174,59 +169,17 @@ namespace DocsPortingTool
         #region Write actions
 
         #region Public methods
-
-        public static void SaveXml(string filePath, XDocument xDoc)
+        
+        public static void FormatAsMarkdown(IDocsAPI api, XElement xeElement, string value)
         {
-            if (Save)
-            {
-                // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true };
-                using (XmlWriter xw = XmlWriter.Create(filePath, xws))
-                {
-                    Log.Info(xw.Settings.OutputMethod.ToString());
-                    xDoc.Save(xw);
-                    Log.Success("        [Saved]");
-                }
-            }
-        }
-
-        public static XElement SaveChildAsRemark(string filePath, XDocument xDoc, XElement xeParent, XElement xeChild, bool errorCheck = false)
-        {
-            if (VerifySaveChildParams(xDoc, xeParent, xeChild, errorCheck))
-            {
-                xeParent.Add(xeChild);
-                SaveAsRemark(filePath, xDoc, xeChild, xeChild.Value);
-            }
-            return xeChild;
-        }
-
-        public static XElement SaveChildAsNonRemark(string filePath, XDocument xDoc, XElement xParent, XElement xeChild, bool errorCheck=false)
-        {
-            if (VerifySaveChildParams(xDoc, xParent, xeChild, errorCheck))
-            {
-                xParent.Add(xeChild);
-                SaveAsNonRemark(filePath, xDoc, xeChild, xeChild.Value);
-            }
-            return xeChild;
-        }
-
-        public static void SaveAsRemark(string filePath, XDocument xDoc, XElement xeRemarks, string value)
-        {
-            // Empty the contents, because SaveChildElement will add a child to the parent, not replace it
-            xeRemarks.Value = string.Empty;
+            // Empty value because SaveChildElement will add a child to the parent, not replace it
+            xeElement.Value = string.Empty;
 
             XElement xeFormat = new XElement("format");
 
             string updatedValue = RemoveUndesiredEndlines(value);
             updatedValue = SubstituteRemarksRegexPatterns(updatedValue);
-
-            foreach (KeyValuePair<string, string> kvp in _replaceableRemarkPatterns)
-            {
-                if (updatedValue.Contains(kvp.Key))
-                {
-                    updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
-                }
-            }
+            updatedValue = ReplaceMarkdownPatterns(updatedValue);
 
             string remarksTitle = string.Empty;
             if (!updatedValue.Contains("## Remarks"))
@@ -239,43 +192,35 @@ namespace DocsPortingTool
             // Attribute at the end, otherwise it would be replaced by ReplaceAll
             xeFormat.SetAttributeValue("type", "text/markdown");
 
-            xeRemarks.Add(xeFormat);
+            xeElement.Add(xeFormat);
 
-            SaveXml(filePath, xDoc);
+            api.Changed = true;
         }
 
-        public static void SaveAsNonRemark(string filePath, XDocument xDoc, XElement xeElement, string value)
+        public static void FormatAsNormalElement(IDocsAPI api, XElement xeElement, string value)
         {
-            if (xeElement == null)
+            var attributes = xeElement.Attributes();
+
+            string updatedValue = RemoveUndesiredEndlines(value);
+            updatedValue = ReplaceNormalElementPatterns(updatedValue);
+
+            // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed by replacing the nodes.
+            XElement parsedElement;
+            try
             {
-                Log.Error("A null element was passed when attempting to set its value to '{0}'. File: {1}", value, filePath);
+                parsedElement = XElement.Parse("<x>" + updatedValue + "</x>");
             }
-            else
+            catch (XmlException)
             {
-                string updatedValue = RemoveUndesiredEndlines(value);
-
-                foreach (KeyValuePair<string, string> kvp in _replaceableNonRemarkPatterns)
-                {
-                    if (updatedValue.Contains(kvp.Key))
-                    {
-                        updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
-                    }
-                }
-
-                // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed by replacing the nodes.
-                XElement parsedElement = null;
-                try
-                {
-                    parsedElement = XElement.Parse("<x>" + updatedValue + "</x>");
-                }
-                catch (XmlException)
-                {
-                    parsedElement = XElement.Parse("<x>" + updatedValue.Replace("<", "&lt;").Replace(">", "&gt;") + "</x>");
-                }
-                xeElement.ReplaceNodes(parsedElement.Nodes());
-
-                SaveXml(filePath, xDoc);
+                parsedElement = XElement.Parse("<x>" + updatedValue.Replace("<", "&lt;").Replace(">", "&gt;") + "</x>");
             }
+
+            xeElement.ReplaceNodes(parsedElement.Nodes());
+
+            // Ensure attributes are preserved after replacing nodes
+            xeElement.ReplaceAttributes(attributes);
+
+            api.Changed = true;
         }
 
         #endregion
@@ -283,36 +228,6 @@ namespace DocsPortingTool
         #endregion
 
         #region Private methods
-
-        private static bool VerifySaveChildParams(XDocument doc, XElement parent, XElement child, bool errorCheck = false)
-        {
-            if (doc == null)
-            {
-                if (errorCheck)
-                {
-                    Log.Error("A null XDocument was passed when attempting to save a new child element");
-                }
-                return false;
-            }
-            else if (parent == null)
-            {
-                if (errorCheck)
-                {
-                    Log.Error("A null XElement parent was passed when attempting to save a new child element");
-                }
-                return false;
-            }
-            else if (child == null)
-            {
-                if (errorCheck)
-                {
-                    Log.Error("A null XElement child was passed when attempting to save a new child element");
-                }
-                return false;
-            }
-
-            return true;
-        }
 
         private static string RemoveUndesiredEndlines(string value)
         {
@@ -326,7 +241,33 @@ namespace DocsPortingTool
 
         private static string SubstituteRemarksRegexPatterns(string value)
         {
-            return SubstituteRegexPatterns(value, _replaceableRemarkRegexPatterns);
+            return SubstituteRegexPatterns(value, _replaceableMarkdownRegexPatterns);
+        }
+
+        private static string ReplaceMarkdownPatterns(string value)
+        {
+            string updatedValue = value;
+            foreach (KeyValuePair<string, string> kvp in _replaceableMarkdownPatterns)
+            {
+                if (updatedValue.Contains(kvp.Key))
+                {
+                    updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
+                }
+            }
+            return updatedValue;
+        }
+
+        private static string ReplaceNormalElementPatterns(string value)
+        {
+            string updatedValue = value;
+            foreach (KeyValuePair<string, string> kvp in _replaceableNormalElementPatterns)
+            {
+                if (updatedValue.Contains(kvp.Key))
+                {
+                    updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
+                }
+            }
+            return updatedValue;
         }
 
         private static string SubstituteRegexPatterns(string value, Dictionary<string, string> replaceableRegexPatterns)

@@ -1,6 +1,7 @@
 ﻿using Shared;
 using System;
 using System.IO;
+using System.Xml.Linq;
 
 namespace DocsPortingTool
 {
@@ -25,10 +26,8 @@ namespace DocsPortingTool
 
         #region Public methods
 
-        public static Configuration GetConfiguration(string[] args)
+        public static void GetConfiguration(string[] args)
         {
-            Configuration config = new Configuration();
-
             Mode mode = Mode.Initial;
 
             Log.Info("Verifying CLI arguments...");
@@ -51,7 +50,7 @@ namespace DocsPortingTool
                                 Log.Working("Included assemblies:");
                                 foreach (string assembly in splittedArg)
                                 {
-                                    config.IncludedAssemblies.Add(assembly);
+                                    Configuration.IncludedAssemblies.Add(assembly);
                                     Log.Info($"  -  {assembly}");
                                 }
                             }
@@ -66,15 +65,15 @@ namespace DocsPortingTool
 
                     case Mode.Docs:
                         {
-                            config.DirDocsXml = new DirectoryInfo(arg);
+                            Configuration.DirDocsXml = new DirectoryInfo(arg);
 
-                            if (!config.DirDocsXml.Exists)
+                            if (!Configuration.DirDocsXml.Exists)
                             {
-                                Log.LogErrorAndExit(string.Format("The documentation folder does not exist: {0}", config.DirDocsXml));
+                                Log.LogErrorAndExit(string.Format("The documentation folder does not exist: {0}", Configuration.DirDocsXml));
                             }
 
                             Log.Working($"Specified documentation location:");
-                            Log.Info($"  -  {config.DirDocsXml}");
+                            Log.Info($"  -  {Configuration.DirDocsXml}");
 
                             mode = Mode.Initial;
                             break;
@@ -89,7 +88,7 @@ namespace DocsPortingTool
                                 Log.Working("Excluded assemblies:");
                                 foreach (string assembly in splittedArg)
                                 {
-                                    config.ExcludedAssemblies.Add(assembly);
+                                    Configuration.ExcludedAssemblies.Add(assembly);
                                     Log.Info($"  -  {assembly}");
                                 }
                             }
@@ -149,10 +148,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit("Invalid boolean value for the printundoc argument: {0}", arg);
                             }
 
-                            config.PrintUndoc = printUndoc;
+                            Configuration.PrintUndoc = printUndoc;
 
                             Log.Working("Print undocumented:");
-                            Log.Info($"  -  {config.PrintUndoc}");
+                            Log.Info($"  -  {Configuration.PrintUndoc}");
 
                             mode = Mode.Initial;
                             break;
@@ -165,10 +164,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit("Invalid boolean value for the save argument: {0}", arg);
                             }
 
-                            config.Save = save;
+                            Configuration.Save = save;
 
                             Log.Working("Save:");
-                            Log.Info($"  -  {config.Save}");
+                            Log.Info($"  -  {Configuration.Save}");
 
                             mode = Mode.Initial;
                             break;
@@ -187,7 +186,7 @@ namespace DocsPortingTool
                                     Log.LogErrorAndExit(string.Format("This triple slash xml directory does not exist: {0}", dirPath));
                                 }
 
-                                config.DirsTripleSlashXmls.Add(dirInfo);
+                                Configuration.DirsTripleSlashXmls.Add(dirInfo);
                                 Log.Info($"  -  {dirPath}");
                             }
 
@@ -208,22 +207,20 @@ namespace DocsPortingTool
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You missed an argument value.");
             }
 
-            if (config.DirDocsXml == null)
+            if (Configuration.DirDocsXml == null)
             {
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify a path to the dotnet-api-docs xml folder with -docs.");
             }
 
-            if (config.DirsTripleSlashXmls.Count == 0)
+            if (Configuration.DirsTripleSlashXmls.Count == 0)
             {
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one triple slash xml folder path with -tripleslash.");
             }
 
-            if (config.IncludedAssemblies.Count == 0)
+            if (Configuration.IncludedAssemblies.Count == 0)
             {
                 Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one assembly with -include.");
             }
-
-            return config;
         }
 
         public static void PrintHelp()

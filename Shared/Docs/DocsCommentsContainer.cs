@@ -93,6 +93,30 @@ namespace DocsPortingTool.Docs
                 if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 || docsType.FullName.StartsWith(included))
                 {
                     add = true;
+
+                    if (Configuration.IncludedTypes.Count() > 0)
+                    {
+                        if (!Configuration.IncludedTypes.Contains(docsType.Name))
+                        {
+                            add = false;
+                            Log.Warning($" - Docs type not explicitly included: {docsType.Name}");
+                        }
+                    }
+
+                    if (Configuration.ExcludedTypes.Count() > 0)
+                    {
+                        if (Configuration.ExcludedTypes.Contains(docsType.Name))
+                        {
+                            add = false;
+                            Log.Warning($" - Docs type explicitly excluded: {docsType.Name}");
+                        }
+                    }
+
+                    if (add)
+                    {
+                        Log.Success($" - Docs type included: {docsType.Name}");
+                    }
+
                     break;
                 }
             }
@@ -102,7 +126,7 @@ namespace DocsPortingTool.Docs
                 if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(excluded)) > 0 || docsType.FullName.StartsWith(excluded))
                 {
                     add = false;
-                    Log.Warning("Docs xml file excluded: {0}", fileInfo.FullName);
+                    Log.Warning($"Docs xml file excluded: {fileInfo.FullName}");
                     break;
                 }
             }

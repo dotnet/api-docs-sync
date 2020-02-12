@@ -24,7 +24,7 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                XmlHelper.FormatAsNormalElement(ParentAPI, XEDocsParam, value);
+                ParentAPI.FormatAsNormalElement(XEDocsParam);
             }
         }
         public DocsParam(IDocsAPI parentAPI, XElement xeDocsParam)

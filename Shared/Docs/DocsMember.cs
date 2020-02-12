@@ -211,7 +211,10 @@ namespace DocsPortingTool.Docs
                     xeReturns = new XElement("returns", "To be added.");
                     AddChildAsNormalElement(Docs, xeReturns, true);
                 }
-                XmlHelper.FormatAsNormalElement(this, xeReturns, value);
+                else
+                {
+                    FormatAsNormalElement(xeReturns);
+                }
             }
         }
         public string Summary
@@ -228,7 +231,10 @@ namespace DocsPortingTool.Docs
                     xeSummary = new XElement("summary", "To be added.");
                     AddChildAsNormalElement(Docs, xeSummary, true);
                 }
-                XmlHelper.FormatAsNormalElement(this, xeSummary, value);
+                else
+                {
+                    FormatAsNormalElement(xeSummary);
+                }
             }
         }
         public string Remarks
@@ -253,7 +259,7 @@ namespace DocsPortingTool.Docs
                 XElement xeValue = XmlHelper.GetChildElement(Docs, "value");
                 if (xeValue == null)
                 {
-                    XmlHelper.FormatAsNormalElement(this, xeValue, value);
+                    FormatAsNormalElement(xeValue);
                 }
             }
         }
@@ -308,26 +314,16 @@ namespace DocsPortingTool.Docs
             return DocId;
         }
 
-        public bool AddException(string cref, string value, out DocsException exception)
+        public DocsException AddException(XElement xeException)
         {
-            exception = Exceptions.FirstOrDefault(x => x.Cref == cref);
-            bool created = false;
-
-            if (exception == null)
-            {
-                exception = new DocsException(this, cref, value);
-                Exceptions.Add(exception);
-                created = true;
-            }
-
-            return created;
+            AddChildAsNormalElement(Docs, xeException, true);
+            DocsException docsException = new DocsException(this, xeException);
+            return docsException;
         }
 
         public DocsTypeParam AddTypeParam(XElement xeTripleSlashParam)
         {
-            XElement xeDocsTypeParam = new XElement(xeTripleSlashParam.Name, string.Empty);
-            XmlHelper.FormatAsNormalElement(this, xeDocsTypeParam, xeTripleSlashParam.Value);
-            xeDocsTypeParam.ReplaceAttributes(xeTripleSlashParam.Attributes());
+            XElement xeDocsTypeParam = new XElement(xeTripleSlashParam);
             AddChildAsNormalElement(Docs, xeDocsTypeParam, true);
             DocsTypeParam docsTypeParam = new DocsTypeParam(this, xeDocsTypeParam);
             return docsTypeParam;

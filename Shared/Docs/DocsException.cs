@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System;
+using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
 {
@@ -24,28 +25,25 @@ namespace DocsPortingTool.Docs
             {
                 return XmlHelper.GetRealValue(XEException);
             }
-            set
+            private set
             {
-                XmlHelper.FormatAsNormalElement(ParentAPI, XEException, value);
+                XEException.Value = value;
             }
         }
 
         public string OriginalValue { get; private set; }
-
-        public DocsException(IDocsAPI parentAPI, string cref, string value)
-        {
-            ParentAPI = parentAPI;
-            OriginalValue = value;
-            XEException = new XElement("exception", string.Empty);
-            XEException.SetAttributeValue("cref", cref);
-            Value = value; // Ensure correct formatting
-        }
 
         public DocsException(IDocsAPI parentAPI, XElement xException)
         {
             ParentAPI = parentAPI;
             XEException = xException;
             OriginalValue = Value;
+        }
+
+        public void AppendException(string toAppend)
+        {
+            Value += Environment.NewLine + Environment.NewLine + "-or-" + Environment.NewLine + Environment.NewLine + toAppend;
+            XmlHelper.FormatAsNormalElement(XEException);
         }
 
         public override string ToString()

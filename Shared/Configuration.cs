@@ -17,8 +17,10 @@ namespace Shared
         #region Lists
 
         public static readonly List<DirectoryInfo> DirsTripleSlashXmls = new List<DirectoryInfo>();
-        public static readonly List<string> IncludedAssemblies = new List<string>();
-        public static readonly List<string> ExcludedAssemblies = new List<string>();
+        public static readonly HashSet<string> IncludedAssemblies = new HashSet<string>();
+        public static readonly HashSet<string> ExcludedAssemblies = new HashSet<string>();
+        public static readonly HashSet<string> IncludedTypes = new HashSet<string>();
+        public static readonly HashSet<string> ExcludedTypes = new HashSet<string>();
 
         #endregion
 
@@ -26,9 +28,11 @@ namespace Shared
 
         #region Public properties
 
-        public static bool Save { get; set; }
+        public static bool Save { get; set; } = false;
+
+        public static bool SkipExceptions { get; set; } = true;
         public static DirectoryInfo DirDocsXml { get; set; }
-        public static bool PrintUndoc { get; set; }
+        public static bool PrintUndoc { get; set; } = false;
 
         #endregion
 

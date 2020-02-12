@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace DocsPortingTool
 {
@@ -289,22 +290,42 @@ namespace DocsPortingTool
                 }
             }
 
-            // Exceptions are a special case: If a new one is found in code, but does not exist in docs, the whole element needs to be added
-            foreach (TripleSlashException tsException in tsMemberToPort.Exceptions)
+            if (!Configuration.SkipExceptions)
             {
-                bool created = dMemberToUpdate.AddException(tsException.Cref, tsException.Value, out DocsException dException);
-
-                if (created)
+                // Exceptions are a special case: If a new one is found in code, but does not exist in docs, the whole element needs to be added
+                foreach (TripleSlashException tsException in tsMemberToPort.Exceptions)
                 {
-                    AddedExceptions.AddIfNotExists($"{dException.Cref} in {dMemberToUpdate.DocId}");
-                    PrintModifiedMember("EXCEPTION CREATED", dException.ParentAPI.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
-                }
-                else if (!IsEmpty(tsException.Value) && IsEmpty(dException.Value))
-                {
-                    dException.Value = tsException.Value;
-                    PrintModifiedMember("EXCEPTION MODIFIED", dException.ParentAPI.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
+                    DocsException dException = dMemberToUpdate.Exceptions.FirstOrDefault(x => x.Cref == tsException.Cref);
+                    bool created = false;
 
-                    TotalModifiedIndividualElements++;
+                    // First time adding the cref
+                    if (dException == null)
+                    {
+                        AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
+                        dException = dMemberToUpdate.AddException(tsException.XEException);
+                        created = true;
+                    }
+                    // If cref exists, check if the text has already been appended
+                    else
+                    {
+                        XElement formattedException = tsException.XEException;
+                        XmlHelper.FormatAsNormalElement(formattedException);
+                        string nodes = string.Join("", formattedException.Nodes());
+                        if (!dException.Value.Contains(nodes))
+                        {
+                            AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
+                            dException.AppendException(nodes);
+                            created = true;
+                        }
+                    }
+
+                    if (created || (!IsEmpty(tsException.Value) && IsEmpty(dException.Value)))
+                    {
+                        string message = string.Format("EXCEPTION ({0})", created ? "CREATED" : "MODIFIED");
+                        PrintModifiedMember(message, dException.ParentAPI.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
+
+                        TotalModifiedIndividualElements++;
+                    }
                 }
             }
 

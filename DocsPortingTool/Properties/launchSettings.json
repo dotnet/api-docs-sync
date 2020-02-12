@@ -2,13 +2,12 @@
   "profiles": {
     "DocsPortingTool": {
       "commandName": "Project",
-      "commandLineArgs": "-docs D:\\dotnet-api-docs\\xml -include System.Reflection.Metadata -save true -tripleslash D:\\corefx\\artifacts\\bin,D:\\coreclr\\bin\\Product\\Windows_NT.x64.Debug\\IL",
+      "commandLineArgs": "-docs D:\\dotnet-api-docs\\xml -includedassemblies System -save true -skipexceptions true -tripleslash D:\\runtime\\artifacts\\bin",
       "environmentVariables": {
-        "DOCS_COREFX": "D:\\corefx\\artifacts\\bin\\",
         "DOCS_IOT": "D:\\iot\\artifacts\\bin",
-        "DOCS_CORECLR": "D:\\coreclr\\bin\\Product\\Windows_NT.x64.Debug\\IL\\",
         "DOCS_WINFORMS": "D:\\winforms\\artifacts\\bin\\",
-        "DOCS_WPF": "D:\\wpf\\.tools\\native\\bin\\dotnet-api-docs_netcoreapp3.0\\0.0.0.1\\_intellisense\\\\netcore-3.0\\"
+        "DOCS_WPF": "D:\\wpf\\.tools\\native\\bin\\dotnet-api-docs_netcoreapp3.0\\0.0.0.1\\_intellisense\\\\netcore-3.0\\",
+        "DOCS_RUNTIME": "D:\\runtime\\artifacts\\bin\\"
       }
     }
   }

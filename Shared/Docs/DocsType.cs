@@ -224,7 +224,10 @@ namespace DocsPortingTool.Docs
                     xeSummary = new XElement("summary", "To be added.");
                     AddChildAsNormalElement(Docs, xeSummary, true);
                 }
-                XmlHelper.FormatAsNormalElement(this, xeSummary, value);
+                else
+                {
+                    FormatAsNormalElement(xeSummary);
+                }
             }
         }
 

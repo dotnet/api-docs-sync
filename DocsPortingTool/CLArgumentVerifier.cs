@@ -13,12 +13,15 @@ namespace DocsPortingTool
 
         private enum Mode
         {
-            Include,
-            Initial,
             Docs,
-            Exclude,
+            ExcludedAssemblies,
+            ExcludedTypes,
+            IncludedAssemblies,
+            IncludedTypes,
+            Initial,
             PrintUndoc,
             Save,
+            SkipExceptions,
             TripleSlash
         }
 
@@ -41,28 +44,6 @@ namespace DocsPortingTool
             {
                 switch (mode)
                 {
-                    case Mode.Include:
-                        {
-                            string[] splittedArg = arg.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
-
-                            if (splittedArg.Length > 0)
-                            {
-                                Log.Working("Included assemblies:");
-                                foreach (string assembly in splittedArg)
-                                {
-                                    Configuration.IncludedAssemblies.Add(assembly);
-                                    Log.Info($"  -  {assembly}");
-                                }
-                            }
-                            else
-                            {
-                                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one assembly.");
-                            }
-
-                            mode = Mode.Initial;
-                            break;
-                        }
-
                     case Mode.Docs:
                         {
                             Configuration.DirDocsXml = new DirectoryInfo(arg);
@@ -79,7 +60,7 @@ namespace DocsPortingTool
                             break;
                         }
 
-                    case Mode.Exclude:
+                    case Mode.ExcludedAssemblies:
                         {
                             string[] splittedArg = arg.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
 
@@ -88,8 +69,8 @@ namespace DocsPortingTool
                                 Log.Working("Excluded assemblies:");
                                 foreach (string assembly in splittedArg)
                                 {
+                                    Log.Working($" - {assembly}");
                                     Configuration.ExcludedAssemblies.Add(assembly);
-                                    Log.Info($"  -  {assembly}");
                                 }
                             }
                             else
@@ -101,26 +82,100 @@ namespace DocsPortingTool
                             break;
                         }
 
+                    case Mode.ExcludedTypes:
+                        {
+                            string[] splittedArg = arg.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+
+                            if (splittedArg.Length > 0)
+                            {
+                                Log.Working($"Excluded types:");
+                                foreach (string typeName in splittedArg)
+                                {
+                                    Log.Working($" - {typeName}");
+                                    Configuration.ExcludedTypes.Add(typeName);
+                                }
+                            }
+                            else
+                            {
+                                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one type name.");
+                            }
+
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.IncludedAssemblies:
+                        {
+                            string[] splittedArg = arg.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+
+                            if (splittedArg.Length > 0)
+                            {
+                                Log.Working($"Included assemblies:");
+                                foreach (string assembly in splittedArg)
+                                {
+                                    Log.Working($" - {assembly}");
+                                    Configuration.IncludedAssemblies.Add(assembly);
+                                }
+                            }
+                            else
+                            {
+                                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one assembly.");
+                            }
+
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.IncludedTypes:
+                        {
+                            string[] splittedArg = arg.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+
+                            if (splittedArg.Length > 0)
+                            {
+                                Log.Working($"Included types:");
+                                foreach (string typeName in splittedArg)
+                                {
+                                    Log.Working($" - {typeName}");
+                                    Configuration.IncludedTypes.Add(typeName);
+                                }
+                            }
+                            else
+                            {
+                                Log.LogErrorPrintHelpAndExit(PrintHelp, "You must specify at least one type name.");
+                            }
+
+                            mode = Mode.Initial;
+                            break;
+                        }
+
                     case Mode.Initial:
                         {
                             switch (arg.ToLowerInvariant())
                             {
+                                case "-docs":
+                                    mode = Mode.Docs;
+                                    break;
+
+                                case "-excludedassemblies":
+                                    mode = Mode.ExcludedAssemblies;
+                                    break;
+
+                                case "-excludedtypes":
+                                    mode = Mode.ExcludedTypes;
+                                    break;
+
                                 case "-h":
                                 case "-help":
                                     PrintHelp();
                                     Environment.Exit(0);
                                     break;
 
-                                case "-docs":
-                                    mode = Mode.Docs;
+                                case "-includedassemblies":
+                                    mode = Mode.IncludedAssemblies;
                                     break;
 
-                                case "-exclude":
-                                    mode = Mode.Exclude;
-                                    break;
-
-                                case "-include":
-                                    mode = Mode.Include;
+                                case "-includedtypes":
+                                    mode = Mode.IncludedTypes;
                                     break;
 
                                 case "-printundoc":
@@ -129,6 +184,10 @@ namespace DocsPortingTool
 
                                 case "-save":
                                     mode = Mode.Save;
+                                    break;
+
+                                case "-skipexceptions":
+                                    mode = Mode.SkipExceptions;
                                     break;
 
                                 case "-tripleslash":
@@ -161,13 +220,29 @@ namespace DocsPortingTool
                         {
                             if (!bool.TryParse(arg, out bool save))
                             {
-                                Log.LogErrorAndExit("Invalid boolean value for the save argument: {0}", arg);
+                                Log.LogErrorAndExit($"Invalid boolean value for the save argument: {arg}");
                             }
 
                             Configuration.Save = save;
 
                             Log.Working("Save:");
                             Log.Info($"  -  {Configuration.Save}");
+
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.SkipExceptions:
+                        {
+                            if (!bool.TryParse(arg, out bool skipExceptions))
+                            {
+                                Log.LogErrorAndExit($"Invalid boolean value for the skipExceptions argument: {arg}");
+                            }
+
+                            Configuration.SkipExceptions = skipExceptions;
+
+                            Log.Working("Skip exceptions:");
+                            Log.Info($"  -  {Configuration.SkipExceptions}");
 
                             mode = Mode.Initial;
                             break;
@@ -248,17 +323,30 @@ Options:
 
 
 
-    string list:    -exclude                Optional. Comma separated list (no spaces) of specific .NET assemblies to ignore. Default is empty.
+    string list:    -excludedassemblies         Optional. Comma separated list (no spaces) of specific .NET assemblies to ignore. Default is empty.
 
                                                 Usage example:
-                                                    -exclude System.IO.Compression,System.IO.Pipes
+                                                    -excludedassemblies System.IO.Compression,System.IO.Pipes
 
 
 
-    string:         -include                Mandatory. Comma separated list (no spaces) of assemblies to include.
+    string list:    -includedassemblies         Mandatory. Comma separated list (no spaces) of assemblies to include.
 
                                                 Usage example:
-                                                    System.IO,System.Runtime.Intrinsics
+                                                    -includedassemblies System.IO,System.Runtime.Intrinsics
+
+
+    string list:    -excludedtypes              Optional. Comma separated list (no spaces) of specific types to ignore. Default is empty.
+
+                                                Usage example:
+                                                    -excludedtypes ArgumentException,Stream
+
+
+
+    string list:    -includedtypes         Mandatory. Comma separated list (no spaces) of specific types to include. Default is empty and will include all types in the selected assemblies.
+
+                                                Usage example:
+                                                    -includedtypes FileStream,DirectoryInfo
 
 
 
@@ -269,10 +357,18 @@ Options:
 
 
 
-    bool:           -save                   Optional. Wether we want to save the changes in the dotnet-api-docs xml files. Default is false.
+    bool:           -save                   Optional. Whether you want to save the changes in the dotnet-api-docs xml files. Default is false.
 
                                                 Usage example:
                                                     -save true
+
+
+
+    bool:           -skipexceptions         Optional. Whether you want exceptions to be ported or not. Setting this to false can result in a lot of noise because there is no way to
+                                            detect if an exception has been ported already, but it went through language review and the original text was not preserved. Default is true (skips them).
+
+                                                Usage example:
+                                                    -skipexceptions false
 
 
 

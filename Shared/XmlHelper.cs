@@ -212,11 +212,12 @@ namespace DocsPortingTool
             api.Changed = true;
         }
 
-        public static void FormatAsNormalElement(IDocsAPI api, XElement xeElement, string value)
+        public static void FormatAsNormalElement(XElement xeElement)
         {
             var attributes = xeElement.Attributes();
+            string innerText = string.Join("", xeElement.Nodes());
 
-            string updatedValue = RemoveUndesiredEndlines(value);
+            string updatedValue = RemoveUndesiredEndlines(innerText);
             updatedValue = ReplaceNormalElementPatterns(updatedValue);
 
             // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed by replacing the nodes.
@@ -234,8 +235,6 @@ namespace DocsPortingTool
 
             // Ensure attributes are preserved after replacing nodes
             xeElement.ReplaceAttributes(attributes);
-
-            api.Changed = true;
         }
 
         #endregion
@@ -247,11 +246,12 @@ namespace DocsPortingTool
         private static string RemoveUndesiredEndlines(string value)
         {
             Regex regex = new Regex(@"((?'undesiredEndlinePrefix'[^\.\:])[\r\n]+[ \t]*)");
+            string newValue = value;
             if (regex.IsMatch(value))
             {
-                value = regex.Replace(value, @"${undesiredEndlinePrefix} ");
+                newValue = regex.Replace(value, @"${undesiredEndlinePrefix} ");
             }
-            return value;
+            return newValue.Trim();
         }
 
         private static string SubstituteRemarksRegexPatterns(string value)

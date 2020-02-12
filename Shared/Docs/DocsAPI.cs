@@ -19,7 +19,8 @@ namespace DocsPortingTool.Docs
         public abstract List<DocsParameter> Parameters { get; }
         public abstract List<DocsParam> Params { get; }
         public abstract DocsParam SaveParam(XElement xeCoreFXParam);
-        void AddChildAsNormalElement(XElement xParent, XElement xeChild, bool errorCheck = false);
+        void AddChildAsNormalElement(XElement xeParent, XElement xeChild, bool errorCheck = false);
+        void FormatAsNormalElement(XElement xeChild);
     }
 
     public abstract class DocsAPI : IDocsAPI
@@ -42,13 +43,19 @@ namespace DocsPortingTool.Docs
             return docsParam;
         }
 
-        public void AddChildAsNormalElement(XElement xParent, XElement xeChild, bool errorCheck = false)
+        public void AddChildAsNormalElement(XElement xeParent, XElement xeChild, bool errorCheck = false)
         {
-            if (VerifySaveChildParams(XDoc, xParent, xeChild, true))
+            if (VerifySaveChildParams(XDoc, xeParent, xeChild, true))
             {
-                XmlHelper.FormatAsNormalElement(this, xeChild, xeChild.Value);
-                xParent.Add(xeChild);
+                FormatAsNormalElement(xeChild);
+                xeParent.Add(xeChild);
             }
+        }
+
+        public void FormatAsNormalElement(XElement xeChild)
+        {
+            XmlHelper.FormatAsNormalElement(xeChild);
+            Changed = true;
         }
 
         private static bool VerifySaveChildParams(XDocument doc, XElement parent, XElement child, bool errorCheck = false)

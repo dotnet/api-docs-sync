@@ -30,7 +30,7 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_value))
                 {
-                    _value = XmlHelper.GetRealValue(XEException);
+                    _value = XmlHelper.GetNodesInPlainText(XEException);
                 }
                 return _value;
             }

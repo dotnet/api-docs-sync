@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Shared
+namespace DocsPortingTool
 {
     /// <summary>
     /// Provides generic extension methods.

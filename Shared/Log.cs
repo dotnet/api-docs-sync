@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shared
+namespace DocsPortingTool
 {
     public class Log
     {
@@ -38,6 +38,7 @@ namespace Shared
         {
             Print(endline, ConsoleColor.Green, format, args);
         }
+
         public static void Warning(string format, params object[] args)
         {
             Warning(true, format, args);
@@ -103,6 +104,93 @@ namespace Shared
             Error(format, args);
             helpFunction();
             Environment.Exit(0);
+        }
+
+        public static void PrintHelp()
+        {
+            Working(@"
+This tool finds and ports triple slash comments found in .NET repos but do not yet exist in the dotnet-api-docs repo.
+
+Change %SourceRepos% to match the location of all your cloned git repos.
+
+Options:
+
+    no arguments:   -h or -help             Optional. Displays this help message. If used, nothing else will be processed.
+
+
+
+    folder path:    -docs                   Mandatory. The absolute directory root path where your documentation xml files are located.
+
+                                                Known locations:
+                                                    > Runtime:   %SourceRepos%\dotnet-api-docs\xml
+                                                    > WPF:       ? (TODO)
+                                                    > WinForms:  ? (TODO)
+
+                                                Usage example:
+                                                    -docs %SourceRepos%\dotnet-api-docs\xml
+
+
+
+    string list:    -excludedassemblies         Optional. Comma separated list (no spaces) of specific .NET assemblies to ignore. Default is empty.
+
+                                                Usage example:
+                                                    -excludedassemblies System.IO.Compression,System.IO.Pipes
+
+
+
+    string list:    -includedassemblies         Mandatory. Comma separated list (no spaces) of assemblies to include.
+
+                                                Usage example:
+                                                    -includedassemblies System.IO,System.Runtime.Intrinsics
+
+
+    string list:    -excludedtypes              Optional. Comma separated list (no spaces) of specific types to ignore. Default is empty.
+
+                                                Usage example:
+                                                    -excludedtypes ArgumentException,Stream
+
+
+
+    string list:    -includedtypes         Mandatory. Comma separated list (no spaces) of specific types to include. Default is empty and will include all types in the selected assemblies.
+
+                                                Usage example:
+                                                    -includedtypes FileStream,DirectoryInfo
+
+
+
+    boo:            -printundoc             Optional. Will print a detailed summary of all the docs APIs that are undocumented. Default is false.
+
+                                                Usage example:
+                                                    -printundoc true
+
+
+
+    bool:           -save                   Optional. Whether you want to save the changes in the dotnet-api-docs xml files. Default is false.
+
+                                                Usage example:
+                                                    -save true
+
+
+
+    bool:           -skipexceptions         Optional. Whether you want exceptions to be ported or not. Setting this to false can result in a lot of noise because there is no way to
+                                            detect if an exception has been ported already, but it went through language review and the original text was not preserved. Default is true (skips them).
+
+                                                Usage example:
+                                                    -skipexceptions false
+
+
+
+    folder path:   -tripleslash             Mandatory. A comma separated list (no spaces) of absolute directory paths where we should recursively look for triple slash comment xml files.
+
+                                                Known locations:
+                                                    > Runtime:   %SourceRepos%\runtime\artifacts\bin\
+                                                    > WinForms:  %SourceRepos%\winforms\artifacts\bin\
+                                                    > WPF:       %SourceRepos%\wpf\.tools\native\bin\dotnet-api-docs_netcoreapp3.0\0.0.0.1\_intellisense\\netcore-3.0\
+
+                                                Usage example:
+                                                    -tripleslash %SourceRepos%\corefx\artifacts\bin\
+
+            ");
         }
     }
 }

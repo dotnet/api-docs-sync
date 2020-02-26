@@ -1,7 +1,8 @@
-﻿using Shared;
+﻿using DocsPortingTool;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
@@ -11,6 +12,7 @@ namespace DocsPortingTool.Docs
     /// </summary>
     public class DocsType : DocsAPI
     {
+        public override string Identifier => "TYPE";
         private XElement XERoot = null;
 
         private string _name = null;
@@ -205,41 +207,27 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _summary = null;
-        public string Summary
+        public override string Summary
         {
             get
             {
-                if (_summary == null)
-                {
-                    _summary = XmlHelper.GetChildElementValue(Docs, "summary");
-                }
-                return _summary;
+                return GetNodesInPlainText("summary");
             }
             set
             {
-                XElement xeSummary = XmlHelper.GetChildElement(Docs, "summary");
-                if (xeSummary == null)
-                {
-                    xeSummary = new XElement("summary", "To be added.");
-                    AddChildAsNormalElement(Docs, xeSummary, true);
-                }
-                else
-                {
-                    FormatAsNormalElement(xeSummary);
-                }
+                SaveFormattedAsXml("summary", value);
             }
         }
 
-        public string Remarks
+        public override string Remarks
         {
             get
             {
-                return XERemarks.Value;
+                return GetNodesInPlainText("remarks");
             }
             set
             {
-                XmlHelper.FormatAsMarkdown(this, XERemarks, value);
+                SaveFormattedAsMarkdown("remarks", value);
             }
         }
 
@@ -254,29 +242,5 @@ namespace DocsPortingTool.Docs
         {
             return FullName;
         }
-
-        #region Private members
-
-        private XElement _xeRemarks = null;
-        private XElement XERemarks
-        {
-            get
-            {
-                _xeRemarks = null;
-                if (Docs != null)
-                {
-                    _xeRemarks = XmlHelper.GetChildElement(Docs, "remarks");
-                    if (_xeRemarks == null)
-                    {
-                        _xeRemarks = new XElement("remarks", "To be added.");
-                        AddChildAsNormalElement(Docs, _xeRemarks, true);
-                    }
-                }
-
-                return _xeRemarks;
-            }
-        }
-
-        #endregion
     }
 }

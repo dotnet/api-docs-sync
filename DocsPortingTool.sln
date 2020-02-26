@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28705.295
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocsPortingTool", "DocsPortingTool\DocsPortingTool.csproj", "{0BA31C5C-8B7B-4B25-82DC-54A92BF77724}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Program", "DocsPortingTool\Program.csproj", "{0BA31C5C-8B7B-4B25-82DC-54A92BF77724}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csproj", "{87BBF4FD-260C-4AC4-802B-7D2B29629C07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocsPortingTool", "Shared\DocsPortingTool.csproj", "{87BBF4FD-260C-4AC4-802B-7D2B29629C07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

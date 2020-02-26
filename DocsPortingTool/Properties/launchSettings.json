@@ -2,7 +2,7 @@
   "profiles": {
     "DocsPortingTool": {
       "commandName": "Project",
-      "commandLineArgs": "-docs D:\\dotnet-api-docs\\xml -includedassemblies System -save true -skipexceptions true -tripleslash D:\\runtime\\artifacts\\bin",
+      "commandLineArgs": "-docs C:\\Users\\calope\\source\\repos\\dotnet-api-docs\\xml\\System.Threading.Tasks.Dataflow -includedassemblies System.Threading.Tasks.Dataflow -save true -skipexceptions false -tripleslash C:\\Users\\calope\\source\\repos\\test_artifacts",
       "environmentVariables": {
         "DOCS_IOT": "D:\\iot\\artifacts\\bin",
         "DOCS_WINFORMS": "D:\\winforms\\artifacts\\bin\\",

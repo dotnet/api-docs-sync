@@ -1,20 +1,27 @@
-﻿using Shared;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
 {
     public class DocsMember : DocsAPI
     {
+        public override string Identifier => "MEMBER";
         private XElement XEMember = null;
 
+        private string _memberName = null;
         public string MemberName
         {
             get
             {
-                return XmlHelper.GetAttributeValue(XEMember, "MemberName");
+                if (_memberName == null)
+                {
+                    _memberName = XmlHelper.GetAttributeValue(XEMember, "MemberName");
+                }
+                return _memberName;
             }
         }
 
@@ -54,6 +61,7 @@ namespace DocsPortingTool.Docs
                 return _docId;
             }
         }
+
         public string MemberType
         {
             get
@@ -193,74 +201,44 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                if (Docs != null)
-                {
-                    XElement xeReturns = XmlHelper.GetChildElement(Docs, "returns");
-                    if (xeReturns != null)
-                    {
-                        return xeReturns.Value;
-                    }
-                }
-                return null;
+                return GetNodesInPlainText("returns");
             }
             set
             {
-                XElement xeReturns = XmlHelper.GetChildElement(Docs, "returns");
-                if (xeReturns == null)
-                {
-                    xeReturns = new XElement("returns", "To be added.");
-                    AddChildAsNormalElement(Docs, xeReturns, true);
-                }
-                else
-                {
-                    FormatAsNormalElement(xeReturns);
-                }
+                SaveFormattedAsXml("returns", value);
             }
         }
-        public string Summary
+        public override string Summary
         {
             get
             {
-                return XmlHelper.GetChildElementValue(Docs, "summary");
+                return GetNodesInPlainText("summary");
             }
             set
             {
-                XElement xeSummary = XmlHelper.GetChildElement(Docs, "summary");
-                if (xeSummary == null)
-                {
-                    xeSummary = new XElement("summary", "To be added.");
-                    AddChildAsNormalElement(Docs, xeSummary, true);
-                }
-                else
-                {
-                    FormatAsNormalElement(xeSummary);
-                }
+                SaveFormattedAsXml("summary", value);
             }
         }
-        public string Remarks
+        public override string Remarks
         {
             get
             {
-                return XERemarks.Value;
+                return GetNodesInPlainText("remarks");
             }
             set
             {
-                XmlHelper.FormatAsMarkdown(this, XERemarks, value);
+                SaveFormattedAsMarkdown("remarks", value);
             }
         }
         public string Value
         {
             get
             {
-                return XmlHelper.GetChildElementValue(Docs, "value");
+                return GetNodesInPlainText("value");
             }
             set
             {
-                XElement xeValue = XmlHelper.GetChildElement(Docs, "value");
-                if (xeValue == null)
-                {
-                    FormatAsNormalElement(xeValue);
-                }
+                SaveFormattedAsXml("value", value);
             }
         }
         private List<string> _altMemberCref;
@@ -314,42 +292,22 @@ namespace DocsPortingTool.Docs
             return DocId;
         }
 
-        public DocsException AddException(XElement xeException)
+        public DocsException AddException(string cref, string value)
         {
-            AddChildAsNormalElement(Docs, xeException, true);
-            DocsException docsException = new DocsException(this, xeException);
-            return docsException;
+            XElement exception = new XElement("exception");
+            exception.SetAttributeValue("cref", cref);
+            XmlHelper.AddChildFormattedAsXml(Docs, exception, value);
+            Changed = true;
+            return new DocsException(this, exception);
         }
 
-        public DocsTypeParam AddTypeParam(XElement xeTripleSlashParam)
+        public DocsTypeParam AddTypeParam(string name, string value)
         {
-            XElement xeDocsTypeParam = new XElement(xeTripleSlashParam);
-            AddChildAsNormalElement(Docs, xeDocsTypeParam, true);
-            DocsTypeParam docsTypeParam = new DocsTypeParam(this, xeDocsTypeParam);
-            return docsTypeParam;
+            XElement typeParam = new XElement("typeparam");
+            typeParam.SetAttributeValue("name", name);
+            XmlHelper.AddChildFormattedAsXml(Docs, typeParam, value);
+            Changed = true;
+            return new DocsTypeParam(this, typeParam);
         }
-
-        #region Private methods
-
-        private XElement XERemarks
-        {
-            get
-            {
-                XElement xeRemarks = null;
-                if (Docs != null)
-                {
-                    xeRemarks = XmlHelper.GetChildElement(Docs, "remarks");
-                    if (xeRemarks == null)
-                    {
-                        xeRemarks = new XElement("remarks", "To be added.");
-                        AddChildAsNormalElement(Docs, xeRemarks, true);
-                    }
-                }
-
-                return xeRemarks;
-            }
-        }
-
-        #endregion
     }
 }

@@ -33,7 +33,7 @@ namespace DocsPortingTool.Docs
                 {
                     if (Constraints != null)
                     {
-                        _constraintsParamterAttributes = Constraints.Elements("ParameterAttribute").Select(x => XmlHelper.GetRealValue(x)).ToList();
+                        _constraintsParamterAttributes = Constraints.Elements("ParameterAttribute").Select(x => XmlHelper.GetNodesInPlainText(x)).ToList();
                     }
                     else
                     {

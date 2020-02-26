@@ -2,13 +2,16 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
-    <AssemblyName>DocsPortingTool</AssemblyName>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Program</AssemblyName>
     <Description>Tool that finds triple slash comments that exist in the .NET repos but do not yet exist in the dotnet-api-docs repo, and ports them.</Description>
+    <StartupObject>Program.Program</StartupObject>
+    <Company>Microsoft</Company>
+    <Authors>carlossanlop</Authors>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <ProjectReference Include="..\Shared\DocsPortingTool.csproj" />
   </ItemGroup>
 
 </Project>

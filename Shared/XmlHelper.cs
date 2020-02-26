@@ -1,7 +1,6 @@
 ﻿using DocsPortingTool.Docs;
-using Shared;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -10,8 +9,6 @@ namespace DocsPortingTool
 {
     public class XmlHelper
     {
-        #region Private members
-
         private static readonly Dictionary<string, string> _replaceableNormalElementPatterns = new Dictionary<string, string> {
             { "<c>null</c>",                "<see langword=\"null\" />"},
             { "<c>true</c>",                "<see langword=\"true\" />"},
@@ -34,7 +31,8 @@ namespace DocsPortingTool
             { "<c>",     "" },
             { "</c>",    "" },
             { "<para>",  "" },
-            { "</para>", "" }
+            { "</para>", "" },
+            { "></see>", " />" }
         };
 
         private static readonly Dictionary<string, string> _replaceableMarkdownPatterns = new Dictionary<string, string> {
@@ -84,20 +82,12 @@ namespace DocsPortingTool
             { @"\<seealso cref\=""(?'seealsoContents'.+)""[ ]*\/\>",      @"seealsoContents" },
         };
 
-        #endregion
-
-        #region Read actions
-
-        #region Public methods
-
-        public static string GetAttributeValue(XElement parent, string name, bool errorCheck=false)
+        public static string GetAttributeValue(XElement parent, string name)
         {
             if (parent == null)
             {
-                if (errorCheck)
-                {
-                    Log.Error("A null parent was passed when attempting to get attribute '{0}'", name);
-                }
+                Log.Error("A null parent was passed when attempting to get attribute '{0}'", name);
+                throw new ArgumentNullException(nameof(parent));
             }
             else
             {
@@ -110,89 +100,79 @@ namespace DocsPortingTool
             return string.Empty;
         }
 
-        public static XElement GetChildElement(XElement parent, string name, bool errorCheck=false)
+        public static XElement GetChildElement(XElement parent, string name)
         {
             XElement child = null;
             if (parent == null)
             {
-                if (errorCheck)
-                {
-                    Log.Error("A null parent was passed when attempting to get element '{0}'", name);
-                }
+                Log.Error("A null parent was passed when attempting to get element '{0}'", name);
+                throw new ArgumentNullException(nameof(parent));
             }
             else
             {
                 child = parent.Element(name);
                 if (child == null)
                 {
-                    if (errorCheck)
-                    {
-                        Log.Error("Root '{0}' does not have a child named '{1}'", name, parent.Name);
-                    }
+                    Log.Error("Root '{0}' does not have a child named '{1}'", parent.Name, name);
+                    throw new ArgumentNullException(nameof(child));
                 }
             }
             return child;
         }
 
-        public static string GetChildElementValue(XElement parent, string name, bool errorCheck=false)
+        public static bool TryGetChildElement(XElement parent, string name, out XElement child)
         {
-            XElement child = GetChildElement(parent, name, errorCheck);
+            child = null;
+
+            if (parent == null || string.IsNullOrWhiteSpace(name))
+                return false;
+
+            child = parent.Element(name);
+
+            return child != null;
+        }
+
+        public static string GetChildElementValue(XElement parent, string name)
+        {
+            XElement child = GetChildElement(parent, name);
             if (child != null)
             {
-                return GetRealValue(child);
+                return GetNodesInPlainText(child);
             }
             return null;
         }
 
-        public static string GetRealValue(XElement element, bool errorCheck=false)
+        public static string GetNodesInPlainText(XElement element)
         {
             string value = string.Empty;
 
             if (element == null)
             {
-                if (errorCheck)
-                {
-                    Log.Error("A null parent was passed when attempting to retrieve the real value.");
-                }
+                Log.Error("A null element was passed when attempting to retrieve the nodes in plain text.");
+                throw new ArgumentNullException(nameof(element));
             }
             else
             {
-                value = string.Join("", element.Nodes()).Trim().Replace("></see>", " />");
+                value = string.Join("", element.Nodes()).Trim();
             }
 
             return value;
         }
 
-        #endregion
-
-        #endregion
-
-        #region Write actions
-
-        #region Public methods
-
-        public static void SaveXml(XDocument xDoc, string filePath)
+        public static void SaveFormattedAsMarkdown(XElement element, string newValue)
         {
-            if (Configuration.Save)
+            if (element == null)
             {
-                // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true, Encoding = Encoding.GetEncoding("ISO-8859-1") };
-                using (XmlWriter xw = XmlWriter.Create(filePath, xws))
-                {
-                    xDoc.Save(xw);
-                    Log.Success(" [Saved]");
-                }
+                Log.Error("A null element was passed when attempting to save formatted as markdown");
+                throw new ArgumentNullException(nameof(element));
             }
-        }
 
-        public static void FormatAsMarkdown(IDocsAPI api, XElement xeElement, string value)
-        {
             // Empty value because SaveChildElement will add a child to the parent, not replace it
-            xeElement.Value = string.Empty;
+            element.Value = string.Empty;
 
             XElement xeFormat = new XElement("format");
 
-            string updatedValue = RemoveUndesiredEndlines(value);
+            string updatedValue = RemoveUndesiredEndlines(newValue);
             updatedValue = SubstituteRemarksRegexPatterns(updatedValue);
             updatedValue = ReplaceMarkdownPatterns(updatedValue);
 
@@ -207,17 +187,40 @@ namespace DocsPortingTool
             // Attribute at the end, otherwise it would be replaced by ReplaceAll
             xeFormat.SetAttributeValue("type", "text/markdown");
 
-            xeElement.Add(xeFormat);
-
-            api.Changed = true;
+            element.Add(xeFormat);
         }
 
-        public static void FormatAsNormalElement(XElement xeElement)
+        public static void AddChildFormattedAsMarkdown(XElement parent, XElement child, string childValue)
         {
-            var attributes = xeElement.Attributes();
-            string innerText = string.Join("", xeElement.Nodes());
+            if (parent == null)
+            {
+                Log.Error("A null parent was passed when attempting to add child formatted as markdown");
+                throw new ArgumentNullException(nameof(parent));
+            }
 
-            string updatedValue = RemoveUndesiredEndlines(innerText);
+            if (child == null)
+            {
+                Log.Error("A null child was passed when attempting to add child formatted as markdown");
+                throw new ArgumentNullException(nameof(child));
+            }
+
+            SaveFormattedAsMarkdown(child, childValue);
+            parent.Add(child);
+        }
+
+        public static void SaveFormattedAsXml(XElement element, string newValue)
+        {
+            if (element == null)
+            {
+                Log.Error("A null element was passed when attempting to save formatted as xml");
+                throw new ArgumentNullException(nameof(element));
+            }
+
+            element.Value = string.Empty;
+
+            var attributes = element.Attributes();
+
+            string updatedValue = RemoveUndesiredEndlines(newValue);
             updatedValue = ReplaceNormalElementPatterns(updatedValue);
 
             // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed by replacing the nodes.
@@ -231,17 +234,40 @@ namespace DocsPortingTool
                 parsedElement = XElement.Parse("<x>" + updatedValue.Replace("<", "&lt;").Replace(">", "&gt;") + "</x>");
             }
 
-            xeElement.ReplaceNodes(parsedElement.Nodes());
+            element.ReplaceNodes(parsedElement.Nodes());
 
             // Ensure attributes are preserved after replacing nodes
-            xeElement.ReplaceAttributes(attributes);
+            element.ReplaceAttributes(attributes);
         }
 
-        #endregion
+        public static void AppendFormattedAsXml(XElement element, string valueToAppend)
+        {
+            if (element == null)
+            {
+                Log.Error("A null element was passed when attempting to append formatted as xml");
+                throw new ArgumentNullException(nameof(element));
+            }
 
-        #endregion
+            SaveFormattedAsXml(element, GetNodesInPlainText(element) + valueToAppend);
+        }
 
-        #region Private methods
+        public static void AddChildFormattedAsXml(XElement parent, XElement child, string childValue)
+        {
+            if (parent == null)
+            {
+                Log.Error("A null parent was passed when attempting to add child formatted as xml");
+                throw new ArgumentNullException(nameof(parent));
+            }
+
+            if (child == null)
+            {
+                Log.Error("A null child was passed when attempting to add child formatted as xml");
+                throw new ArgumentNullException(nameof(child));
+            }
+
+            SaveFormattedAsXml(child, childValue);
+            parent.Add(child);
+        }
 
         private static string RemoveUndesiredEndlines(string value)
         {
@@ -298,7 +324,5 @@ namespace DocsPortingTool
 
             return value;
         }
-
-        #endregion
     }
 }

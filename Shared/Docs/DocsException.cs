@@ -19,15 +19,16 @@ namespace DocsPortingTool.Docs
                 return XmlHelper.GetAttributeValue(XEException, "cref");
             }
         }
+
         public string Value
         {
             get
             {
-                return XmlHelper.GetRealValue(XEException);
+                return XmlHelper.GetNodesInPlainText(XEException);
             }
             private set
             {
-                XEException.Value = value;
+                XmlHelper.SaveFormattedAsXml(XEException, value);
             }
         }
 
@@ -42,8 +43,9 @@ namespace DocsPortingTool.Docs
 
         public void AppendException(string toAppend)
         {
-            Value += Environment.NewLine + Environment.NewLine + "-or-" + Environment.NewLine + Environment.NewLine + toAppend;
-            XmlHelper.FormatAsNormalElement(XEException);
+            XmlHelper.AppendFormattedAsXml(XEException,
+                Environment.NewLine + Environment.NewLine + "-or-" + Environment.NewLine + Environment.NewLine + toAppend);
+            ParentAPI.Changed = true;
         }
 
         public override string ToString()

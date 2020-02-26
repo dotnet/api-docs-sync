@@ -1,5 +1,4 @@
-﻿using Shared;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -40,7 +39,53 @@ namespace DocsPortingTool.TripleSlash
         {
         }
 
-        public void LoadFile(FileInfo fileInfo, bool printSuccess)
+        public void CollectFiles()
+        {
+            foreach (FileInfo fileInfo in EnumerateFiles())
+            {
+                LoadFile(fileInfo, printSuccess: true);
+            }
+        }
+
+        private List<FileInfo> EnumerateFiles()
+        {
+            Log.Info("Looking for triple slash xml files...");
+
+            List<FileInfo> fileInfos = new List<FileInfo>();
+
+            foreach (DirectoryInfo dirInfo in Configuration.DirsTripleSlashXmls)
+            {
+                // 1) Find all the xml files inside the subdirectories within the triple slash xml directory
+                foreach (DirectoryInfo subDir in dirInfo.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+                {
+                    if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
+                    {
+                        foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
+                        {
+                            if (Configuration.HasAllowedAssemblyPrefix(fileInfo.Name))
+                            {
+                                fileInfos.Add(fileInfo);
+                            }
+                        }
+                    }
+                }
+
+                // 2) Find all the xml files in the top directory
+                foreach (FileInfo fileInfo in dirInfo.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
+                {
+                    if (Configuration.HasAllowedAssemblyPrefix(fileInfo.Name))
+                    {
+                        fileInfos.Add(fileInfo);
+                    }
+                }
+            }
+
+            Log.Success("Finished looking for triple slash xml files.");
+
+            return fileInfos;
+        }
+
+        private void LoadFile(FileInfo fileInfo, bool printSuccess)
         {
             if (!fileInfo.Exists)
             {

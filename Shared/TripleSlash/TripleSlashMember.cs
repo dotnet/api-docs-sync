@@ -86,7 +86,10 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_summary))
                 {
-                    _summary = XmlHelper.GetChildElementValue(XEMember, "summary");
+                    if (XmlHelper.TryGetChildElement(XEMember, "summary", out XElement xElement))
+                    {
+                        _summary = XmlHelper.GetNodesInPlainText(xElement);
+                    }
                 }
                 return _summary;
             }
@@ -99,7 +102,10 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_value))
                 {
-                    _value = XmlHelper.GetChildElementValue(XEMember, "value");
+                    if (XmlHelper.TryGetChildElement(XEMember, "value", out XElement xElement))
+                    {
+                        _value = XmlHelper.GetNodesInPlainText(xElement);
+                    }
                 }
                 return _value;
             }
@@ -112,7 +118,10 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_returns))
                 {
-                    _returns = XmlHelper.GetChildElementValue(XEMember, "returns");
+                    if (XmlHelper.TryGetChildElement(XEMember, "returns", out XElement xElement))
+                    {
+                        _returns = XmlHelper.GetNodesInPlainText(xElement);
+                    }
                 }
                 return _returns;
             }
@@ -125,7 +134,10 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_remarks))
                 {
-                    _remarks = XmlHelper.GetChildElementValue(XEMember, "remarks");
+                    if (XmlHelper.TryGetChildElement(XEMember, "remarks", out XElement xElement))
+                    {
+                        _remarks = XmlHelper.GetNodesInPlainText(xElement);
+                    }
                 }
                 return _remarks;
             }

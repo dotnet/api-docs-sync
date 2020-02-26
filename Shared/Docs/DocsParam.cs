@@ -20,11 +20,12 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return XmlHelper.GetRealValue(XEDocsParam);
+                return XmlHelper.GetNodesInPlainText(XEDocsParam);
             }
             set
             {
-                ParentAPI.FormatAsNormalElement(XEDocsParam);
+                XmlHelper.SaveFormattedAsXml(XEDocsParam, value);
+                ParentAPI.Changed = true;
             }
         }
         public DocsParam(IDocsAPI parentAPI, XElement xeDocsParam)

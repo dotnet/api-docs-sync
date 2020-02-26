@@ -1,5 +1,4 @@
-﻿using Shared;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -8,80 +7,99 @@ using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
 {
-    public interface IDocsAPI
+    public abstract class DocsAPI : IDocsAPI, IDisposable
     {
-        public abstract XDocument XDoc { get; set; }
-        public abstract bool Changed { get; set; }
-        public abstract string FilePath { get; set; }
-        public abstract Encoding OriginalEncoding { get; set; }
-        public abstract string DocId { get; }
-        public abstract XElement Docs { get; }
-        public abstract List<DocsParameter> Parameters { get; }
-        public abstract List<DocsParam> Params { get; }
-        public abstract DocsParam SaveParam(XElement xeCoreFXParam);
-        void AddChildAsNormalElement(XElement xeParent, XElement xeChild, bool errorCheck = false);
-        void FormatAsNormalElement(XElement xeChild);
-    }
-
-    public abstract class DocsAPI : IDocsAPI
-    {
+        public abstract string Identifier { get; }
         public XDocument XDoc { get; set; } = null;
         public bool Changed { get; set; } = false;
         public string FilePath { get; set; } = string.Empty;
-        public Encoding OriginalEncoding { get; set; } = null;
         public abstract string DocId { get; }
         public abstract XElement Docs { get; }
         public abstract List<DocsParameter> Parameters { get; }
         public abstract List<DocsParam> Params { get; }
+        public abstract string Summary { get; set; }
+        public abstract string Remarks { get; set; }
 
+        private string _docIdEscaped = null;
+        public string DocIdEscaped
+        {
+            get
+            {
+                if (_docIdEscaped == null)
+                {
+                    _docIdEscaped = DocId.Replace("<", "{").Replace(">", "}").Replace("&lt;", "{").Replace("&gt;", "}");
+                }
+                return _docIdEscaped;
+            }
+        }
+
+        public void Dispose()
+        {
+            Log.Warning(false, $"Saving file: {FilePath}");
+
+            if (Configuration.Save)
+            {
+                // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
+                XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true, Encoding = Encoding.GetEncoding("ISO-8859-1") };
+                using (XmlWriter xw = XmlWriter.Create(FilePath, xws))
+                {
+                    XDoc.Save(xw);
+                }
+
+                // Workaround to delete the annoying endline added by XmlWriter.Save
+                string fileData = File.ReadAllText(FilePath);
+                if (!fileData.EndsWith(Environment.NewLine))
+                {
+                    File.WriteAllText(FilePath, fileData + Environment.NewLine);
+                }
+
+                Log.Success(" [Saved]");
+            }
+        }
+        
         public DocsParam SaveParam(XElement xeTripleSlashParam)
         {
-            XElement xeDocsParam = new XElement(xeTripleSlashParam.Name, xeTripleSlashParam.Value);
+            XElement xeDocsParam = new XElement(xeTripleSlashParam.Name);
             xeDocsParam.ReplaceAttributes(xeTripleSlashParam.Attributes());
-            AddChildAsNormalElement(Docs, xeDocsParam, true);
+            XmlHelper.SaveFormattedAsXml(xeDocsParam, xeTripleSlashParam.Value);
             DocsParam docsParam = new DocsParam(this, xeDocsParam);
+            Changed = true;
             return docsParam;
         }
 
-        public void AddChildAsNormalElement(XElement xeParent, XElement xeChild, bool errorCheck = false)
+        protected string GetNodesInPlainText(string name)
         {
-            if (VerifySaveChildParams(XDoc, xeParent, xeChild, true))
+            TryGetElement(name, out XElement element);
+            return XmlHelper.GetNodesInPlainText(element);
+        }
+
+        protected void SaveFormattedAsXml(string name, string value)
+        {
+            if (TryGetElement(name, out XElement element))
             {
-                FormatAsNormalElement(xeChild);
-                xeParent.Add(xeChild);
+                XmlHelper.SaveFormattedAsXml(element, value);
+                Changed = true;
             }
         }
 
-        public void FormatAsNormalElement(XElement xeChild)
+        protected void SaveFormattedAsMarkdown(string name, string value)
         {
-            XmlHelper.FormatAsNormalElement(xeChild);
-            Changed = true;
+            if (TryGetElement(name, out XElement element))
+            {
+                XmlHelper.SaveFormattedAsMarkdown(element, value);
+                Changed = true;
+            }
         }
 
-        private static bool VerifySaveChildParams(XDocument doc, XElement parent, XElement child, bool errorCheck = false)
+        // Returns true if the element existed, false if it had to be created with "To be added." as value.
+        private bool TryGetElement(string name, out XElement element)
         {
-            if (doc == null)
+            element = XmlHelper.GetChildElement(Docs, name);
+
+            if (element == null)
             {
-                if (errorCheck)
-                {
-                    Log.Error("A null XDocument was passed when attempting to save a new child element");
-                }
-                return false;
-            }
-            else if (parent == null)
-            {
-                if (errorCheck)
-                {
-                    Log.Error("A null XElement parent was passed when attempting to save a new child element");
-                }
-                return false;
-            }
-            else if (child == null)
-            {
-                if (errorCheck)
-                {
-                    Log.Error("A null XElement child was passed when attempting to save a new child element");
-                }
+                element = new XElement(name);
+                XmlHelper.AddChildFormattedAsXml(Docs, element, "To be added.");
                 return false;
             }
 

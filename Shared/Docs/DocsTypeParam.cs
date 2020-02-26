@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Threading;
+using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
 {
@@ -7,7 +8,7 @@ namespace DocsPortingTool.Docs
     /// </summary>
     public class DocsTypeParam
     {
-        private XElement XETypeParam = null;
+        private XElement XEDocsTypeParam = null;
         public IDocsAPI ParentAPI
         {
             get; private set;
@@ -16,25 +17,26 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return XmlHelper.GetAttributeValue(XETypeParam, "name");
+                return XmlHelper.GetAttributeValue(XEDocsTypeParam, "name");
             }
         }
         public string Value
         {
             get
             {
-                return XmlHelper.GetRealValue(XETypeParam);
+                return XmlHelper.GetNodesInPlainText(XEDocsTypeParam);
             }
             set
             {
-                ParentAPI.FormatAsNormalElement(XETypeParam);
+                XmlHelper.SaveFormattedAsXml(XEDocsTypeParam, value);
+                ParentAPI.Changed = true;
             }
         }
 
-        public DocsTypeParam(IDocsAPI parentAPI, XElement xeTypeParam)
+        public DocsTypeParam(IDocsAPI parentAPI, XElement xeDocsTypeParam)
         {
             ParentAPI = parentAPI;
-            XETypeParam = xeTypeParam;
+            XEDocsTypeParam = xeDocsTypeParam;
         }
     }
 }

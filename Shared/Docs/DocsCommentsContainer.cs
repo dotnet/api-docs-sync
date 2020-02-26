@@ -1,5 +1,4 @@
-﻿using Shared;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -51,7 +50,62 @@ namespace DocsPortingTool.Docs
         {
         }
 
-        public void LoadFile(FileInfo fileInfo)
+        public void CollectFiles()
+        {
+
+            foreach (FileInfo fileInfo in EnumerateFiles())
+            {
+                LoadFile(fileInfo);
+            }
+        }
+
+        public void Save()
+        {
+            if (Configuration.Save)
+            {
+                foreach (var container in Containers.Where(x => x.Changed))
+                {
+                    container.Dispose();
+                }
+                foreach (var member in Members.Where(x => x.Changed))
+                {
+                    member.Dispose();
+                }
+            }
+        }
+
+        private List<FileInfo> EnumerateFiles()
+        {
+            Log.Info("Looking for Docs xml files...");
+
+            List<FileInfo> fileInfos = new List<FileInfo>();
+
+            foreach (DirectoryInfo subDir in Configuration.DirDocsXml.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+            {
+                if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
+                {
+                    foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
+                    {
+                        if (Configuration.HasAllowedAssemblyPrefix(subDir.Name))
+                        {
+                            fileInfos.Add(fileInfo);
+                        }
+                    }
+                }
+            }
+
+            // Make sure to include the files in the base directory too
+            foreach (FileInfo fileInfo in Configuration.DirDocsXml.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
+            {
+                fileInfos.Add(fileInfo);
+            }
+
+            Log.Success("Finished looking for Docs xml files");
+
+            return fileInfos;
+        }
+
+        private void LoadFile(FileInfo fileInfo)
         {
             if (!fileInfo.Exists)
             {
@@ -157,16 +211,5 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        public void Save()
-        {
-            var modifiedFilesContainers = Containers.Where(x => x.Changed);
-            var modifiedFilesAll = Members.Where(x => x.Changed && modifiedFilesContainers.Count(y => y.FilePath == x.FilePath) == 0);
-
-            foreach (var m in modifiedFilesAll)
-            {
-                Log.Warning(false, $"Saving file: {m.FilePath}");
-                XmlHelper.SaveXml(m.XDoc, m.FilePath);
-            }
-        }
     }
 }

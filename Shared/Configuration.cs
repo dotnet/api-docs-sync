@@ -22,6 +22,8 @@ namespace DocsPortingTool
             TripleSlash
         }
 
+        public static readonly string ToBeAdded = "To be added.";
+
         public static readonly string[] AllowedAssemblyPrefixes = new string[] { "System", "Microsoft", "Windows" };
         public static readonly string[] ForbiddenDirectories = new[] { "binplacePackages", "docs", "mscorlib", "native", "netfx", "netstandard", "pkg", "Product", "ref", "runtime", "shimsTargetRuntime", "testhost", "tests", "winrt" };
 

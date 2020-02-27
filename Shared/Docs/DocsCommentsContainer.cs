@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 /*
@@ -63,14 +66,28 @@ namespace DocsPortingTool.Docs
         {
             if (Configuration.Save)
             {
+                List<string> savedFiles = new List<string>();
                 foreach (var container in Containers.Where(x => x.Changed))
                 {
-                    container.Dispose();
+                    Log.Warning(false, $"Saving changes for {container.FilePath}:");
+                    // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
+                    XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true, Encoding = Encoding.GetEncoding("ISO-8859-1") };
+                    using (XmlWriter xw = XmlWriter.Create(container.FilePath, xws))
+                    {
+                        container.XDoc.Save(xw);
+                    }
+
+                    // Workaround to delete the annoying endline added by XmlWriter.Save
+                    string fileData = File.ReadAllText(container.FilePath);
+                    if (!fileData.EndsWith(Environment.NewLine))
+                    {
+                        File.WriteAllText(container.FilePath, fileData + Environment.NewLine);
+                    }
+
+                    Log.Success(" [Saved]");
+                    Log.Line();
                 }
-                foreach (var member in Members.Where(x => x.Changed))
-                {
-                    member.Dispose();
-                }
+
             }
         }
 
@@ -109,7 +126,13 @@ namespace DocsPortingTool.Docs
         {
             if (!fileInfo.Exists)
             {
-                Log.Error(string.Format("Docs xml file does not exist: {0}", fileInfo.FullName));
+                Log.Error($"Docs xml file does not exist: {fileInfo.FullName}");
+                return;
+            }
+
+            if (fileInfo.Name.StartsWith("ns-"))
+            {
+                Log.Warning($"Skipping namespace file: {fileInfo.FullName}");
                 return;
             }
 
@@ -117,25 +140,31 @@ namespace DocsPortingTool.Docs
 
             if (xDoc.Root == null)
             {
-                Log.Error("Docs xml file does not have a root element: {0}", fileInfo.FullName);
+                Log.Error($"Docs xml file does not have a root element: {fileInfo.FullName}");
+                return;
+            }
+
+            if (xDoc.Root.Name == "Namespace")
+            {
+                Log.Error($"Skipping namespace file (should have been filtered already): {fileInfo.FullName}");
                 return;
             }
 
             if (xDoc.Root.Name != "Type")
             {
-                Log.Error("Docs xml file does not have a 'Type' root element: {0}", fileInfo.FullName);
+                Log.Error($"Docs xml file does not have a 'Type' root element: {fileInfo.FullName}");
                 return;
             }
 
             if (!xDoc.Root.HasElements)
             {
-                Log.Error("Docs xml file Type element does not have any children: {0}", fileInfo.FullName);
+                Log.Error($"Docs xml file Type element does not have any children: {fileInfo.FullName}");
                 return;
             }
 
             if (xDoc.Root.Elements("Docs").Count() != 1)
             {
-                Log.Error("Docs xml file Type element does not have a Docs child: {0}", fileInfo.FullName);
+                Log.Error($"Docs xml file Type element does not have a Docs child: {fileInfo.FullName}");
                 return;
             }
 
@@ -192,13 +221,11 @@ namespace DocsPortingTool.Docs
                 totalContainersAdded++;
                 Containers.Add(docsType);
 
-                XElement xeMembers = XmlHelper.GetChildElement(xDoc.Root, "Members");
-
-                if (xeMembers != null)
+                if (XmlHelper.TryGetChildElement(xDoc.Root, "Members", out XElement xeMembers))
                 {
                     foreach (XElement xeMember in xeMembers.Elements("Member"))
                     {
-                        DocsMember member = new DocsMember(fileInfo.FullName, xDoc, xeMember);
+                        DocsMember member = new DocsMember(fileInfo.FullName, docsType, xeMember);
                         totalMembersAdded++;
                         Members.Add(member);
                     }

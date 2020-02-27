@@ -11,6 +11,17 @@ namespace DocsPortingTool.Docs
     {
         public override string Identifier => "MEMBER";
         private XElement XEMember = null;
+        private readonly DocsType ParentType = null;
+
+        public override bool Changed
+        {
+            get => ParentType.Changed;
+            set
+            {
+                if (value == true)
+                    ParentType.Changed = true;
+            }
+        }
 
         private string _memberName = null;
         public string MemberName
@@ -73,7 +84,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                XElement xeImplements = XmlHelper.GetChildElement(XEMember, "Implements");
+                XElement xeImplements = XEMember.Element("Implements");
                 if (xeImplements != null)
                 {
                     XmlHelper.GetChildElementValue(xeImplements, "InterfaceMember");
@@ -98,7 +109,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                XElement xeReturnValue = XmlHelper.GetChildElement(XEMember, "ReturnValue");
+                XElement xeReturnValue = XEMember.Element("ReturnValue");
                 if (xeReturnValue != null)
                 {
                     return XmlHelper.GetChildElementValue(xeReturnValue, "ReturnType");
@@ -113,7 +124,7 @@ namespace DocsPortingTool.Docs
             {
                 if (_parameters == null)
                 {
-                    XElement xeParameters = XmlHelper.GetChildElement(XEMember, "Parameters");
+                    XElement xeParameters = XEMember.Element("Parameters");
                     if (xeParameters != null)
                     {
                         _parameters = xeParameters.Elements("Parameter").Select(x => new DocsParameter(x)).ToList();
@@ -136,7 +147,7 @@ namespace DocsPortingTool.Docs
             {
                 if (_typeParameters == null)
                 {
-                    XElement xeTypeParameters = XmlHelper.GetChildElement(XEMember, "TypeParameters");
+                    XElement xeTypeParameters = XEMember.Element("TypeParameters");
                     if (xeTypeParameters != null)
                     {
                         _typeParameters = xeTypeParameters.Elements("TypeParameter").Select(x => new DocsTypeParameter(x)).ToList();
@@ -175,7 +186,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return XmlHelper.GetChildElement(XEMember, "Docs");
+                return XEMember.Element("Docs");
             }
         }
         private List<DocsParam> _params;
@@ -201,7 +212,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return GetNodesInPlainText("returns");
+                return (ReturnType != "System.Void") ? GetNodesInPlainText("returns") : null;
             }
             set
             {
@@ -234,7 +245,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return GetNodesInPlainText("value");
+                return (MemberType == "Property") ? GetNodesInPlainText("value") : null;
             }
             set
             {
@@ -280,10 +291,10 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        public DocsMember(string filePath, XDocument xDoc, XElement xeMember)
+        public DocsMember(string filePath, DocsType parentType, XElement xeMember)
         {
             FilePath = filePath;
-            XDoc = xDoc;
+            ParentType = parentType;
             XEMember = xeMember;
         }
 

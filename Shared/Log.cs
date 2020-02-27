@@ -4,19 +4,48 @@ namespace DocsPortingTool
 {
     public class Log
     {
+        private static void WriteLine(string format, params object[] args)
+        {
+            if (args == null || args.Length == 0)
+            {
+                Console.WriteLine(format);
+            }
+            else
+            {
+                Console.WriteLine(format, args);
+            }
+        }
+
+        private static void Write(string format, params object[] args)
+        {
+            if (args == null || args.Length == 0)
+            {
+                Console.Write(format);
+            }
+            else
+            {
+                Console.Write(format, args);
+            }
+        }
+
         public static void Print(bool endline, ConsoleColor foregroundColor, string format, params object[] args)
         {
             ConsoleColor initialColor = Console.ForegroundColor;
             Console.ForegroundColor = foregroundColor;
             if (endline)
             {
-                Console.WriteLine(format, args);
+                WriteLine(format, args);
             }
             else
             {
-                Console.Write(format, args);
+                Write(format, args);
             }
             Console.ForegroundColor = initialColor;
+        }
+
+        public static void Info(string format)
+        {
+            Info(format, null);
         }
 
         public static void Info(string format, params object[] args)
@@ -29,6 +58,11 @@ namespace DocsPortingTool
             Print(endline, ConsoleColor.White, format, args);
         }
 
+        public static void Success(string format)
+        {
+            Success(format, null);
+        }
+
         public static void Success(string format, params object[] args)
         {
             Success(true, format, args);
@@ -37,6 +71,11 @@ namespace DocsPortingTool
         public static void Success(bool endline, string format, params object[] args)
         {
             Print(endline, ConsoleColor.Green, format, args);
+        }
+
+        public static void Warning(string format)
+        {
+            Warning(format, null);
         }
 
         public static void Warning(string format, params object[] args)
@@ -49,6 +88,11 @@ namespace DocsPortingTool
             Print(endline, ConsoleColor.Yellow, format, args);
         }
 
+        public static void Error(string format)
+        {
+            Error(format, null);
+        }
+
         public static void Error(string format, params object[] args)
         {
             Error(true, format, args);
@@ -57,6 +101,21 @@ namespace DocsPortingTool
         public static void Error(bool endline, string format, params object[] args)
         {
             Print(endline, ConsoleColor.Red, format, args);
+        }
+
+        public static void Working(string format)
+        {
+            Working(format, null);
+        }
+
+        public static void Working(string format, params object[] args)
+        {
+            Working(true, format, args);
+        }
+
+        public static void Working(bool endline, string format, params object[] args)
+        {
+            Print(endline, ConsoleColor.Cyan, format, args);
         }
 
         public static void Assert(bool condition, string format, params object[] args)
@@ -74,16 +133,6 @@ namespace DocsPortingTool
             {
                 Error(endline, format, args);
             }
-        }
-
-        public static void Working(string format, params object[] args)
-        {
-            Working(true, format, args);
-        }
-
-        public static void Working(bool endline, string format, params object[] args)
-        {
-            Print(endline, ConsoleColor.Cyan, format, args);
         }
 
         public static void Line()

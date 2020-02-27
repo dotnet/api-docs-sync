@@ -6,7 +6,6 @@ namespace DocsPortingTool.Docs
     public interface IDocsAPI
     {
         public abstract string Identifier { get; }
-        public abstract XDocument XDoc { get; set; }
         public abstract bool Changed { get; set; }
         public abstract string FilePath { get; set; }
         public abstract string DocId { get; }

@@ -86,10 +86,9 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_summary))
                 {
-                    if (XmlHelper.TryGetChildElement(XEMember, "summary", out XElement xElement))
-                    {
+                    XElement xElement = XEMember.Element("summary");
+                    if (xElement != null)
                         _summary = XmlHelper.GetNodesInPlainText(xElement);
-                    }
                 }
                 return _summary;
             }
@@ -102,10 +101,13 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_value))
                 {
-                    if (XmlHelper.TryGetChildElement(XEMember, "value", out XElement xElement))
+                    try
                     {
-                        _value = XmlHelper.GetNodesInPlainText(xElement);
+                        XElement xElement = XEMember.Element("value");
+                        if (xElement != null)
+                            _value = XmlHelper.GetNodesInPlainText(xElement);
                     }
+                    catch { }
                 }
                 return _value;
             }
@@ -118,10 +120,13 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_returns))
                 {
-                    if (XmlHelper.TryGetChildElement(XEMember, "returns", out XElement xElement))
+                    try
                     {
-                        _returns = XmlHelper.GetNodesInPlainText(xElement);
+                        XElement xElement = XEMember.Element("returns");
+                        if (xElement != null)
+                            _returns = XmlHelper.GetNodesInPlainText(xElement);
                     }
+                    catch { }
                 }
                 return _returns;
             }
@@ -134,10 +139,13 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_remarks))
                 {
-                    if (XmlHelper.TryGetChildElement(XEMember, "remarks", out XElement xElement))
+                    try
                     {
-                        _remarks = XmlHelper.GetNodesInPlainText(xElement);
+                        XElement xElement = XEMember.Element("remarks");
+                        if (xElement != null)
+                            _remarks = XmlHelper.GetNodesInPlainText(xElement);
                     }
+                    catch { }
                 }
                 return _remarks;
             }

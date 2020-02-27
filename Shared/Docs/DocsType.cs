@@ -1,8 +1,6 @@
-﻿using DocsPortingTool;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
@@ -13,7 +11,11 @@ namespace DocsPortingTool.Docs
     public class DocsType : DocsAPI
     {
         public override string Identifier => "TYPE";
+        public XDocument XDoc { get; set; } = null;
+
         private XElement XERoot = null;
+
+        public override bool Changed { get; set; }
 
         private string _name = null;
         public string Name
@@ -104,7 +106,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return XmlHelper.GetChildElement(XERoot, "Base");
+                return XERoot.Element("Base");
             }
         }
 
@@ -124,7 +126,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return XmlHelper.GetChildElement(XERoot, "Interfaces");
+                return XERoot.Element("Interfaces");
             }
         }
 
@@ -148,7 +150,7 @@ namespace DocsPortingTool.Docs
             {
                 if (_attributes == null)
                 {
-                    XElement e = XmlHelper.GetChildElement(XERoot, "Attributes");
+                    XElement e = XERoot.Element("Attributes");
                     if (e != null)
                     {
                         _attributes = e.Elements("Attribute").Select(x => new DocsAttribute(x)).ToList();
@@ -165,7 +167,7 @@ namespace DocsPortingTool.Docs
             {
                 if (_parameters == null)
                 {
-                    XElement xeParameters = XmlHelper.GetChildElement(XERoot, "Parameters");
+                    XElement xeParameters = XERoot.Element("Parameters");
                     if (xeParameters != null)
                     {
                         _parameters = xeParameters.Elements("Parameter").Select(x => new DocsParameter(x)).ToList();
@@ -183,7 +185,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return XmlHelper.GetChildElement(XERoot, "Docs");
+                return XERoot.Element("Docs");
             }
         }
         

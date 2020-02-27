@@ -21,7 +21,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return XmlHelper.GetChildElement(XETypeParameter, "Constraints");
+                return XETypeParameter.Element("Constraints");
             }
         }
         private List<string> _constraintsParamterAttributes;

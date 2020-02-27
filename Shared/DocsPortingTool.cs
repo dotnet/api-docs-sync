@@ -27,10 +27,11 @@ namespace DocsPortingTool
             DocsComments.CollectFiles();
 
             PortMissingComments();
-            DocsComments.Save();
 
             PrintUndocumentedAPIs();
             PrintSummary();
+
+            DocsComments.Save();
         }
 
         /// <summary>
@@ -39,66 +40,66 @@ namespace DocsPortingTool
         private static void PortMissingComments()
         {
             Log.Info("Looking for triple slash comments that can be ported...");
-            foreach (TripleSlashMember tsMember in TripleSlashComments.Members)
+            foreach (TripleSlashMember tsMemberToPort in TripleSlashComments.Members)
             {
-                if (tsMember.Name.StartsWith("T:"))
+                if (tsMemberToPort.Name.StartsWith("T:"))
                 {
-                    foreach (DocsType dType in DocsComments.Containers.Where(x => x.DocIdEscaped == tsMember.Name))
-                    {
-                        PortMissingCommentsForContainer(tsMember, dType);
-                    }
+                    PortMissingCommentsForContainers(tsMemberToPort);
                 }
                 else
                 {
-                    foreach (DocsMember dMember in DocsComments.Members.Where(x => x.DocIdEscaped == tsMember.Name))
-                    {
-                        PortMissingCommentsForMember(tsMember, dMember);
-                    }
+                    PortMissingCommentsForMembers(tsMemberToPort);
                 }
             }
             Log.Line();
         }
 
-        private static void PortMissingCommentsForContainer(TripleSlashMember tsMemberToPort, DocsType dTypeToUpdate)
+        private static void PortMissingCommentsForContainers(TripleSlashMember tsMemberToPort)
         {
-            if (tsMemberToPort.Name == dTypeToUpdate.DocIdEscaped)
+            foreach (DocsType dTypeToUpdate in DocsComments.Containers.Where(x => x.DocIdEscaped == tsMemberToPort.Name))
             {
-                TryPortMissingSummaryForAPI(tsMemberToPort, dTypeToUpdate);
-                TryPortMissingRemarksForAPI(tsMemberToPort, dTypeToUpdate);
-                TryPortMissingParamsForAPI(tsMemberToPort, dTypeToUpdate); // Some types (for example: delegates) have params
-            }
+                if (tsMemberToPort.Name == dTypeToUpdate.DocIdEscaped)
+                {
+                    TryPortMissingSummaryForAPI(tsMemberToPort, dTypeToUpdate);
+                    TryPortMissingRemarksForAPI(tsMemberToPort, dTypeToUpdate);
+                    TryPortMissingParamsForAPI(tsMemberToPort, dTypeToUpdate); // Some types (for example: delegates) have params
+                }
 
-            if (dTypeToUpdate.Changed)
-            {
-                ModifiedContainers.AddIfNotExists(dTypeToUpdate.DocId);
-                ModifiedAssemblies.AddIfNotExists(tsMemberToPort.Assembly);
-                ModifiedFiles.AddIfNotExists(dTypeToUpdate.FilePath);
+                if (dTypeToUpdate.Changed)
+                {
+                    ModifiedContainers.AddIfNotExists(dTypeToUpdate.DocId);
+                    ModifiedAssemblies.AddIfNotExists(tsMemberToPort.Assembly);
+                    ModifiedFiles.AddIfNotExists(dTypeToUpdate.FilePath);
+                }
             }
         }
 
-        private static void PortMissingCommentsForMember(TripleSlashMember tsMemberToPort, DocsMember dMemberToUpdate)
+        private static void PortMissingCommentsForMembers(TripleSlashMember tsMemberToPort)
         {
-            TryPortMissingSummaryForAPI(tsMemberToPort, dMemberToUpdate);
-            TryPortMissingRemarksForAPI(tsMemberToPort, dMemberToUpdate);
-            TryPortMissingParamsForAPI(tsMemberToPort, dMemberToUpdate);
-            TryPortMissingTypeParamsForMember(tsMemberToPort, dMemberToUpdate);
-            TryPortMissingExceptionsForMember(tsMemberToPort, dMemberToUpdate);
+            foreach (DocsMember dMemberToUpdate in DocsComments.Members.Where(x => x.DocIdEscaped == tsMemberToPort.Name))
+            {
+                TryPortMissingSummaryForAPI(tsMemberToPort, dMemberToUpdate);
+                TryPortMissingRemarksForAPI(tsMemberToPort, dMemberToUpdate);
+                TryPortMissingParamsForAPI(tsMemberToPort, dMemberToUpdate);
+                TryPortMissingTypeParamsForMember(tsMemberToPort, dMemberToUpdate);
+                TryPortMissingExceptionsForMember(tsMemberToPort, dMemberToUpdate);
 
-            // Properties sometimes don't have a <value> but have a <returns>
-            if (dMemberToUpdate.MemberType == "Property")
-            {
-                TryPortMissingPropertyForMember(tsMemberToPort, dMemberToUpdate);
-            }
-            else if (dMemberToUpdate.MemberType == "Method")
-            {
-                TryPortMissingMethodForMember(tsMemberToPort, dMemberToUpdate);
-            }
+                // Properties sometimes don't have a <value> but have a <returns>
+                if (dMemberToUpdate.MemberType == "Property")
+                {
+                    TryPortMissingPropertyForMember(tsMemberToPort, dMemberToUpdate);
+                }
+                else if (dMemberToUpdate.MemberType == "Method")
+                {
+                    TryPortMissingMethodForMember(tsMemberToPort, dMemberToUpdate);
+                }
 
-            if (dMemberToUpdate.Changed)
-            {
-                ModifiedAPIs.AddIfNotExists(dMemberToUpdate.DocId);
-                ModifiedAssemblies.AddIfNotExists(tsMemberToPort.Assembly);
-                ModifiedFiles.AddIfNotExists(dMemberToUpdate.FilePath);
+                if (dMemberToUpdate.Changed)
+                {
+                    ModifiedAPIs.AddIfNotExists(dMemberToUpdate.DocId);
+                    ModifiedAssemblies.AddIfNotExists(tsMemberToPort.Assembly);
+                    ModifiedFiles.AddIfNotExists(dMemberToUpdate.FilePath);
+                }
             }
         }
 
@@ -372,7 +373,7 @@ namespace DocsPortingTool
         /// <returns>True if empty, false otherwise.</returns>
         private static bool IsEmpty(string s)
         {
-            return string.IsNullOrWhiteSpace(s) || s == "To be added.";
+            return string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
         }
 
         /// <summary>
@@ -427,6 +428,7 @@ namespace DocsPortingTool
 
                 int typeSummaries = 0;
                 int memberSummaries = 0;
+                int memberValues = 0;
                 int memberReturns = 0;
                 int memberParams = 0;
                 int memberTypeParams = 0;
@@ -455,13 +457,28 @@ namespace DocsPortingTool
                         Log.Error($"        Member Summary: {member.Summary}");
                         memberSummaries++;
                     }
-                    if (member.Returns == "To be added.")
-                    {
-                        TryPrintMember(ref undocMember, member.DocId);
 
-                        Log.Error($"        Member Returns: {member.Returns}");
-                        memberReturns++;
+                    if (member.MemberType == "Property")
+                    {
+                        if (member.Value == Configuration.ToBeAdded)
+                        {
+                            TryPrintMember(ref undocMember, member.DocId);
+
+                            Log.Error($"        Property Value: {member.Value}");
+                            memberValues++;
+                        }
                     }
+                    else if (member.MemberType == "Method")
+                    {
+                        if (member.Returns == Configuration.ToBeAdded)
+                        {
+                            TryPrintMember(ref undocMember, member.DocId);
+
+                            Log.Error($"        Method Returns: {member.Returns}");
+                            memberReturns++;
+                        }
+                    }
+
                     foreach (DocsParam param in member.Params)
                     {
                         if (IsEmpty(param.Value))
@@ -498,7 +515,8 @@ namespace DocsPortingTool
 
                 Log.Info($" Undocumented type summaries: {typeSummaries}");
                 Log.Info($" Undocumented member summaries: {memberSummaries}");
-                Log.Info($" Undocumented member returns: {memberReturns}");
+                Log.Info($" Undocumented method returns: {memberReturns}");
+                Log.Info($" Undocumented property values: {memberValues}");
                 Log.Info($" Undocumented member params: {memberParams}");
                 Log.Info($" Undocumented member type params: {memberTypeParams}");
                 Log.Info($" Undocumented exceptions: {exceptions}");

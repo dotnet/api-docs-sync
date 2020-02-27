@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Xml;
+﻿using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
 {
-    public abstract class DocsAPI : IDocsAPI, IDisposable
+    public abstract class DocsAPI : IDocsAPI
     {
         public abstract string Identifier { get; }
-        public XDocument XDoc { get; set; } = null;
-        public bool Changed { get; set; } = false;
+        public abstract bool Changed { get; set; }
         public string FilePath { get; set; } = string.Empty;
         public abstract string DocId { get; }
         public abstract XElement Docs { get; }
@@ -33,30 +28,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        public void Dispose()
-        {
-            Log.Warning(false, $"Saving file: {FilePath}");
-
-            if (Configuration.Save)
-            {
-                // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true, Encoding = Encoding.GetEncoding("ISO-8859-1") };
-                using (XmlWriter xw = XmlWriter.Create(FilePath, xws))
-                {
-                    XDoc.Save(xw);
-                }
-
-                // Workaround to delete the annoying endline added by XmlWriter.Save
-                string fileData = File.ReadAllText(FilePath);
-                if (!fileData.EndsWith(Environment.NewLine))
-                {
-                    File.WriteAllText(FilePath, fileData + Environment.NewLine);
-                }
-
-                Log.Success(" [Saved]");
-            }
-        }
-        
         public DocsParam SaveParam(XElement xeTripleSlashParam)
         {
             XElement xeDocsParam = new XElement(xeTripleSlashParam.Name);
@@ -94,12 +65,12 @@ namespace DocsPortingTool.Docs
         // Returns true if the element existed, false if it had to be created with "To be added." as value.
         private bool TryGetElement(string name, out XElement element)
         {
-            element = XmlHelper.GetChildElement(Docs, name);
+            element = Docs.Element(name);
 
             if (element == null)
             {
                 element = new XElement(name);
-                XmlHelper.AddChildFormattedAsXml(Docs, element, "To be added.");
+                XmlHelper.AddChildFormattedAsXml(Docs, element, Configuration.ToBeAdded);
                 return false;
             }
 

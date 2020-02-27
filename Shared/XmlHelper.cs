@@ -100,26 +100,6 @@ namespace DocsPortingTool
             return string.Empty;
         }
 
-        public static XElement GetChildElement(XElement parent, string name)
-        {
-            XElement child = null;
-            if (parent == null)
-            {
-                Log.Error("A null parent was passed when attempting to get element '{0}'", name);
-                throw new ArgumentNullException(nameof(parent));
-            }
-            else
-            {
-                child = parent.Element(name);
-                if (child == null)
-                {
-                    Log.Error("Root '{0}' does not have a child named '{1}'", parent.Name, name);
-                    throw new ArgumentNullException(nameof(child));
-                }
-            }
-            return child;
-        }
-
         public static bool TryGetChildElement(XElement parent, string name, out XElement child)
         {
             child = null;
@@ -132,9 +112,9 @@ namespace DocsPortingTool
             return child != null;
         }
 
-        public static string GetChildElementValue(XElement parent, string name)
+        public static string GetChildElementValue(XElement parent, string childName)
         {
-            XElement child = GetChildElement(parent, name);
+            XElement child = parent.Element(childName);
             if (child != null)
             {
                 return GetNodesInPlainText(child);

@@ -125,36 +125,37 @@ namespace DocsPortingTool.TripleSlash
                 return;
             }
 
-            XElement xeMembers = XmlHelper.GetChildElement(xDoc.Root, "members");
-
             int totalAdded = 0;
-            foreach (XElement xeMember in xeMembers.Elements("member"))
+            if (XmlHelper.TryGetChildElement(xDoc.Root, "members", out XElement xeMembers))
             {
-                TripleSlashMember member = new TripleSlashMember(xeMember);
-
-                bool add = false;
-                foreach (string included in Configuration.IncludedAssemblies)
+                foreach (XElement xeMember in xeMembers.Elements("member"))
                 {
-                    if (member.Assembly.StartsWith(included) || member.Name.Substring(2).StartsWith(included))
+                    TripleSlashMember member = new TripleSlashMember(xeMember);
+
+                    bool add = false;
+                    foreach (string included in Configuration.IncludedAssemblies)
                     {
-                        add = true;
-                        break;
+                        if (member.Assembly.StartsWith(included) || member.Name.Substring(2).StartsWith(included))
+                        {
+                            add = true;
+                            break;
+                        }
                     }
-                }
 
-                foreach (string excluded in Configuration.ExcludedAssemblies)
-                {
-                    if (member.Assembly.StartsWith(excluded) || member.Name.Substring(2).StartsWith(excluded))
+                    foreach (string excluded in Configuration.ExcludedAssemblies)
                     {
-                        add = false;
-                        break;
+                        if (member.Assembly.StartsWith(excluded) || member.Name.Substring(2).StartsWith(excluded))
+                        {
+                            add = false;
+                            break;
+                        }
                     }
-                }
 
-                if (add)
-                {
-                    totalAdded++;
-                    Members.Add(member);
+                    if (add)
+                    {
+                        totalAdded++;
+                        Members.Add(member);
+                    }
                 }
             }
 

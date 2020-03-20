@@ -20,7 +20,7 @@ namespace DocsPortingTool.TripleSlash
                     string withoutParenthesisAndPrefix = splittedParenthesis[0].Substring(2);
                     string[] splittedDots = withoutParenthesisAndPrefix.Split('.', StringSplitOptions.RemoveEmptyEntries);
 
-                    _assembly = string.Join('.', splittedDots.Take(splittedDots.Length - 1));
+                    _assembly = Configuration.ReplaceNamespace(string.Join('.', splittedDots.Take(splittedDots.Length - 1)));
                 }
 
                 return _assembly;
@@ -34,7 +34,7 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_name))
                 {
-                    _name = XmlHelper.GetAttributeValue(XEMember, "name");
+                    _name = Configuration.ReplaceNamespace(XmlHelper.GetAttributeValue(XEMember, "name"));
                 }
                 return _name;
             }

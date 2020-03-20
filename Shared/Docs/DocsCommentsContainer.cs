@@ -46,7 +46,7 @@ namespace DocsPortingTool.Docs
     {
         private XDocument xDoc = null;
 
-        public readonly List<DocsType> Containers = new List<DocsType>();
+        public readonly List<DocsType> Types = new List<DocsType>();
         public readonly List<DocsMember> Members = new List<DocsMember>();
 
         public DocsCommentsContainer()
@@ -67,28 +67,51 @@ namespace DocsPortingTool.Docs
             if (Configuration.Save)
             {
                 List<string> savedFiles = new List<string>();
-                foreach (var container in Containers.Where(x => x.Changed))
+                foreach (var type in Types.Where(x => x.Changed))
                 {
-                    Log.Warning(false, $"Saving changes for {container.FilePath}:");
-                    // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                    XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true, Encoding = Encoding.GetEncoding("ISO-8859-1") };
-                    using (XmlWriter xw = XmlWriter.Create(container.FilePath, xws))
+                    Log.Warning(false, $"Saving changes for {type.FilePath}:");
+
+                    try
                     {
-                        container.XDoc.Save(xw);
+                        // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
+                        XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true, Encoding = Encoding.GetEncoding("ISO-8859-1") };
+                        using (XmlWriter xw = XmlWriter.Create(type.FilePath, xws))
+                        {
+                            type.XDoc.Save(xw);
+                        }
+
+                        // Workaround to delete the annoying endline added by XmlWriter.Save
+                        string fileData = File.ReadAllText(type.FilePath);
+                        if (!fileData.EndsWith(Environment.NewLine))
+                        {
+                            File.WriteAllText(type.FilePath, fileData + Environment.NewLine);
+                        }
+
+                        Log.Success(" [Saved]");
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e.Message);
+                        Log.Line();
+                        Log.Error(e.StackTrace);
+                        if (e.InnerException != null)
+                        {
+                            Log.Line();
+                            Log.Error(e.InnerException.Message);
+                            Log.Line();
+                            Log.Error(e.InnerException.StackTrace);
+                        }
+                        System.Threading.Thread.Sleep(1000);
                     }
 
-                    // Workaround to delete the annoying endline added by XmlWriter.Save
-                    string fileData = File.ReadAllText(container.FilePath);
-                    if (!fileData.EndsWith(Environment.NewLine))
-                    {
-                        File.WriteAllText(container.FilePath, fileData + Environment.NewLine);
-                    }
-
-                    Log.Success(" [Saved]");
                     Log.Line();
                 }
-
             }
+        }
+
+        private bool HasAllowedName(FileInfo fileInfo)
+        {
+            return !fileInfo.Name.StartsWith("ns-") && fileInfo.Name != "index.xml";
         }
 
         private List<FileInfo> EnumerateFiles()
@@ -103,7 +126,7 @@ namespace DocsPortingTool.Docs
                 {
                     foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
                     {
-                        if (Configuration.HasAllowedAssemblyPrefix(subDir.Name))
+                        if (Configuration.HasAllowedAssemblyPrefix(subDir.Name) && HasAllowedName(fileInfo))
                         {
                             fileInfos.Add(fileInfo);
                         }
@@ -114,7 +137,10 @@ namespace DocsPortingTool.Docs
             // Make sure to include the files in the base directory too
             foreach (FileInfo fileInfo in Configuration.DirDocsXml.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
             {
-                fileInfos.Add(fileInfo);
+                if (HasAllowedName(fileInfo))
+                {
+                    fileInfos.Add(fileInfo);
+                }
             }
 
             Log.Success("Finished looking for Docs xml files");
@@ -171,55 +197,63 @@ namespace DocsPortingTool.Docs
             DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root);
 
             bool add = false;
-            foreach (string included in Configuration.IncludedAssemblies)
+            // Add all interfaces in case EIIs are found
+            if (docsType.Name.StartsWith('I'))
             {
-                if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 || docsType.FullName.StartsWith(included))
+                Log.Success($" - Docs interface included: {docsType.Name}");
+                add = true;
+            }
+            else
+            {
+                foreach (string included in Configuration.IncludedAssemblies)
                 {
-                    add = true;
-
-                    if (Configuration.IncludedTypes.Count() > 0)
+                    if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 || docsType.FullName.StartsWith(included))
                     {
-                        if (!Configuration.IncludedTypes.Contains(docsType.Name))
+                        add = true;
+
+                        if (Configuration.IncludedTypes.Count() > 0)
                         {
-                            add = false;
-                            Log.Warning($" - Docs type not explicitly included: {docsType.Name}");
+                            if (!Configuration.IncludedTypes.Contains(docsType.Name))
+                            {
+                                add = false;
+                                Log.Warning($" - Docs type not explicitly included: {docsType.Name}");
+                            }
                         }
-                    }
 
-                    if (Configuration.ExcludedTypes.Count() > 0)
-                    {
-                        if (Configuration.ExcludedTypes.Contains(docsType.Name))
+                        if (Configuration.ExcludedTypes.Count() > 0)
                         {
-                            add = false;
-                            Log.Warning($" - Docs type explicitly excluded: {docsType.Name}");
+                            if (Configuration.ExcludedTypes.Contains(docsType.Name))
+                            {
+                                add = false;
+                                Log.Warning($" - Docs type explicitly excluded: {docsType.Name}");
+                            }
                         }
-                    }
 
-                    if (add)
+                        if (add)
+                        {
+                            Log.Success($" - Docs type included: {docsType.Name}");
+                        }
+
+                        break;
+                    }
+                }
+                foreach (string excluded in Configuration.ExcludedAssemblies)
+                {
+                    if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(excluded)) > 0 || docsType.FullName.StartsWith(excluded))
                     {
-                        Log.Success($" - Docs type included: {docsType.Name}");
+                        add = false;
+                        Log.Warning($"Docs xml file excluded: {fileInfo.FullName}");
+                        break;
                     }
-
-                    break;
                 }
             }
 
-            foreach (string excluded in Configuration.ExcludedAssemblies)
-            {
-                if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(excluded)) > 0 || docsType.FullName.StartsWith(excluded))
-                {
-                    add = false;
-                    Log.Warning($"Docs xml file excluded: {fileInfo.FullName}");
-                    break;
-                }
-            }
-
-            int totalContainersAdded = 0;
+            int totalTypesAdded = 0;
             int totalMembersAdded = 0;
             if (add)
             {
-                totalContainersAdded++;
-                Containers.Add(docsType);
+                totalTypesAdded++;
+                Types.Add(docsType);
 
                 if (XmlHelper.TryGetChildElement(xDoc.Root, "Members", out XElement xeMembers))
                 {
@@ -231,9 +265,9 @@ namespace DocsPortingTool.Docs
                     }
                 }
 
-                if (totalContainersAdded > 0 || totalMembersAdded > 0)
+                if (totalTypesAdded > 0 || totalMembersAdded > 0)
                 {
-                    Log.Success($"{totalContainersAdded} container(s) added and {totalMembersAdded} member(s) added from file '{fileInfo.FullName}'");
+                    Log.Success($"{totalTypesAdded} type(s) added and {totalMembersAdded} member(s) added from file '{fileInfo.FullName}'");
                 }
             }
         }

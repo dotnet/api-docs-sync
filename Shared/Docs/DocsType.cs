@@ -10,7 +10,6 @@ namespace DocsPortingTool.Docs
     /// </summary>
     public class DocsType : DocsAPI
     {
-        public override string Identifier => "TYPE";
         public XDocument XDoc { get; set; } = null;
 
         private XElement XERoot = null;

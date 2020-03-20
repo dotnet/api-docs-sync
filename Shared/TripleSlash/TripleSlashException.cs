@@ -17,7 +17,7 @@ namespace DocsPortingTool.TripleSlash
             {
                 if (string.IsNullOrWhiteSpace(_cref))
                 {
-                    _cref = XmlHelper.GetAttributeValue(XEException, "cref");
+                    _cref = Configuration.ReplaceNamespace(XmlHelper.GetAttributeValue(XEException, "cref"));
                 }
                 return _cref;
             }

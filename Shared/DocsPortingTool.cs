@@ -11,7 +11,7 @@ namespace DocsPortingTool
     {
         private static readonly List<string> ModifiedFiles = new List<string>();
         private static readonly List<string> ModifiedAssemblies = new List<string>();
-        private static readonly List<string> ModifiedContainers = new List<string>();
+        private static readonly List<string> ModifiedTypes = new List<string>();
         private static readonly List<string> ModifiedAPIs = new List<string>();
         private static readonly List<string> ProblematicAPIs = new List<string>();
         private static readonly List<string> AddedExceptions = new List<string>();
@@ -21,12 +21,20 @@ namespace DocsPortingTool
         private static readonly TripleSlashCommentsContainer TripleSlashComments = new TripleSlashCommentsContainer();
         private static readonly DocsCommentsContainer DocsComments = new DocsCommentsContainer();
 
+        // Do all the magic.
         public static void Start()
         {
             TripleSlashComments.CollectFiles();
-            DocsComments.CollectFiles();
 
-            PortMissingComments();
+            if (TripleSlashComments.TotalFiles > 0)
+            {
+                DocsComments.CollectFiles();
+                PortMissingComments();
+            }
+            else
+            {
+                Log.Error("No triple slash comments found.");
+            }
 
             PrintUndocumentedAPIs();
             PrintSummary();
@@ -34,9 +42,8 @@ namespace DocsPortingTool
             DocsComments.Save();
         }
 
-        /// <summary>
-        /// Iterates through all the found triple slash assembly files, finds all Docs types that belong to the same assembly, and looks for comments that can be ported.
-        /// </summary>
+        // Iterates through all the found triple slash assembly files (the artifacts of the built project),
+        // finds all Docs types that belong to the specified assembly, and looks for comments that can be ported.
         private static void PortMissingComments()
         {
             Log.Info("Looking for triple slash comments that can be ported...");
@@ -44,37 +51,38 @@ namespace DocsPortingTool
             {
                 if (tsMemberToPort.Name.StartsWith("T:"))
                 {
-                    PortMissingCommentsForContainers(tsMemberToPort);
+                    PortMissingCommentsForType(tsMemberToPort);
                 }
                 else
                 {
-                    PortMissingCommentsForMembers(tsMemberToPort);
+                    PortMissingCommentsForMember(tsMemberToPort);
                 }
             }
             Log.Line();
         }
 
-        private static void PortMissingCommentsForContainers(TripleSlashMember tsMemberToPort)
+        // 
+        private static void PortMissingCommentsForType(TripleSlashMember tsTypeToPort)
         {
-            foreach (DocsType dTypeToUpdate in DocsComments.Containers.Where(x => x.DocIdEscaped == tsMemberToPort.Name))
+            foreach (DocsType dTypeToUpdate in DocsComments.Types.Where(x => x.DocIdEscaped == tsTypeToPort.Name))
             {
-                if (tsMemberToPort.Name == dTypeToUpdate.DocIdEscaped)
+                if (tsTypeToPort.Name == dTypeToUpdate.DocIdEscaped)
                 {
-                    TryPortMissingSummaryForAPI(tsMemberToPort, dTypeToUpdate);
-                    TryPortMissingRemarksForAPI(tsMemberToPort, dTypeToUpdate);
-                    TryPortMissingParamsForAPI(tsMemberToPort, dTypeToUpdate); // Some types (for example: delegates) have params
+                    TryPortMissingSummaryForAPI(tsTypeToPort, dTypeToUpdate);
+                    TryPortMissingRemarksForAPI(tsTypeToPort, dTypeToUpdate);
+                    TryPortMissingParamsForAPI(tsTypeToPort, dTypeToUpdate); // Some types (for example: delegates) have params
                 }
 
                 if (dTypeToUpdate.Changed)
                 {
-                    ModifiedContainers.AddIfNotExists(dTypeToUpdate.DocId);
-                    ModifiedAssemblies.AddIfNotExists(tsMemberToPort.Assembly);
+                    ModifiedTypes.AddIfNotExists(dTypeToUpdate.DocId);
+                    ModifiedAssemblies.AddIfNotExists(tsTypeToPort.Assembly);
                     ModifiedFiles.AddIfNotExists(dTypeToUpdate.FilePath);
                 }
             }
         }
 
-        private static void PortMissingCommentsForMembers(TripleSlashMember tsMemberToPort)
+        private static void PortMissingCommentsForMember(TripleSlashMember tsMemberToPort)
         {
             foreach (DocsMember dMemberToUpdate in DocsComments.Members.Where(x => x.DocIdEscaped == tsMemberToPort.Name))
             {
@@ -103,54 +111,166 @@ namespace DocsPortingTool
             }
         }
 
+        private static string GetIsEII(bool isEII)
+        {
+            return isEII ? " (EII) " : string.Empty;
+        }
+
+        private static string GetIsCreated(bool created)
+        {
+            return created ? "CREATED" : "MODIFIED";
+        }
+
+        private static string CleanRemarksText(this string oldRemarks, string toRemove)
+        {
+            if (oldRemarks.Contains(toRemove))
+            {
+                return oldRemarks.Replace(toRemove, string.Empty);
+            }
+            return oldRemarks;
+        }
+
+        private static bool TryGetEIIMember(IDocsAPI dApiToUpdate, out DocsMember interfacedMember)
+        {
+            interfacedMember = null;
+
+            if (dApiToUpdate is DocsMember)
+            {
+                string interfacedMemberDocId = ((DocsMember)dApiToUpdate).ImplementsInterfaceMember;
+                if (!string.IsNullOrEmpty(interfacedMemberDocId))
+                {
+                    interfacedMemberDocId = interfacedMemberDocId.Substring(2);
+                    interfacedMember = DocsComments.Members.FirstOrDefault(x => x.DocId.Substring(2) == interfacedMemberDocId);
+                    return interfacedMember != null;
+                }
+            }
+
+            return false;
+        }
+
         private static void TryPortMissingSummaryForAPI(TripleSlashMember tsMemberToPort, IDocsAPI dApiToUpdate)
         {
-            // The triple slash member is referring to the base type (container) in the docs xml
-            if (!IsEmpty(tsMemberToPort.Summary) && IsEmpty(dApiToUpdate.Summary))
+            if (IsEmpty(dApiToUpdate.Summary))
             {
-                // Any member can have an empty summary
-                PrintModifiedMember($"{dApiToUpdate.Identifier} SUMMARY", dApiToUpdate.FilePath, tsMemberToPort.Name, dApiToUpdate.DocId, tsMemberToPort.Summary, dApiToUpdate.Summary);
-
-                dApiToUpdate.Summary = tsMemberToPort.Summary;
-                TotalModifiedIndividualElements++;
+                bool changed = false;
+                bool isEII = false;
+                // Try to port triple slash comments
+                if (!IsEmpty(tsMemberToPort.Summary))
+                {
+                    dApiToUpdate.Summary = tsMemberToPort.Summary;
+                    changed = true;
+                }
+                // or try to find if it implements a documented interface
+                else if (TryGetEIIMember(dApiToUpdate, out DocsMember interfacedMember))
+                {
+                    if (!IsEmpty(interfacedMember.Summary))
+                    {
+                        dApiToUpdate.Summary = interfacedMember.Summary;
+                        changed = true;
+                        isEII = true;
+                    }
+                }
+                if (changed)
+                {
+                    // Any member can have an empty summary
+                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} SUMMARY";
+                    PrintModifiedMember(message, dApiToUpdate.FilePath, tsMemberToPort.Name, dApiToUpdate.DocId, tsMemberToPort.Summary, dApiToUpdate.Summary);
+                    TotalModifiedIndividualElements++;
+                }
             }
         }
 
+        // Ports the remarks for the specified API if the field is undocumented.
         private static void TryPortMissingRemarksForAPI(TripleSlashMember tsMemberToPort, IDocsAPI dApiToUpdate)
         {
-            if (!IsEmpty(tsMemberToPort.Remarks) && IsEmpty(dApiToUpdate.Remarks))
+            if (IsEmpty(dApiToUpdate.Remarks))
             {
-                // Any member can have an empty remark
-                PrintModifiedMember($"{dApiToUpdate.Identifier} REMARKS", dApiToUpdate.FilePath, tsMemberToPort.Name, dApiToUpdate.DocId, tsMemberToPort.Remarks, dApiToUpdate.Remarks);
+                bool changed = false;
+                bool isEII = false;
+                // Try to port triple slash comments
+                if (!IsEmpty(tsMemberToPort.Remarks))
+                {
+                    dApiToUpdate.Remarks = tsMemberToPort.Remarks;
+                    changed = true;
+                }
+                // or try to find if it implements a documented interface
+                else if (TryGetEIIMember(dApiToUpdate, out DocsMember interfacedMember))
+                {
+                    string eiiMessage = string.Empty;
+                    // Special text for EIIs in Remarks
+                    if (IsEmpty(dApiToUpdate.Remarks) || !dApiToUpdate.Remarks.Contains("This member is an explicit interface member implementation"))
+                    {
+                        string dMemberToUpdateParentDocId = ((DocsMember)dApiToUpdate).ParentType.DocId.Substring(2);
+                        string interfacedMemberParentDocId = interfacedMember.ParentType.DocId.Substring(2);
 
-                dApiToUpdate.Remarks = tsMemberToPort.Remarks;
-                TotalModifiedIndividualElements++;
+                        eiiMessage = $"This member is an explicit interface member implementation. It can be used only when the <xref:{dMemberToUpdateParentDocId}> instance is cast to an <xref:{interfacedMemberParentDocId}> interface.{Environment.NewLine + Environment.NewLine}";
+                    }
+
+                    if (!IsEmpty(interfacedMember.Remarks))
+                    {
+                        dApiToUpdate.Remarks += eiiMessage + interfacedMember.Remarks
+                            .CleanRemarksText("##Remarks")
+                            .CleanRemarksText("## Remarks")
+                            .CleanRemarksText("<![CDATA[")
+                            .CleanRemarksText("]]>");
+                    }
+                    changed = true;
+                    isEII = true;
+                }
+                if (changed)
+                {
+                    // Any member can have an empty remark
+                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} REMARKS";
+                    PrintModifiedMember(message, dApiToUpdate.FilePath, tsMemberToPort.Name, dApiToUpdate.DocId, tsMemberToPort.Remarks, dApiToUpdate.Remarks);
+                    TotalModifiedIndividualElements++;
+                }
             }
         }
 
+        // Ports all the parameter descriptions for the specified API if any of them is undocumented.
         private static void TryPortMissingParamsForAPI(TripleSlashMember tsMemberToPort, IDocsAPI dApiToUpdate)
         {
+            string prefix = dApiToUpdate.Prefix;
+            TryGetEIIMember(dApiToUpdate, out DocsMember interfacedMember);
+
             foreach (TripleSlashParam tsParam in tsMemberToPort.Params)
             {
+                bool isEII = false;
+                string valueToPort = string.Empty;
+
                 DocsParam dParam = dApiToUpdate.Params.FirstOrDefault(x => x.Name == tsParam.Name);
                 bool created = false;
 
                 if (dParam == null)
                 {
                     ProblematicAPIs.AddIfNotExists($"Param=[{tsParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
-
                     created = TryPromptParam(tsParam, dApiToUpdate, out dParam);
                 }
-
-                if (created || (!IsEmpty(tsParam.Value) && IsEmpty(dParam.Value)))
+                
+                // But it can still be empty, try to retrieve it
+                if (IsEmpty(dParam.Value))
                 {
-                    string message = string.Format("PARAM ({0})", created ? "CREATED" : "MODIFIED");
-                    PrintModifiedMember(message, dParam.ParentAPI.FilePath, tsParam.Name, dParam.Name, tsParam.Value, dParam.Value);
-
-                    if (!created)
+                    // try to port triple slash comments
+                    if (!IsEmpty(tsParam.Value))
                     {
-                        dParam.Value = tsParam.Value;
+                        valueToPort = tsParam.Value;
                     }
+                    // or try to find if it implements a documented interface
+                    else if (interfacedMember != null)
+                    {
+                        DocsParam interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == dParam.Name);
+                        if (interfacedParam != null)
+                        {
+                            valueToPort = interfacedParam.Value;
+                            isEII = true;
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(valueToPort))
+                {
+                    dParam.Value = valueToPort;
+                    string message = $"{prefix} {GetIsEII(isEII)} PARAM ({GetIsCreated(created)})";
+                    PrintModifiedMember(message, dParam.ParentAPI.FilePath, tsParam.Name, dParam.Name, valueToPort, dParam.Value);
                     TotalModifiedIndividualElements++;
                 }
             }
@@ -158,53 +278,95 @@ namespace DocsPortingTool
             
         }
 
+        // Treats the passed API as a property and ports its information, if it's undocumented.
         private static void TryPortMissingPropertyForMember(TripleSlashMember tsMemberToPort, DocsMember dMemberToUpdate)
         {
             string value = string.Empty;
-            if (!IsEmpty(tsMemberToPort.Value) && IsEmpty(dMemberToUpdate.Value))
+            if (IsEmpty(dMemberToUpdate.Value))
             {
-                value = tsMemberToPort.Value;
-            }
-            if (!IsEmpty(tsMemberToPort.Returns) && IsEmpty(dMemberToUpdate.Value))
-            {
-                value = tsMemberToPort.Returns;
-            }
-
-            if (!string.IsNullOrWhiteSpace(value))
-            {
-                PrintModifiedMember("PROPERTY", dMemberToUpdate.FilePath, tsMemberToPort.Name, dMemberToUpdate.DocId, tsMemberToPort.Returns, dMemberToUpdate.Value);
-
-                dMemberToUpdate.Value = value;
-                TotalModifiedIndividualElements++;
-            }
-        }
-
-        private static void TryPortMissingMethodForMember(TripleSlashMember tsMemberToPort, DocsMember dMemberToUpdate)
-        {
-            if (!IsEmpty(tsMemberToPort.Returns) && IsEmpty(dMemberToUpdate.Returns))
-            {
-                // Methods that return void should NOT have any <returns> documentation
-                if (tsMemberToPort.Returns != null && dMemberToUpdate.ReturnType == "System.Void")
+                string valueToPort = string.Empty;
+                bool isEII = false;
+                // Issue: sometimes properties have their TS string in Value, sometimes in Returns
+                if (!IsEmpty(tsMemberToPort.Value))
                 {
-                    ProblematicAPIs.AddIfNotExists($"Returns=[{tsMemberToPort.Returns}] in Method=[{dMemberToUpdate.DocId}]");
+                    valueToPort = tsMemberToPort.Value;
                 }
-                else
+                else if (!IsEmpty(tsMemberToPort.Returns))
                 {
-                    PrintModifiedMember("METHOD RETURN", dMemberToUpdate.FilePath, tsMemberToPort.Name, dMemberToUpdate.DocId, tsMemberToPort.Returns, dMemberToUpdate.Returns);
+                    valueToPort = tsMemberToPort.Returns;
+                }
+                // or try to find if it implements a documented interface
+                else if (TryGetEIIMember(dMemberToUpdate, out DocsMember interfacedMember))
+                {
+                    if (!IsEmpty(interfacedMember.Value))
+                    {
+                        valueToPort = interfacedMember.Value;
+                    }
+                    else if (!IsEmpty(interfacedMember.Returns))
+                    {
+                        valueToPort = interfacedMember.Returns;
+                    }
+                    if (!string.IsNullOrEmpty(valueToPort))
+                    {
+                        isEII = true;
+                    }
+                }
 
-                    dMemberToUpdate.Returns = tsMemberToPort.Returns;
+                if (!string.IsNullOrEmpty(valueToPort))
+                {
+                    dMemberToUpdate.Value = valueToPort;
+                    string message = $"MEMBER {GetIsEII(isEII)} PROPERTY";
+                    PrintModifiedMember(message, dMemberToUpdate.FilePath, tsMemberToPort.Name, dMemberToUpdate.DocId, valueToPort, dMemberToUpdate.Value);
                     TotalModifiedIndividualElements++;
                 }
             }
         }
 
+        // Treats the passed API as a method and ports its information, if it's undocumented.
+        private static void TryPortMissingMethodForMember(TripleSlashMember tsMemberToPort, DocsMember dMemberToUpdate)
+        {
+            if (IsEmpty(dMemberToUpdate.Returns))
+            {
+                string valueToPort = string.Empty;
+                bool isEII = false;
+
+                // Bug: Sometimes a void return value shows up as not documented, skip those
+                if (dMemberToUpdate.ReturnType == "System.Void")
+                {
+                    ProblematicAPIs.AddIfNotExists($"Returns=[{tsMemberToPort.Returns}] in Method=[{dMemberToUpdate.DocId}]");
+                }
+                else if (!IsEmpty(tsMemberToPort.Returns))
+                {
+                    valueToPort = tsMemberToPort.Returns;
+                }
+                else if (TryGetEIIMember(dMemberToUpdate, out DocsMember interfacedMember))
+                {
+                    valueToPort = interfacedMember.Returns;
+                    isEII = true;
+                }
+
+                if (!string.IsNullOrEmpty(valueToPort))
+                {
+                    dMemberToUpdate.Returns = valueToPort;
+                    string message = $"METHOD {GetIsEII(isEII)} RETURNS";
+                    PrintModifiedMember(message, dMemberToUpdate.FilePath, tsMemberToPort.Name, dMemberToUpdate.DocId, valueToPort, dMemberToUpdate.Returns);
+                    TotalModifiedIndividualElements++;
+                }
+            }
+        }
+
+        // Ports all the type parameter descriptions for the specified API if any of them is undocumented.
         private static void TryPortMissingTypeParamsForMember(TripleSlashMember tsMemberToPort, DocsMember dMemberToUpdate)
         {
+            TryGetEIIMember(dMemberToUpdate, out DocsMember interfacedMember);
+
             foreach (TripleSlashTypeParam tsTypeParam in tsMemberToPort.TypeParams)
             {
+                bool isEII = false;
+                string valueToPort = string.Empty;
                 DocsTypeParam dTypeParam = dMemberToUpdate.TypeParams.FirstOrDefault(x => x.Name == tsTypeParam.Name);
-                bool created = false;
 
+                bool created = false;
                 if (dTypeParam == null)
                 {
                     ProblematicAPIs.AddIfNotExists($"TypeParam=[{tsTypeParam.Name}] in Member=[{dMemberToUpdate.DocId}]");
@@ -212,20 +374,39 @@ namespace DocsPortingTool
                     created = true;
                 }
 
-                if (created || (!IsEmpty(tsTypeParam.Value) && IsEmpty(dTypeParam.Value)))
+                // But it can still be empty, try to retrieve it
+                if (IsEmpty(dTypeParam.Value))
                 {
-                    string message = string.Format("TYPE PARAM ({0})", created ? "CREATED" : "MODIFIED");
-                    PrintModifiedMember(message, dTypeParam.ParentAPI.FilePath, tsTypeParam.Name, dTypeParam.Name, tsTypeParam.Value, dTypeParam.Value);
-
-                    if (!created)
+                    // try to port triple slash comments
+                    if (!IsEmpty(tsTypeParam.Value))
                     {
-                        dTypeParam.Value = tsTypeParam.Value;
+                        valueToPort = tsTypeParam.Value;
                     }
+                    // or try to find if it implements a documented interface
+                    else if (interfacedMember != null)
+                    {
+                        DocsTypeParam interfacedTypeParam = interfacedMember.TypeParams.FirstOrDefault(x => x.Name == dTypeParam.Name);
+                        if (interfacedTypeParam != null)
+                        {
+                            valueToPort = interfacedTypeParam.Value;
+                            isEII = true;
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(valueToPort))
+                {
+                    dTypeParam.Value = valueToPort;
+                    string message = $"MEMBER {GetIsEII(isEII)} TYPEPARAM ({GetIsCreated(created)})";
+                    PrintModifiedMember(message, dTypeParam.ParentAPI.FilePath, tsTypeParam.Name, dTypeParam.Name, valueToPort, dTypeParam.Value);
                     TotalModifiedIndividualElements++;
                 }
             }
         }
 
+        // Ports all the exceptions for the specified API.
+        // They are only processed if the user specified in the command arguments to NOT skip exceptions.
+        // All exceptions get ported, because there is no easy way to determine if an exception is already documented or not.
         private static void TryPortMissingExceptionsForMember(TripleSlashMember tsMemberToPort, DocsMember dMemberToUpdate)
         {
             if (!Configuration.SkipExceptions)
@@ -268,13 +449,7 @@ namespace DocsPortingTool
 
         }
 
-        /// <summary>
-        /// If a Param is found in a DocsType or a DocsMember that did not exist in the Triple Slash member, it's possible the param was unexpectedly saved in the triple slash comments with a different name, so the user gets prompted to look for it.
-        /// </summary>
-        /// <param name="tsParam">The problematic triple slash param object.</param>
-        /// <param name="dMember">The docs member where the param lives.</param>
-        /// <param name="dParam">The docs param that was found to not match the triple slash param.</param>
-        /// <returns></returns>
+        // If a Param is found in a DocsType or a DocsMember that did not exist in the Triple Slash member, it's possible the param was unexpectedly saved in the triple slash comments with a different name, so the user gets prompted to look for it.
         private static bool TryPromptParam(TripleSlashParam tsParam, IDocsAPI paramWrapper, out DocsParam dParam)
         {
             dParam = null;
@@ -366,11 +541,7 @@ namespace DocsPortingTool
             return created;
         }
 
-        /// <summary>
-        /// Checks if the passed string is considered "empty" according to the Docs repo rules.
-        /// </summary>
-        /// <param name="s">The string to check.</param>
-        /// <returns>True if empty, false otherwise.</returns>
+        // Checks if the passed string is considered "empty" according to the Docs repo rules.
         private static bool IsEmpty(string s)
         {
             return string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
@@ -380,23 +551,23 @@ namespace DocsPortingTool
         /// Standard formatted print message for a modified element.
         /// </summary>
         /// <param name="message">The friendly description of the modified API.</param>
-        /// <param name="docsFile">The file where the modified API lives.</param>
-        /// <param name="tripleSlashAPI">The API name in the triple slash file.</param>
-        /// <param name="docsAPI">The API name in the Docs file.</param>
+        /// <param name="docsFilePath">The file where the modified API lives.</param>
+        /// <param name="tripleSlashAPIName">The API name in the triple slash file.</param>
+        /// <param name="docsAPIName">The API name in the Docs file.</param>
         /// <param name="tripleSlashValue">The value that was found in the triple slash file.</param>
         /// <param name="docsValue">The value that was found in the Docs file.</param>
-        private static void PrintModifiedMember(string message, string docsFile, string tripleSlashAPI, string docsAPI, string tripleSlashValue, string docsValue)
+        private static void PrintModifiedMember(string message, string docsFilePath, string tripleSlashAPIName, string docsAPIName, string tripleSlashValue, string docsValue)
         {
-            Log.Warning("    File: {0}", docsFile);
+            Log.Warning("    File: {0}", docsFilePath);
             Log.Warning("        {0}", message);
-            Log.Warning("            Code: {0} => {1}", tripleSlashAPI, tripleSlashValue);
-            Log.Warning("            Docs: {0} => {1}", docsAPI, docsValue);
+            Log.Warning("            Code: {0} => {1}", tripleSlashAPIName, tripleSlashValue);
+            Log.Warning("            Docs: {0} => {1}", docsAPIName, docsValue);
             Log.Info("---------------------------------------------------");
+            Log.Line();
         }
 
-        /// <summary>
-        /// Prints all the undocumented APIs.
-        /// </summary>
+        // Prints all the undocumented APIs.
+        // This is only done if the user specified in the command arguments to print undocumented APIs.
         private static void PrintUndocumentedAPIs()
         {
             if (Configuration.PrintUndoc)
@@ -435,13 +606,13 @@ namespace DocsPortingTool
                 int exceptions = 0;
 
                 Log.Info("Undocumented APIs:");
-                foreach (DocsType docsType in DocsComments.Containers)
+                foreach (DocsType docsType in DocsComments.Types)
                 {
                     bool undocAPI = false;
                     if (IsEmpty(docsType.Summary))
                     {
                         TryPrintType(ref undocAPI, docsType.DocId);
-                        Log.Error($"        Container Summary: {docsType.Summary}");
+                        Log.Error($"        Type Summary: {docsType.Summary}");
                         typeSummaries++;
                     }
                 }
@@ -525,9 +696,7 @@ namespace DocsPortingTool
             }
         }
 
-        /// <summary>
-        /// Prints a final summary of the execution findings.
-        /// </summary>
+        // Prints a final summary of the execution findings.
         private static void PrintSummary()
         {
             Log.Line();
@@ -550,10 +719,10 @@ namespace DocsPortingTool
             }
 
             Log.Line();
-            Log.Info($"Total modified containers: {ModifiedContainers.Count}");
-            foreach (string container in ModifiedContainers)
+            Log.Info($"Total modified types: {ModifiedTypes.Count}");
+            foreach (string type in ModifiedTypes)
             {
-                Log.Warning($"    - {container}");
+                Log.Warning($"    - {type}");
             }
 
             Log.Line();

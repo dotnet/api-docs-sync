@@ -319,5 +319,12 @@ namespace DocsPortingTool
                 Log.LogErrorPrintHelpAndExit(Log.PrintHelp, "You must specify at least one assembly with -include.");
             }
         }
+
+        // Hardcoded namespaces that need to be renamed to what MS Docs uses.
+        public static string ReplaceNamespace(string str)
+        {
+            return str.Replace("Microsoft.Data", "System.Data");
+        }
+
     }
 }

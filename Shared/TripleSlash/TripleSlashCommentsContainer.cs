@@ -35,6 +35,14 @@ namespace DocsPortingTool.TripleSlash
 
         public List<TripleSlashMember> Members = new List<TripleSlashMember>();
 
+        public int TotalFiles
+        {
+            get
+            {
+                return Members.Count;
+            }
+        }
+
         public TripleSlashCommentsContainer()
         {
         }
@@ -55,7 +63,7 @@ namespace DocsPortingTool.TripleSlash
 
             foreach (DirectoryInfo dirInfo in Configuration.DirsTripleSlashXmls)
             {
-                // 1) Find all the xml files inside the subdirectories within the triple slash xml directory
+                // 1) Find all the xml files inside all the subdirectories inside the triple slash xml directory
                 foreach (DirectoryInfo subDir in dirInfo.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
                 {
                     if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
@@ -135,7 +143,9 @@ namespace DocsPortingTool.TripleSlash
                     bool add = false;
                     foreach (string included in Configuration.IncludedAssemblies)
                     {
-                        if (member.Assembly.StartsWith(included) || member.Name.Substring(2).StartsWith(included))
+                        if (member.Assembly.StartsWith(included) ||
+                            member.Name.Substring(2).StartsWith(included) ||
+                            Configuration.ReplaceNamespace(member.Assembly).StartsWith(included))
                         {
                             add = true;
                             break;

@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
 {
     public abstract class DocsAPI : IDocsAPI
     {
-        public abstract string Identifier { get; }
         public abstract bool Changed { get; set; }
         public string FilePath { get; set; } = string.Empty;
         public abstract string DocId { get; }
@@ -38,10 +38,38 @@ namespace DocsPortingTool.Docs
             return docsParam;
         }
 
+        public string Prefix
+        {
+            get
+            {
+                if (this is DocsMember)
+                {
+                    return "MEMBER";
+                }
+                if (this is DocsType)
+                {
+                    return "TYPE";
+                }
+                throw new ArgumentException("Unrecognized IDocsAPI object");
+            }
+        }
+
         protected string GetNodesInPlainText(string name)
         {
-            TryGetElement(name, out XElement element);
-            return XmlHelper.GetNodesInPlainText(element);
+            if (TryGetElement(name, out XElement element))
+            {
+                if (name == "remarks")
+                {
+                    XElement formatElement = element.Element("format");
+                    if (formatElement != null)
+                    {
+                        element = formatElement;
+                    }
+                }
+
+                return XmlHelper.GetNodesInPlainText(element);
+            }
+            return string.Empty;
         }
 
         protected void SaveFormattedAsXml(string name, string value)

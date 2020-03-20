@@ -9,9 +9,8 @@ namespace DocsPortingTool.Docs
 {
     public class DocsMember : DocsAPI
     {
-        public override string Identifier => "MEMBER";
         private XElement XEMember = null;
-        private readonly DocsType ParentType = null;
+        public DocsType ParentType { get; private set; }
 
         public override bool Changed
         {
@@ -87,7 +86,7 @@ namespace DocsPortingTool.Docs
                 XElement xeImplements = XEMember.Element("Implements");
                 if (xeImplements != null)
                 {
-                    XmlHelper.GetChildElementValue(xeImplements, "InterfaceMember");
+                    return XmlHelper.GetChildElementValue(xeImplements, "InterfaceMember");
                 }
                 return string.Empty;
             }

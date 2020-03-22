@@ -8,6 +8,7 @@
     <StartupObject>Program.Program</StartupObject>
     <Company>Microsoft</Company>
     <Authors>carlossanlop</Authors>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

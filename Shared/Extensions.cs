@@ -2,16 +2,10 @@
 
 namespace DocsPortingTool
 {
-    /// <summary>
-    /// Provides generic extension methods.
-    /// </summary>
+    // Provides generic extension methods.
     public static class Extensions
     {
-        /// <summary>
-        /// Adds a string to a list of strings if the element is not there yet. The method makes sure to escape unexpected curly brackets to prevent formatting exceptions.
-        /// </summary>
-        /// <param name="list">A string list.</param>
-        /// <param name="element">A string.</param>
+        // Adds a string to a list of strings if the element is not there yet. The method makes sure to escape unexpected curly brackets to prevent formatting exceptions.
         public static void AddIfNotExists(this List<string> list, string element)
         {
             string cleanedElement = element.Replace("{", "{{").Replace("}", "}}");
@@ -20,6 +14,17 @@ namespace DocsPortingTool
                 list.Add(cleanedElement);
             }
         }
+
+        // Removes the specified string from a remarks string
+        public static string CleanRemarksText(this string oldRemarks, string toRemove)
+        {
+            if (oldRemarks.Contains(toRemove))
+            {
+                return oldRemarks.Replace(toRemove, string.Empty);
+            }
+            return oldRemarks;
+        }
+
     }
 
 }

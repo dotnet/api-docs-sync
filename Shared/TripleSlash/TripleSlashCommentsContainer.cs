@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -31,7 +32,7 @@ namespace DocsPortingTool.TripleSlash
 {
     public class TripleSlashCommentsContainer
     {
-        private XDocument xDoc = null;
+        private XDocument? xDoc = null;
 
         public List<TripleSlashMember> Members = new List<TripleSlashMember>();
 
@@ -53,6 +54,7 @@ namespace DocsPortingTool.TripleSlash
             {
                 LoadFile(fileInfo, printSuccess: true);
             }
+            Log.Line();
         }
 
         private List<FileInfo> EnumerateFiles()
@@ -70,10 +72,7 @@ namespace DocsPortingTool.TripleSlash
                     {
                         foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
                         {
-                            if (Configuration.HasAllowedAssemblyPrefix(fileInfo.Name))
-                            {
-                                fileInfos.Add(fileInfo);
-                            }
+                            fileInfos.Add(fileInfo);
                         }
                     }
                 }
@@ -81,10 +80,7 @@ namespace DocsPortingTool.TripleSlash
                 // 2) Find all the xml files in the top directory
                 foreach (FileInfo fileInfo in dirInfo.EnumerateFiles("*.xml", SearchOption.TopDirectoryOnly))
                 {
-                    if (Configuration.HasAllowedAssemblyPrefix(fileInfo.Name))
-                    {
-                        fileInfos.Add(fileInfo);
-                    }
+                    fileInfos.Add(fileInfo);
                 }
             }
 

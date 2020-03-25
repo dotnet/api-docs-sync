@@ -190,7 +190,7 @@ namespace DocsPortingTool
                 {
                     // Any member can have an empty summary
                     string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} SUMMARY";
-                    PrintModifiedMember(message, dApiToUpdate.FilePath, name, dApiToUpdate.DocId, value, dApiToUpdate.Summary);
+                    PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
             }
@@ -253,7 +253,7 @@ namespace DocsPortingTool
                 {
                     // Any member can have an empty remark
                     string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} REMARKS";
-                    PrintModifiedMember(message, dApiToUpdate.FilePath, name, dApiToUpdate.DocId, value, dApiToUpdate.Remarks);
+                    PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
             }
@@ -262,63 +262,116 @@ namespace DocsPortingTool
         // Ports all the parameter descriptions for the specified API if any of them is undocumented.
         private void TryPortMissingParamsForAPI(IDocsAPI dApiToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember)
         {
+            bool created;
+            bool isEII;
+            string name;
+            string value;
+            string prefix = dApiToUpdate.Prefix;
+
             if (tsMemberToPort != null)
             {
-                string prefix = dApiToUpdate.Prefix;
-
-                foreach (TripleSlashParam tsParam in tsMemberToPort.Params)
+                foreach (DocsParam dParam in dApiToUpdate.Params)
                 {
-                    bool isEII = false;
-                    string name = string.Empty;
-                    string value = string.Empty;
-
-                    DocsParam? dParam = dApiToUpdate.Params.FirstOrDefault(x => x.Name == tsParam.Name);
-                    bool created = false;
-
-                    // When not found, it's a bug in Docs (param name not the same as source/ref), so need to ask the user to indicate correct name
-                    if (dParam == null)
+                    if (IsEmpty(dParam.Value))
                     {
-                        ProblematicAPIs.AddIfNotExists($"Param=[{tsParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
+                        created = false;
+                        isEII = false;
+                        name = string.Empty;
+                        value = string.Empty;
 
-                        created = TryPromptParam(tsParam, dApiToUpdate, out dParam);
-                    }
+                        TripleSlashParam tsParam = tsMemberToPort.Params.FirstOrDefault(x => x.Name == dParam.Name);
 
-                    if (dParam != null)
-                    {
-                        // Now attempt to document it
-                        if (IsEmpty(dParam.Value))
+                        // When not found, it's a bug in Docs (param name not the same as source/ref), so need to ask the user to indicate correct name
+                        if (tsParam == null)
                         {
-                            // try to port triple slash comments
-                            if (!IsEmpty(tsParam.Value))
+                            ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
+
+                            if (tsMemberToPort.Params.Count() == 0)
                             {
-                                name = tsParam.Name;
-                                value = tsParam.Value;
+                                ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
+                                Log.Warning($"  There were no triple slash comments for param '{dParam.Name}' in {dApiToUpdate.DocId}");
                             }
-                            // or try to find if it implements a documented interface
-                            else if (interfacedMember != null)
+                            else
                             {
-                                DocsParam interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == dParam.Name);
-                                if (interfacedParam != null)
+                                created = TryPromptParam(dParam, tsMemberToPort, out TripleSlashParam? newTsParam);
+                                if (newTsParam == null)
                                 {
-                                    name = interfacedParam.Name;
-                                    value = interfacedParam.Value;
-                                    isEII = true;
+                                    Log.Error($"  There param '{dParam.Name}' was not found in triple slash for {dApiToUpdate.DocId}");
+                                }
+                                else
+                                {
+                                    // Now attempt to document it
+                                    if (!IsEmpty(newTsParam.Value))
+                                    {
+                                        // try to port triple slash comments
+                                        dParam.Value = newTsParam.Value;
+                                        name = newTsParam.Name;
+                                        value = newTsParam.Value;
+                                    }
+                                    // or try to find if it implements a documented interface
+                                    else if (interfacedMember != null)
+                                    {
+                                        DocsParam interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == newTsParam.Name || x.Name == dParam.Name);
+                                        if (interfacedParam != null)
+                                        {
+                                            dParam.Value = interfacedParam.Value;
+                                            name = interfacedParam.Name;
+                                            value = interfacedParam.Value;
+                                            isEII = true;
+                                        }
+                                    }
                                 }
                             }
                         }
+                        // Attempt to port
+                        else if (!IsEmpty(tsParam.Value))
+                        {
+                            // try to port triple slash comments
+                            dParam.Value = tsParam.Value;
+                            name = tsParam.Name;
+                            value = tsParam.Value;
+                        }
+                        // or try to find if it implements a documented interface
+                        else if (interfacedMember != null)
+                        {
+                            DocsParam interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == dParam.Name);
+                            if (interfacedParam != null)
+                            {
+                                dParam.Value = interfacedParam.Value;
+                                name = interfacedParam.Name;
+                                value = interfacedParam.Value;
+                                isEII = true;
+                            }
+                        }
+                        
 
                         if (!IsEmpty(value))
                         {
-                            dParam.Value = value;
-                            string message = $"{prefix} {GetIsEII(isEII)} PARAM ({GetIsCreated(created)})";
-                            PrintModifiedMember(message, dParam.ParentAPI.FilePath, name, dParam.Name, value, dParam.Value);
+                            string message = $"{prefix} {GetIsEII(isEII)} PARAM '{dParam.Name}' ({GetIsCreated(created)})";
+                            PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                             TotalModifiedIndividualElements++;
                         }
                     }
                 }
             }
+            else if (interfacedMember != null)
+            {
+                foreach (DocsParam dParam in dApiToUpdate.Params)
+                {
+                    if (IsEmpty(dParam.Value))
+                    {
+                        DocsParam interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == dParam.Name);
+                        if (interfacedParam != null && !IsEmpty(interfacedParam.Value))
+                        {
+                            dParam.Value = interfacedParam.Value;
 
-            
+                            string message = $"{prefix} EII PARAM '{dParam.Name}' ({GetIsCreated(false)})";
+                            PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
+                            TotalModifiedIndividualElements++;
+                        }
+                    }
+                }
+            }
         }
 
         // Tries to document the passed property.
@@ -365,7 +418,7 @@ namespace DocsPortingTool
                 {
                     dMemberToUpdate.Value = value;
                     string message = $"MEMBER {GetIsEII(isEII)} PROPERTY";
-                    PrintModifiedMember(message, dMemberToUpdate.FilePath, name, dMemberToUpdate.DocId, value, dMemberToUpdate.Value);
+                    PrintModifiedMember(message, dMemberToUpdate.FilePath,dMemberToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
             }
@@ -401,7 +454,7 @@ namespace DocsPortingTool
                 {
                     dMemberToUpdate.Returns = value;
                     string message = $"METHOD {GetIsEII(isEII)} RETURNS";
-                    PrintModifiedMember(message, dMemberToUpdate.FilePath, name, dMemberToUpdate.DocId, value, dMemberToUpdate.Returns);
+                    PrintModifiedMember(message, dMemberToUpdate.FilePath, dMemberToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
             }
@@ -454,7 +507,7 @@ namespace DocsPortingTool
                     {
                         dTypeParam.Value = value;
                         string message = $"MEMBER {GetIsEII(isEII)} TYPEPARAM ({GetIsCreated(created)})";
-                        PrintModifiedMember(message, dTypeParam.ParentAPI.FilePath, name, dTypeParam.Name, value, dTypeParam.Value);
+                        PrintModifiedMember(message, dTypeParam.ParentAPI.FilePath, dMemberToUpdate.DocId);
                         TotalModifiedIndividualElements++;
                     }
                 }
@@ -502,7 +555,7 @@ namespace DocsPortingTool
                     if (created || (!IsEmpty(tsException.Value) && IsEmpty(dException.Value)))
                     {
                         string message = string.Format("EXCEPTION ({0})", created ? "CREATED" : "MODIFIED");
-                        PrintModifiedMember(message, dException.ParentAPI.FilePath, tsException.Cref, dException.Cref, tsException.Value, dException.Value);
+                        PrintModifiedMember(message, dException.ParentAPI.FilePath, dException.Cref);
 
                         TotalModifiedIndividualElements++;
                     }
@@ -511,26 +564,26 @@ namespace DocsPortingTool
         }
 
         // If a Param is found in a DocsType or a DocsMember that did not exist in the Triple Slash member, it's possible the param was unexpectedly saved in the triple slash comments with a different name, so the user gets prompted to look for it.
-        private bool TryPromptParam(TripleSlashParam tsParam, IDocsAPI paramWrapper, out DocsParam? dParam)
+        private bool TryPromptParam(DocsParam oldDParam, TripleSlashMember tsMember, out TripleSlashParam? newTsParam)
         {
-            dParam = null;
-            bool created = false;
+            newTsParam = null;
 
             if (Config.DisablePrompts)
             {
-                Log.Error($"Prompts disabled. Will not process the {tsParam.Name} param.");
-                return created;
+                Log.Error($"Prompts disabled. Will not process the '{oldDParam.Name}' param.");
+                return false;
             }
 
+            bool created = false;
             int option = -1;
             while (option == -1)
             {
-                Log.Error($"Problem in param '{tsParam.Name}' in member '{paramWrapper.DocId}' in file '{paramWrapper.FilePath}'");
+                Log.Error($"Problem in param '{oldDParam.Name}' in member '{tsMember.Name}' in file '{oldDParam.ParentAPI.FilePath}'");
                 Log.Error($"The param probably exists in code, but the exact name was not found in Docs. What would you like to do?");
                 Log.Warning("    0 - Exit program.");
-                Log.Info("    1 - Select the correct param from the existing ones detected in Docs for this member.");
-                Log.Info("    2 - Overwrite the param name in the Docs file with the detected one (not recommended).");
-                Log.Warning("        Note: Whatever your choice, make sure to double check the affected Docs file after the tool finishes executing.");
+                Log.Info("    1 - Select the correct triple slash param from the existing ones.");
+                Log.Info("    2 - Ignore this param.");
+                Log.Warning("      Note:Make sure to double check the affected Docs file after the tool finishes executing.");
                 Log.Cyan(false, "Your answer [0,1,2]: ");
 
                 if (!int.TryParse(Console.ReadLine(), out option))
@@ -543,24 +596,27 @@ namespace DocsPortingTool
                     switch (option)
                     {
                         case 0:
-                            Log.Info("Goodbye!");
-                            Environment.Exit(0);
-                            break;
+                            {
+                                Log.Info("Goodbye!");
+                                Environment.Exit(0);
+                                break;
+                            }
+
                         case 1:
                             {
                                 int paramSelection = -1;
                                 while (paramSelection == -1)
                                 {
-                                    Log.Info($"Params detected in member '{paramWrapper.DocId}':");
+                                    Log.Info($"Triple slash params found in member '{tsMember.Name}':");
                                     Log.Warning("    0 - Exit program.");
                                     int paramCounter = 1;
-                                    foreach (DocsParam param in paramWrapper.Params)
+                                    foreach (TripleSlashParam param in tsMember.Params)
                                     {
                                         Log.Info($"    {paramCounter} - {param.Name}");
                                         paramCounter++;
                                     }
 
-                                    Log.Cyan(false, $"Your answer to match param '{tsParam.Name}'? [0..{paramCounter - 1}]: ");
+                                    Log.Cyan(false, $"Your answer to match param '{oldDParam.Name}'? [0..{paramCounter - 1}]: ");
 
                                     if (!int.TryParse(Console.ReadLine(), out paramSelection))
                                     {
@@ -579,8 +635,8 @@ namespace DocsPortingTool
                                     }
                                     else
                                     {
-                                        dParam = paramWrapper.Params[paramSelection - 1];
-                                        Log.Success($"Selected: {dParam.Name}");
+                                        newTsParam = tsMember.Params[paramSelection - 1];
+                                        Log.Success($"Selected: {newTsParam.Name}");
                                     }
                                 }
 
@@ -589,9 +645,7 @@ namespace DocsPortingTool
 
                         case 2:
                             {
-                                Log.Warning("Overwriting param...");
-                                dParam = paramWrapper.SaveParam(tsParam.XEParam);
-                                created = true;
+                                Log.Info("Skipping this param.");
                                 break;
                             }
 
@@ -701,12 +755,11 @@ namespace DocsPortingTool
         /// <param name="docsAPIName">The API name in the Docs file.</param>
         /// <param name="tripleSlashValue">The value that was found in the triple slash file.</param>
         /// <param name="docsValue">The value that was found in the Docs file.</param>
-        private void PrintModifiedMember(string message, string docsFilePath, string tripleSlashAPIName, string docsAPIName, string tripleSlashValue, string docsValue)
+        private void PrintModifiedMember(string message, string docsFilePath, string docId)
         {
-            Log.Warning("    File: {0}", docsFilePath);
-            Log.Warning("        {0}", message);
-            Log.Warning("            Code: {0} => {1}", tripleSlashAPIName, tripleSlashValue);
-            Log.Warning("            Docs: {0} => {1}", docsAPIName, docsValue);
+            Log.Warning($"    File: {docsFilePath}");
+            Log.Warning($"        DocID: {docId}");
+            Log.Warning($"        {message}");
             Log.Info("---------------------------------------------------");
             Log.Line();
         }

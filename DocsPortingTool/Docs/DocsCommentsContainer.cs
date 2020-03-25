@@ -178,7 +178,9 @@ namespace DocsPortingTool.Docs
                         // Find interfaces
                         foreach (DirectoryInfo subDir in rootDir.EnumerateDirectories("System*", SearchOption.AllDirectories))
                         {
-                            if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
+                            if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) &&
+                                Config.ExcludedAssemblies.Count(excluded => subDir.Name.StartsWith(excluded)) == 0 &&
+                                !subDir.Name.EndsWith(".Tests"))
                             {
                                 foreach (FileInfo fileInfo in subDir.EnumerateFiles("I*.xml", SearchOption.AllDirectories))
                                 {

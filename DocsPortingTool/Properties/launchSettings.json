@@ -2,7 +2,7 @@
   "profiles": {
     "DocsPortingTool": {
       "commandName": "Project",
-      "commandLineArgs": "-docs C:\\Users\\calope\\source\\repos\\dotnet-api-docs\\xml -includedassemblies System.Text.RegularExpressions -excludedassemblies Microsoft -disableprompts true -printundoc false -save true -skipexceptions true -tripleslash C:\\Users\\calope\\source\\repos\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\,C:\\Users\\calope\\source\\repos\\runtime\\artifacts\\bin\\ -skipremarks false -skipinterfaceimplementations false",
+      "commandLineArgs": "-docs C:\\Users\\calope\\source\\repos\\dotnet-api-docs\\xml -includedassemblies System.Text.RegularExpressions -excludedassemblies Microsoft,System.Activities,System.AddIn,System.Buffers,System.CodeDom,System.ComponentModel,System.Composition,System.Configuration,System.Data,System.Deployment,System.Diagnostics,System.Drawing,System.Dynamic,System.EnterpriseServices,System.IdentityModel,System.IO.IsolatedStorage,System.Management,System.Net,System.Reflection,System.Resources,System.Runtime,System.Security,System.ServiceModel,System.Threading,System.Transactions,System.Web,System.Windows,System.Workflow,System.Xaml,System.Xml -tripleslash C:\\Users\\calope\\source\\repos\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\,C:\\Users\\calope\\source\\repos\\runtime\\artifacts\\bin -disableprompts false -save true",
       "environmentVariables": {
         "DOCS_IOT": "D:\\iot\\artifacts\\bin",
         "DOCS_CORECLR": "D:\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\",

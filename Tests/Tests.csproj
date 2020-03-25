@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared\DocsPortingTool.csproj" />
+    <ProjectReference Include="..\DocsPortingTool\DocsPortingTool.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,12 +6,14 @@ If an API is already documented in dotnet-api-docs, it will be ignored and skipp
 
 ### Instructions
 
-The following instructions make the following assumptions:
+Assumptions:
 
-A) Your source code project is dotnet/runtime.
-B) Your docs project is dotnet/dotnet-api-docs.
-C) The location of your github projects is the D:\ drive.
-D) You want to port comments from the System.IO.FileSystem assembly.
+- Your source code project is dotnet/runtime.
+- Your docs project is dotnet/dotnet-api-docs.
+- The location of your github projects is the D:\ drive.
+- You want to port comments from the System.IO.FileSystem assembly.
+
+Steps:
 
 1. Build your source code repo (dotnet/runtime).
 2. Clone the docs repo (dotnet/dotnet-api-docs). No need to build it.

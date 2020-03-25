@@ -7,23 +7,26 @@ namespace DocsPortingTool.TripleSlash
 {
     public class TripleSlashMember
     {
-        private XElement XEMember = null;
+        private XElement XEMember;
 
-        private string _assembly = string.Empty;
-        public string Assembly
+        public string Assembly { get; private set; }
+
+
+        private string _namespace = string.Empty;
+        public string Namespace
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_assembly))
+                if (string.IsNullOrWhiteSpace(_namespace))
                 {
                     string[] splittedParenthesis = Name.Split('(', StringSplitOptions.RemoveEmptyEntries);
                     string withoutParenthesisAndPrefix = splittedParenthesis[0].Substring(2);
                     string[] splittedDots = withoutParenthesisAndPrefix.Split('.', StringSplitOptions.RemoveEmptyEntries);
 
-                    _assembly = Configuration.ReplaceNamespace(string.Join('.', splittedDots.Take(splittedDots.Length - 1)));
+                    _namespace = Configuration.ReplaceNamespace(string.Join('.', splittedDots.Take(splittedDots.Length - 1)));
                 }
 
-                return _assembly;
+                return _namespace;
             }
         }
 
@@ -151,9 +154,19 @@ namespace DocsPortingTool.TripleSlash
             }
         }
 
-        public TripleSlashMember(XElement xeMember)
+        public TripleSlashMember(XElement xeMember, string assembly)
         {
+            if (xeMember == null)
+            {
+                throw new ArgumentNullException(nameof(xeMember));
+            }
+            if (string.IsNullOrEmpty(assembly))
+            {
+                throw new ArgumentNullException(nameof(assembly));
+            }
+
             XEMember = xeMember;
+            Assembly = assembly;
         }
 
         public override string ToString()

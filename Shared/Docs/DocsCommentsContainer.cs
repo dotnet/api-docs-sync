@@ -44,13 +44,16 @@ namespace DocsPortingTool.Docs
 {
     public class DocsCommentsContainer
     {
+        private Configuration Config { get; set; }
+
         private XDocument? xDoc = null;
 
         public readonly List<DocsType> Types = new List<DocsType>();
         public readonly List<DocsMember> Members = new List<DocsMember>();
 
-        public DocsCommentsContainer()
+        public DocsCommentsContainer(Configuration config)
         {
+            Config = config;
         }
 
         public void CollectFiles()
@@ -64,7 +67,7 @@ namespace DocsPortingTool.Docs
 
         public void Save()
         {
-            if (Configuration.Save)
+            if (Config.Save)
             {
                 List<string> savedFiles = new List<string>();
                 foreach (var type in Types.Where(x => x.Changed))
@@ -122,9 +125,9 @@ namespace DocsPortingTool.Docs
 
             List<FileInfo> fileInfos = new List<FileInfo>();
 
-            foreach (DirectoryInfo rootDir in Configuration.DirsDocsXml)
+            foreach (DirectoryInfo rootDir in Config.DirsDocsXml)
             {
-                foreach (string included in Configuration.IncludedAssemblies)
+                foreach (string included in Config.IncludedAssemblies)
                 {
                     foreach (DirectoryInfo subDir in rootDir.EnumerateDirectories($"{included}*", SearchOption.TopDirectoryOnly))
                     {
@@ -135,16 +138,16 @@ namespace DocsPortingTool.Docs
                                 if (HasAllowedName(fileInfo))
                                 {
                                     string nameWithoutExtension = fileInfo.Name.Replace(".xml", string.Empty);
-                                    if (Configuration.IncludedTypes.Count > 0)
+                                    if (Config.IncludedTypes.Count > 0)
                                     {
-                                        if (Configuration.IncludedTypes.Contains(nameWithoutExtension))
+                                        if (Config.IncludedTypes.Contains(nameWithoutExtension))
                                         {
                                             fileInfos.Add(fileInfo);
                                         }
                                     }
-                                    else if (Configuration.ExcludedTypes.Count > 0)
+                                    else if (Config.ExcludedTypes.Count > 0)
                                     {
-                                        if (!Configuration.ExcludedTypes.Contains(nameWithoutExtension))
+                                        if (!Config.ExcludedTypes.Contains(nameWithoutExtension))
                                         {
                                             fileInfos.Add(fileInfo);
                                         }
@@ -158,7 +161,7 @@ namespace DocsPortingTool.Docs
                         }
                     }
 
-                    if (!Configuration.SkipInterfaceImplementations)
+                    if (!Config.SkipInterfaceImplementations)
                     {
                         // Find interfaces
                         foreach (DirectoryInfo subDir in rootDir.EnumerateDirectories("System*", SearchOption.AllDirectories))
@@ -186,7 +189,7 @@ namespace DocsPortingTool.Docs
 
         private bool IsAssemblyExcluded(DocsType docsType)
         {
-            foreach (string excluded in Configuration.ExcludedAssemblies)
+            foreach (string excluded in Config.ExcludedAssemblies)
             {
                 if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(excluded)) > 0 || docsType.FullName.StartsWith(excluded))
                 {
@@ -248,7 +251,7 @@ namespace DocsPortingTool.Docs
             bool add = false;
 
             // If it's an interface, add it if the user allowed it
-            if (docsType.Name.StartsWith('I') && !Configuration.SkipInterfaceImplementations)
+            if (docsType.Name.StartsWith('I') && !Config.SkipInterfaceImplementations)
             {
                 add = true;
             }
@@ -256,23 +259,24 @@ namespace DocsPortingTool.Docs
             // or included types and is not among the excluded types
             else if (!IsAssemblyExcluded(docsType))
             {
-                foreach (string included in Configuration.IncludedAssemblies)
+                foreach (string included in Config.IncludedAssemblies)
                 {
-                    if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 || docsType.FullName.StartsWith(included))
+                    if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 ||
+                        docsType.FullName.StartsWith(included))
                     {
                         add = true;
 
-                        if (Configuration.IncludedTypes.Count() > 0)
+                        if (Config.IncludedTypes.Count() > 0)
                         {
-                            if (!Configuration.IncludedTypes.Contains(docsType.Name))
+                            if (!Config.IncludedTypes.Contains(docsType.Name))
                             {
                                 add = false;
                             }
                         }
 
-                        if (Configuration.ExcludedTypes.Count() > 0)
+                        if (Config.ExcludedTypes.Count() > 0)
                         {
-                            if (Configuration.ExcludedTypes.Contains(docsType.Name))
+                            if (Config.ExcludedTypes.Contains(docsType.Name))
                             {
                                 add = false;
                             }

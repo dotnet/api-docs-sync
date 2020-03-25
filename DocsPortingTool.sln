@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28705.295
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Program", "DocsPortingTool\Program.csproj", "{0BA31C5C-8B7B-4B25-82DC-54A92BF77724}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocsPortingTool", "Shared\DocsPortingTool.csproj", "{87BBF4FD-260C-4AC4-802B-7D2B29629C07}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{81FEFEA4-8FF5-482E-A33D-D3F351D3F7B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0BA31C5C-8B7B-4B25-82DC-54A92BF77724}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0BA31C5C-8B7B-4B25-82DC-54A92BF77724}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0BA31C5C-8B7B-4B25-82DC-54A92BF77724}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0BA31C5C-8B7B-4B25-82DC-54A92BF77724}.Release|Any CPU.Build.0 = Release|Any CPU
 		{87BBF4FD-260C-4AC4-802B-7D2B29629C07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{87BBF4FD-260C-4AC4-802B-7D2B29629C07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87BBF4FD-260C-4AC4-802B-7D2B29629C07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87BBF4FD-260C-4AC4-802B-7D2B29629C07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81FEFEA4-8FF5-482E-A33D-D3F351D3F7B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81FEFEA4-8FF5-482E-A33D-D3F351D3F7B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81FEFEA4-8FF5-482E-A33D-D3F351D3F7B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81FEFEA4-8FF5-482E-A33D-D3F351D3F7B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

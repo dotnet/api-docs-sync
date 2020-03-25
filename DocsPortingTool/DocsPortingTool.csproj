@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared\DocsPortingTool.csproj" />
+    <ProjectReference Include="..\Shared\Analyzer.csproj" />
   </ItemGroup>
 
 </Project>

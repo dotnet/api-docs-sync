@@ -1,13 +1,12 @@
-﻿using DocsPortingTool;
-
-namespace Program
+﻿namespace DocsPortingTool
 {
-    class Program
+    class DocsPortingTool
     {
         public static void Main(string[] args)
         {
-            Configuration.GetFromCommandLineArguments(args);
-            DocsPortingTool.DocsPortingTool.Start();
+            Configuration config = Configuration.GetFromCommandLineArguments(args);
+            Analyzer analyzer = new Analyzer(config);
+            analyzer.Start();
         }
     }
 }

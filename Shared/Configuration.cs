@@ -4,7 +4,7 @@ using System.IO;
 
 namespace DocsPortingTool
 {
-    public static class Configuration
+    public class Configuration
     {
         private static readonly char Separator = ',';
 
@@ -29,21 +29,22 @@ namespace DocsPortingTool
 
         public static readonly string[] ForbiddenDirectories = new[] { "binplacePackages", "docs", "mscorlib", "native", "netfx", "netstandard", "pkg", "Product", "ref", "runtime", "shimsTargetRuntime", "testhost", "tests", "winrt" };
 
-        public static readonly List<DirectoryInfo> DirsTripleSlashXmls = new List<DirectoryInfo>();
-        public static readonly HashSet<string> IncludedAssemblies = new HashSet<string>();
-        public static readonly HashSet<string> ExcludedAssemblies = new HashSet<string>();
-        public static readonly HashSet<string> IncludedTypes = new HashSet<string>();
-        public static readonly HashSet<string> ExcludedTypes = new HashSet<string>();
+        public List<DirectoryInfo> DirsTripleSlashXmls { get; } = new List<DirectoryInfo>();
+        public List<DirectoryInfo> DirsDocsXml { get; } = new List<DirectoryInfo>();
 
-        public static bool Save { get; set; } = false;
-        public static bool SkipExceptions { get; set; } = true;
-        public static bool SkipRemarks { get; set; } = false;
-        public static bool SkipInterfaceImplementations { get; set; } = false;
-        public static bool DisablePrompts { get; set; } = false;
-        public static List<DirectoryInfo> DirsDocsXml { get; set; } = new List<DirectoryInfo>();
-        public static bool PrintUndoc { get; set; } = false;
+        public HashSet<string> IncludedAssemblies { get; } = new HashSet<string>();
+        public HashSet<string> ExcludedAssemblies { get; } = new HashSet<string>();
+        public HashSet<string> IncludedTypes { get; } = new HashSet<string>();
+        public HashSet<string> ExcludedTypes { get; } = new HashSet<string>();
 
-        public static void GetFromCommandLineArguments(string[] args)
+        public bool Save { get; set; } = false;
+        public bool SkipExceptions { get; set; } = true;
+        public bool SkipRemarks { get; set; } = false;
+        public bool SkipInterfaceImplementations { get; set; } = false;
+        public bool DisablePrompts { get; set; } = false;
+        public bool PrintUndoc { get; set; } = false;
+
+        public static Configuration GetFromCommandLineArguments(string[] args)
         {
             Mode mode = Mode.Initial;
 
@@ -53,6 +54,8 @@ namespace DocsPortingTool
             {
                 Log.LogErrorPrintHelpAndExit("No arguments passed to the executable.");
             }
+
+            Configuration config = new Configuration();
 
             foreach (string arg in args!)
             {
@@ -65,10 +68,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit($"Invalid boolean value for the disablePrompts argument: {arg}");
                             }
 
-                            DisablePrompts = disablePrompts;
+                            config.DisablePrompts = disablePrompts;
 
                             Log.Cyan("Disable prompts:");
-                            Log.Info($"  -  {DisablePrompts}");
+                            Log.Info($"  -  {config.DisablePrompts}");
 
                             mode = Mode.Initial;
                             break;
@@ -87,7 +90,7 @@ namespace DocsPortingTool
                                     Log.LogErrorAndExit($"This Docs xml directory does not exist: {dirPath}");
                                 }
 
-                                DirsDocsXml.Add(dirInfo);
+                                config.DirsDocsXml.Add(dirInfo);
                                 Log.Info($"  -  {dirPath}");
                             }
 
@@ -106,7 +109,7 @@ namespace DocsPortingTool
                                 foreach (string assembly in splittedArg)
                                 {
                                     Log.Cyan($" - {assembly}");
-                                    ExcludedAssemblies.Add(assembly);
+                                    config.ExcludedAssemblies.Add(assembly);
                                 }
                             }
                             else
@@ -128,7 +131,7 @@ namespace DocsPortingTool
                                 foreach (string typeName in splittedArg)
                                 {
                                     Log.Cyan($" - {typeName}");
-                                    ExcludedTypes.Add(typeName);
+                                    config.ExcludedTypes.Add(typeName);
                                 }
                             }
                             else
@@ -150,7 +153,7 @@ namespace DocsPortingTool
                                 foreach (string assembly in splittedArg)
                                 {
                                     Log.Cyan($" - {assembly}");
-                                    IncludedAssemblies.Add(assembly);
+                                    config.IncludedAssemblies.Add(assembly);
                                 }
                             }
                             else
@@ -172,7 +175,7 @@ namespace DocsPortingTool
                                 foreach (string typeName in splittedArg)
                                 {
                                     Log.Cyan($" - {typeName}");
-                                    IncludedTypes.Add(typeName);
+                                    config.IncludedTypes.Add(typeName);
                                 }
                             }
                             else
@@ -255,10 +258,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit("Invalid boolean value for the printundoc argument: {0}", arg);
                             }
 
-                            PrintUndoc = printUndoc;
+                            config.PrintUndoc = printUndoc;
 
                             Log.Cyan("Print undocumented:");
-                            Log.Info($"  -  {PrintUndoc}");
+                            Log.Info($"  -  {config.PrintUndoc}");
 
                             mode = Mode.Initial;
                             break;
@@ -271,10 +274,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit($"Invalid boolean value for the save argument: {arg}");
                             }
 
-                            Save = save;
+                            config.Save = save;
 
                             Log.Cyan("Save:");
-                            Log.Info($"  -  {Save}");
+                            Log.Info($"  -  {config.Save}");
 
                             mode = Mode.Initial;
                             break;
@@ -287,10 +290,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit($"Invalid boolean value for the skipExceptions argument: {arg}");
                             }
 
-                            SkipExceptions = skipExceptions;
+                            config.SkipExceptions = skipExceptions;
 
                             Log.Cyan("Skip exceptions:");
-                            Log.Info($"  -  {SkipExceptions}");
+                            Log.Info($"  -  {config.SkipExceptions}");
 
                             mode = Mode.Initial;
                             break;
@@ -303,10 +306,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit($"Invalid boolean value for the skipInterfaceImplementations argument: {arg}");
                             }
 
-                            SkipInterfaceImplementations = skipInterfaceImplementations;
+                            config.SkipInterfaceImplementations = skipInterfaceImplementations;
 
                             Log.Cyan("Skip interface implementations:");
-                            Log.Info($"  -  {SkipInterfaceImplementations}");
+                            Log.Info($"  -  {config.SkipInterfaceImplementations}");
 
                             mode = Mode.Initial;
                             break;
@@ -319,10 +322,10 @@ namespace DocsPortingTool
                                 Log.LogErrorAndExit($"Invalid boolean value for the skipRemarks argument: {arg}");
                             }
 
-                            SkipRemarks = skipRemarks;
+                            config.SkipRemarks = skipRemarks;
 
                             Log.Cyan("Skip remarks:");
-                            Log.Info($"  -  {SkipRemarks}");
+                            Log.Info($"  -  {config.SkipRemarks}");
 
                             mode = Mode.Initial;
                             break;
@@ -341,7 +344,7 @@ namespace DocsPortingTool
                                     Log.LogErrorAndExit($"This triple slash xml directory does not exist: {dirPath}");
                                 }
 
-                                DirsTripleSlashXmls.Add(dirInfo);
+                                config.DirsTripleSlashXmls.Add(dirInfo);
                                 Log.Info($"  -  {dirPath}");
                             }
 
@@ -362,20 +365,22 @@ namespace DocsPortingTool
                 Log.LogErrorPrintHelpAndExit("You missed an argument value.");
             }
 
-            if (DirsDocsXml == null)
+            if (config.DirsDocsXml == null)
             {
                 Log.LogErrorPrintHelpAndExit("You must specify a path to the dotnet-api-docs xml folder with -docs.");
             }
 
-            if (DirsTripleSlashXmls.Count == 0)
+            if (config.DirsTripleSlashXmls.Count == 0)
             {
                 Log.LogErrorPrintHelpAndExit("You must specify at least one triple slash xml folder path with -tripleslash.");
             }
 
-            if (IncludedAssemblies.Count == 0)
+            if (config.IncludedAssemblies.Count == 0)
             {
                 Log.LogErrorPrintHelpAndExit("You must specify at least one assembly with -include.");
             }
+
+            return config;
         }
 
         // Hardcoded namespaces that need to be renamed to what MS Docs uses.

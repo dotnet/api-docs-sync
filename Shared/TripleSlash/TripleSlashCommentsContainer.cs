@@ -32,6 +32,8 @@ namespace DocsPortingTool.TripleSlash
 {
     public class TripleSlashCommentsContainer
     {
+        private Configuration Config { get; set; }
+
         private XDocument? xDoc = null;
 
         public List<TripleSlashMember> Members = new List<TripleSlashMember>();
@@ -44,8 +46,9 @@ namespace DocsPortingTool.TripleSlash
             }
         }
 
-        public TripleSlashCommentsContainer()
+        public TripleSlashCommentsContainer(Configuration config)
         {
+            Config = config;
         }
 
         public void CollectFiles()
@@ -63,7 +66,7 @@ namespace DocsPortingTool.TripleSlash
 
             List<FileInfo> fileInfos = new List<FileInfo>();
 
-            foreach (DirectoryInfo dirInfo in Configuration.DirsTripleSlashXmls)
+            foreach (DirectoryInfo dirInfo in Config.DirsTripleSlashXmls)
             {
                 // 1) Find all the xml files inside all the subdirectories inside the triple slash xml directory
                 foreach (DirectoryInfo subDir in dirInfo.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
@@ -93,7 +96,7 @@ namespace DocsPortingTool.TripleSlash
         {
             if (!fileInfo.Exists)
             {
-                Log.Error(string.Format("Triple slash xml file does not exist: {0}", fileInfo.FullName));
+                Log.Error($"Triple slash xml file does not exist: {fileInfo.FullName}");
                 return;
             }
 
@@ -101,31 +104,44 @@ namespace DocsPortingTool.TripleSlash
 
             if (xDoc.Root == null)
             {
-                Log.Error("Triple slash xml file does not contain a root element: {0}", fileInfo.FullName);
+                Log.Error($"Triple slash xml file does not contain a root element: {fileInfo.FullName}");
                 return;
             }
 
             if (xDoc.Root.Name != "doc")
             {
-                Log.Error("Triple slash xml file does not contain a doc element: {0}", fileInfo.FullName);
+                Log.Error($"Triple slash xml file does not contain a doc element: {fileInfo.FullName}");
                 return;
             }
 
             if (!xDoc.Root.HasElements)
             {
-                Log.Error("Triple slash xml file doc element not have any children: {0}", fileInfo.FullName);
+                Log.Error($"Triple slash xml file doc element not have any children: {fileInfo.FullName}");
                 return;
             }
 
             if (xDoc.Root.Elements("assembly").Count() != 1)
             {
-                Log.Error("Tripls slash xml file does not contain exactly 1 'assembly' element: {0}", fileInfo.FullName);
+                Log.Error($"Triple slash xml file does not contain exactly 1 'assembly' element: {fileInfo.FullName}");
                 return;
+            }
+
+            XElement xAssembly = xDoc.Root.Element("assembly");
+            if (xAssembly.Elements("name").Count() != 1)
+            {
+                Log.Error($"Triple slash xml file assembly element does not contain exactly 1 'name' element: {fileInfo.FullName}");
+                return;
+            }
+
+            string assembly = xAssembly.Element("name").Value;
+            if (string.IsNullOrEmpty(assembly))
+            {
+                Log.Error($"Triple slash xml file assembly string is null or empty: {fileInfo.FullName}");
             }
 
             if (xDoc.Root.Elements("members").Count() != 1)
             {
-                Log.Error("Triple slash xml file does not contain exactly 1 'members' element: {0}", fileInfo.FullName);
+                Log.Error($"Triple slash xml file does not contain exactly 1 'members' element: {fileInfo.FullName}");
                 return;
             }
 
@@ -134,13 +150,14 @@ namespace DocsPortingTool.TripleSlash
             {
                 foreach (XElement xeMember in xeMembers.Elements("member"))
                 {
-                    TripleSlashMember member = new TripleSlashMember(xeMember);
+                    TripleSlashMember member = new TripleSlashMember(xeMember, assembly);
 
                     bool add = false;
-                    foreach (string included in Configuration.IncludedAssemblies)
+                    foreach (string included in Config.IncludedAssemblies)
                     {
                         if (member.Assembly.StartsWith(included) ||
                             member.Name.Substring(2).StartsWith(included) ||
+                            member.Namespace.StartsWith(included) ||
                             Configuration.ReplaceNamespace(member.Assembly).StartsWith(included))
                         {
                             add = true;
@@ -148,7 +165,7 @@ namespace DocsPortingTool.TripleSlash
                         }
                     }
 
-                    foreach (string excluded in Configuration.ExcludedAssemblies)
+                    foreach (string excluded in Config.ExcludedAssemblies)
                     {
                         if (member.Assembly.StartsWith(excluded) || member.Name.Substring(2).StartsWith(excluded))
                         {

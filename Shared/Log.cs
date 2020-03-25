@@ -179,7 +179,7 @@ Change %SourceRepos% to match the location of all your cloned git repos.
 
 Options:
 
-   bool:           -DisablePrompts          Optional. Will avoid prompting the user for input. Default is false.
+   bool:           -DisablePrompts          Optional. Will avoid prompting the user for input to correct some particular errors. Default is false.
 
                                                 Usage example:
                                                     -disableprompts true

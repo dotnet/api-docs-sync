@@ -71,7 +71,7 @@ These are the method remarks. They are pointing to a param: `myParam`.
 
 ## Remarks
 
- Original interface method remarks that should show up in interface implementations.
+Original interface method remarks that should show up in interface implementations.
 
           ]]></format>
         </remarks>

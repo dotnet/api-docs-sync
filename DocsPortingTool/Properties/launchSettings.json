@@ -2,7 +2,7 @@
   "profiles": {
     "DocsPortingTool": {
       "commandName": "Project",
-      "commandLineArgs": "-docs D:\\dotnet-api-docs\\xml -includedassemblies System.Collections -excludedassemblies Microsoft -disableprompts true -printundoc false -save true -skipexceptions true -tripleslash D:\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\,D:\\runtime\\artifacts\\bin\\ -skipremarks true -skipinterfaceimplementations false",
+      "commandLineArgs": "-docs C:\\Users\\calope\\source\\repos\\dotnet-api-docs\\xml -includedassemblies System.Text.RegularExpressions -excludedassemblies Microsoft -disableprompts true -printundoc false -save true -skipexceptions true -tripleslash C:\\Users\\calope\\source\\repos\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\,C:\\Users\\calope\\source\\repos\\runtime\\artifacts\\bin\\ -skipremarks false -skipinterfaceimplementations false",
       "environmentVariables": {
         "DOCS_IOT": "D:\\iot\\artifacts\\bin",
         "DOCS_CORECLR": "D:\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\",

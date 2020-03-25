@@ -69,6 +69,11 @@ namespace DocsPortingTool
         // Tries to find a triple slash element from which to port documentation for the specified Docs type.
         private void PortMissingCommentsForType(DocsType dTypeToUpdate)
         {
+            if (!CanAnalyzeAPI(dTypeToUpdate))
+            {
+                return;
+            }
+
             TripleSlashMember tsTypeToPort = TripleSlashComments.Members.FirstOrDefault(x => x.Name == dTypeToUpdate.DocIdEscaped);
             if (tsTypeToPort != null)
             {
@@ -90,6 +95,11 @@ namespace DocsPortingTool
         // Tries to find a triple slash element from which to port documentation for the specified Docs member.
         private void PortMissingCommentsForMember(DocsMember dMemberToUpdate)
         {
+            if (!CanAnalyzeAPI(dMemberToUpdate))
+            {
+                return;
+            }
+
             TripleSlashMember tsMemberToPort = TripleSlashComments.Members.FirstOrDefault(x => x.Name == dMemberToUpdate.DocIdEscaped);
             TryGetEIIMember(dMemberToUpdate, out DocsMember? interfacedMember);
 
@@ -602,6 +612,84 @@ namespace DocsPortingTool
         private bool IsEmpty(string s)
         {
             return string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
+        }
+
+        private bool CanAnalyzeAPI(DocsAPI api)
+        {
+            bool result = false;
+            foreach (DocsAssemblyInfo apiAssembly in api.AssemblyInfos)
+            {
+                foreach (string excluded in Config.ExcludedAssemblies)
+                {
+                    if (apiAssembly.AssemblyName.StartsWith(excluded))
+                    {
+                        return false; // No more analysis required
+                    }
+                }
+
+                foreach (string included in Config.IncludedAssemblies)
+                {
+                    if (apiAssembly.AssemblyName.StartsWith(included))
+                    {
+                        result = true; // Almost done, need to check types if needed
+                        break;
+                    }
+                }
+
+                if (result)
+                {
+                    return IsTypeAllowed(api);
+                }
+            }
+
+            return result;
+        }
+
+        private bool IsTypeAllowed(DocsAPI api)
+        {
+            // All types are allowed
+            if (Config.ExcludedTypes.Count() == 0 &&
+                Config.IncludedTypes.Count() == 0)
+            {
+                return true;
+            }
+
+            string typeName;
+            string typeFullName;
+
+            if (api is DocsType)
+            {
+                DocsType type = (DocsType)api;
+                typeName = type.Name;
+                typeFullName = type.FullName;
+            }
+            else if (api is DocsMember)
+            {
+                DocsMember member = (DocsMember)api;
+                typeName = member.ParentType.Name;
+                typeFullName = member.ParentType.FullName;
+            }
+            else
+            {
+                throw new InvalidCastException();
+            }
+
+            if (Config.ExcludedTypes.Count() > 0)
+            {
+                if (Config.ExcludedTypes.Contains(typeName) || Config.ExcludedTypes.Contains(typeFullName))
+                {
+                    return false;
+                }
+            }
+            if (Config.IncludedTypes.Count() > 0)
+            {
+                if (Config.IncludedTypes.Contains(typeName) || Config.IncludedTypes.Contains(typeFullName))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

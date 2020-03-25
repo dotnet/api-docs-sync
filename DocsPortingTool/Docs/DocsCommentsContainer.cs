@@ -76,8 +76,20 @@ namespace DocsPortingTool.Docs
 
                     try
                     {
+                        StreamReader sr = new StreamReader(type.FilePath);
+                        int x = sr.Read(); // Force the first read to be done so the encoding is detected
+                        Encoding encoding = sr.CurrentEncoding;
+                        sr.Close();
+
                         // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                        XmlWriterSettings xws = new XmlWriterSettings { OmitXmlDeclaration = true, Indent = true, Encoding = Encoding.GetEncoding("ISO-8859-1") };
+                        XmlWriterSettings xws = new XmlWriterSettings
+                        {
+                            OmitXmlDeclaration = true,
+                            Indent = true,
+                            Encoding = encoding, //Encoding.GetEncoding("ISO-8859-1"),
+                            CheckCharacters = false
+                        };
+
                         using (XmlWriter xw = XmlWriter.Create(type.FilePath, xws))
                         {
                             type.XDoc.Save(xw);
@@ -87,7 +99,7 @@ namespace DocsPortingTool.Docs
                         string fileData = File.ReadAllText(type.FilePath);
                         if (!fileData.EndsWith(Environment.NewLine))
                         {
-                            File.WriteAllText(type.FilePath, fileData + Environment.NewLine);
+                            File.WriteAllText(type.FilePath, fileData + Environment.NewLine, encoding);
                         }
 
                         Log.Success(" [Saved]");

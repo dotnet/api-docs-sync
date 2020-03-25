@@ -89,18 +89,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private List<DocsAssemblyInfo> _assemblyInfos;
-        public List<DocsAssemblyInfo> AssemblyInfos
-        {
-            get
-            {
-                if (_assemblyInfos == null)
-                {
-                    _assemblyInfos = XERoot.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)).ToList();
-                }
-                return _assemblyInfos;
-            }
-        }
         public XElement Base
         {
             get
@@ -237,6 +225,7 @@ namespace DocsPortingTool.Docs
             FilePath = filePath;
             XDoc = xDoc;
             XERoot = xeRoot;
+            _assemblyInfos.AddRange(XERoot.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)));
         }
 
         public override string ToString()

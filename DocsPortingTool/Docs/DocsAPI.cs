@@ -15,7 +15,10 @@ namespace DocsPortingTool.Docs
         public abstract string Summary { get; set; }
         public abstract string Remarks { get; set; }
 
-        private string _docIdEscaped = null;
+        protected readonly List<DocsAssemblyInfo> _assemblyInfos = new List<DocsAssemblyInfo>();
+        public List<DocsAssemblyInfo> AssemblyInfos { get { return _assemblyInfos; } }
+
+        private string? _docIdEscaped = null;
         public string DocIdEscaped
         {
             get

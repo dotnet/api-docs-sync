@@ -27,6 +27,7 @@ DocsPortingTool.exe -docs D:\dotnet-api-docs\xml -tripleslash D:\runtime\artifac
 
 ### Command line options
 
+```
    bool:           -DisablePrompts          Optional. Will avoid prompting the user for input to correct some particular errors. Default is false.
 
                                                 Usage example:

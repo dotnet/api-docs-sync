@@ -17,14 +17,13 @@ Steps:
 
 1. Build your source code repo (dotnet/runtime).
 2. Clone the docs repo (dotnet/dotnet-api-docs). No need to build it.
-3. Clone this repo (carlossanlop/DocsPortingTool). Build it.
+3. Clone this repo (carlossanlop/DocsPortingTool). Run `./install-as-tool.ps1` to install as dotnet tool in your PATH.
 4. Run the command with the desired arguments.
-
 
 ### Example
 
 ```
-DocsPortingTool.exe -docs D:\dotnet-api-docs\xml -tripleslash D:\runtime\artifacts\bin\coreclr\Windows_NT.x64.Release\IL\,D:\runtime\artifacts\bin\ -includedassemblies System.IO.FileSystem -excludedassemblies Microsoft -save true
+DocsPortingTool -docs D:\dotnet-api-docs\xml -tripleslash D:\runtime\artifacts\bin\coreclr\Windows_NT.x64.Release\IL\,D:\runtime\artifacts\bin\ -includedassemblies System.IO.FileSystem -excludedassemblies Microsoft -save true
 ```
 
 ### Command line options

@@ -8,5 +8,7 @@
     <Company>Microsoft</Company>
     <Authors>carlossanlop</Authors>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
   </PropertyGroup>
 </Project>

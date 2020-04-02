@@ -21,6 +21,7 @@ namespace DocsPortingTool
             Save,
             SkipExceptions,
             SkipInterfaceImplementations,
+            SkipInterfaceRemarks,
             SkipRemarks,
             TripleSlash
         }
@@ -41,6 +42,7 @@ namespace DocsPortingTool
         public bool SkipExceptions { get; set; } = true;
         public bool SkipRemarks { get; set; } = false;
         public bool SkipInterfaceImplementations { get; set; } = false;
+        public bool SkipInterfaceRemarks { get; set; } = true;
         public bool DisablePrompts { get; set; } = false;
         public bool PrintUndoc { get; set; } = false;
 
@@ -237,6 +239,10 @@ namespace DocsPortingTool
                                     mode = Mode.SkipInterfaceImplementations;
                                     break;
 
+                                case "-skipinterfaceremarks":
+                                    mode = Mode.SkipInterfaceRemarks;
+                                    break;
+
                                 case "-skipremarks":
                                     mode = Mode.SkipRemarks;
                                     break;
@@ -312,6 +318,23 @@ namespace DocsPortingTool
                             Log.Info($"  -  {config.SkipInterfaceImplementations}");
 
                             mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.SkipInterfaceRemarks:
+                        {
+                            if (!bool.TryParse(arg, out bool skipInterfaceRemarks))
+                            {
+                                Log.LogErrorAndExit($"Invalid boolean value for skipInterfaceRemarks argument: {arg}");
+                            }
+
+                            config.SkipInterfaceRemarks = skipInterfaceRemarks;
+
+                            Log.Cyan("Skip interface remarks:");
+                            Log.Info($" - {config.SkipInterfaceRemarks}");
+
+                            mode = Mode.Initial;
+
                             break;
                         }
 

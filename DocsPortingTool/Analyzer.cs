@@ -138,7 +138,7 @@ namespace DocsPortingTool
         // Gets a string indicating if an API was created, otherwise it was modified.
         private string GetIsCreated(bool created)
         {
-            return created ? "CREATED" : "MODIFIED";
+            return created ? "Created" : "Modified";
         }
 
         // Attempts to obtain the member of the implemented interface.
@@ -146,9 +146,9 @@ namespace DocsPortingTool
         {
             interfacedMember = null;
 
-            if (dApiToUpdate is DocsMember)
+            if (dApiToUpdate is DocsMember member)
             {
-                string interfacedMemberDocId = ((DocsMember)dApiToUpdate).ImplementsInterfaceMember;
+                string interfacedMemberDocId = member.ImplementsInterfaceMember;
                 if (!string.IsNullOrEmpty(interfacedMemberDocId))
                 {
                     interfacedMember = DocsComments.Members.FirstOrDefault(x => x.DocId == interfacedMemberDocId);
@@ -189,7 +189,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     // Any member can have an empty summary
-                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} SUMMARY";
+                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} summary: {name} = {value}";
                     PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -218,7 +218,7 @@ namespace DocsPortingTool
                     value = tsMemberToPort.Remarks;
                 }
                 // or try to find if it implements a documented interface
-                else if (interfacedMember != null && !IsEmpty(interfacedMember.Remarks))
+                else if (!Config.SkipInterfaceRemarks && interfacedMember != null && !IsEmpty(interfacedMember.Remarks))
                 {
                     string eiiMessage = string.Empty;
 
@@ -252,7 +252,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     // Any member can have an empty remark
-                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} REMARKS";
+                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} remarks: {name} = {value}";
                     PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -347,7 +347,7 @@ namespace DocsPortingTool
 
                         if (!IsEmpty(value))
                         {
-                            string message = $"{prefix} {GetIsEII(isEII)} PARAM '{dParam.Name}' ({GetIsCreated(created)})";
+                            string message = $"{prefix} {GetIsEII(isEII)} ({GetIsCreated(created)}) param {name} = {value}";
                             PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                             TotalModifiedIndividualElements++;
                         }
@@ -365,7 +365,7 @@ namespace DocsPortingTool
                         {
                             dParam.Value = interfacedParam.Value;
 
-                            string message = $"{prefix} EII PARAM '{dParam.Name}' ({GetIsCreated(false)})";
+                            string message = $"{prefix} EII ({GetIsCreated(false)}) param {dParam.Name} = {dParam.Value}";
                             PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                             TotalModifiedIndividualElements++;
                         }
@@ -417,7 +417,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     dMemberToUpdate.Value = value;
-                    string message = $"MEMBER {GetIsEII(isEII)} PROPERTY";
+                    string message = $"Member {GetIsEII(isEII)} property {name} = {value}";
                     PrintModifiedMember(message, dMemberToUpdate.FilePath,dMemberToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -453,7 +453,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     dMemberToUpdate.Returns = value;
-                    string message = $"METHOD {GetIsEII(isEII)} RETURNS";
+                    string message = $"Method {GetIsEII(isEII)} returns {name} = {value}";
                     PrintModifiedMember(message, dMemberToUpdate.FilePath, dMemberToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -506,7 +506,7 @@ namespace DocsPortingTool
                     if (!IsEmpty(value))
                     {
                         dTypeParam.Value = value;
-                        string message = $"MEMBER {GetIsEII(isEII)} TYPEPARAM ({GetIsCreated(created)})";
+                        string message = $"Member {GetIsEII(isEII)} ({GetIsCreated(created)}) typeparam {name} = {value}";
                         PrintModifiedMember(message, dTypeParam.ParentAPI.FilePath, dMemberToUpdate.DocId);
                         TotalModifiedIndividualElements++;
                     }
@@ -554,7 +554,7 @@ namespace DocsPortingTool
 
                     if (created || (!IsEmpty(tsException.Value) && IsEmpty(dException.Value)))
                     {
-                        string message = string.Format("EXCEPTION ({0})", created ? "CREATED" : "MODIFIED");
+                        string message = string.Format($"Exception ({GetIsCreated(created)}) {dException.Cref} = {dException.Value}");
                         PrintModifiedMember(message, dException.ParentAPI.FilePath, dException.Cref);
 
                         TotalModifiedIndividualElements++;
@@ -711,15 +711,13 @@ namespace DocsPortingTool
             string typeName;
             string typeFullName;
 
-            if (api is DocsType)
+            if (api is DocsType type)
             {
-                DocsType type = (DocsType)api;
                 typeName = type.Name;
                 typeFullName = type.FullName;
             }
-            else if (api is DocsMember)
+            else if (api is DocsMember member)
             {
-                DocsMember member = (DocsMember)api;
                 typeName = member.ParentType.Name;
                 typeFullName = member.ParentType.FullName;
             }

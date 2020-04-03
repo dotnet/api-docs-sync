@@ -37,7 +37,7 @@ Original interface type remarks that should not be ported to classes implementin
 
 ## Remarks
 
-Original interface method remarks that should show up in interface implementations if -skipInterfaceRemarks is set to `false`.
+Original interface method remarks that should show up in interface implementations if -skipInterfaceRemarks is set to false.
 
           ]]></format>
         </remarks>

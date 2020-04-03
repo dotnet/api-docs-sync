@@ -80,7 +80,7 @@ namespace DocsPortingTool
                 if (tsTypeToPort.Name == dTypeToUpdate.DocIdEscaped)
                 {
                     TryPortMissingSummaryForAPI(dTypeToUpdate, tsTypeToPort, null);
-                    TryPortMissingRemarksForAPI(dTypeToUpdate, tsTypeToPort, null);
+                    TryPortMissingRemarksForAPI(dTypeToUpdate, tsTypeToPort, null, skipInterfaceRemarks: true);
                     TryPortMissingParamsForAPI(dTypeToUpdate, tsTypeToPort, null); // Some types, like delegates, have params
                 }
 
@@ -106,7 +106,7 @@ namespace DocsPortingTool
             if (tsMemberToPort != null || interfacedMember != null)
             {
                 TryPortMissingSummaryForAPI(dMemberToUpdate, tsMemberToPort, interfacedMember);
-                TryPortMissingRemarksForAPI(dMemberToUpdate, tsMemberToPort, interfacedMember);
+                TryPortMissingRemarksForAPI(dMemberToUpdate, tsMemberToPort, interfacedMember, Config.SkipInterfaceRemarks);
                 TryPortMissingParamsForAPI(dMemberToUpdate, tsMemberToPort, interfacedMember);
                 TryPortMissingTypeParamsForMember(dMemberToUpdate, tsMemberToPort, interfacedMember);
                 TryPortMissingExceptionsForMember(dMemberToUpdate, tsMemberToPort);
@@ -197,7 +197,7 @@ namespace DocsPortingTool
         }
 
         // Ports the remarks for the specified API if the field is undocumented.
-        private void TryPortMissingRemarksForAPI(IDocsAPI dApiToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember)
+        private void TryPortMissingRemarksForAPI(IDocsAPI dApiToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember, bool skipInterfaceRemarks)
         {
             if (Config.SkipRemarks)
             {
@@ -218,35 +218,46 @@ namespace DocsPortingTool
                     value = tsMemberToPort.Remarks;
                 }
                 // or try to find if it implements a documented interface
-                else if (!Config.SkipInterfaceRemarks && interfacedMember != null && !IsEmpty(interfacedMember.Remarks))
+                // which only happens in docs members (types have a null interfacedMember passed)
+                else if (interfacedMember != null && !IsEmpty(interfacedMember.Remarks))
                 {
-                    string eiiMessage = string.Empty;
-
                     DocsMember memberToUpdate = (DocsMember)dApiToUpdate;
 
-                    // Special text for EIIs in Remarks
+                    // Only attempt to port if the member name is the same as the interfaced member docid without prefix
                     if (memberToUpdate.MemberName == interfacedMember.DocId.Substring(2))
                     {
                         string dMemberToUpdateTypeDocIdNoPrefix = memberToUpdate.ParentType.DocId.Substring(2);
                         string interfacedMemberTypeDocIdNoPrefix = interfacedMember.ParentType.DocId.Substring(2);
 
-                        eiiMessage = $"This member is an explicit interface member implementation. It can be used only when the <xref:{dMemberToUpdateTypeDocIdNoPrefix}> instance is cast to an <xref:{interfacedMemberTypeDocIdNoPrefix}> interface.{Environment.NewLine + Environment.NewLine}";
-                    }
+                        // Special text for EIIs in Remarks
+                        string eiiMessage = $"This member is an explicit interface member implementation. It can be used only when the <xref:{dMemberToUpdateTypeDocIdNoPrefix}> instance is cast to an <xref:{interfacedMemberTypeDocIdNoPrefix}> interface.{Environment.NewLine + Environment.NewLine}";
 
-                    string original = string.Empty;
-                    if (!interfacedMember.Remarks.Contains(Configuration.ToBeAdded))
-                    {
-                        original = interfacedMember.Remarks
-                            .CleanRemarksText("##Remarks")
-                            .CleanRemarksText("## Remarks")
-                            .CleanRemarksText("<![CDATA[")
-                            .CleanRemarksText("]]>");
+                        string cleanedInterfaceRemarks = string.Empty;
+                        if (!interfacedMember.Remarks.Contains(Configuration.ToBeAdded))
+                        {
+                            cleanedInterfaceRemarks = interfacedMember.Remarks
+                                .CleanRemarksText("##Remarks")
+                                .CleanRemarksText("## Remarks")
+                                .CleanRemarksText("<![CDATA[")
+                                .CleanRemarksText("]]>");
+                        }
+
+                        // Only port the interface remarks if the user desired that
+                        if (!skipInterfaceRemarks)
+                        {
+                            dApiToUpdate.Remarks = eiiMessage + cleanedInterfaceRemarks;
+                        }
+                        // Otherwise, always add the EII special message
+                        else
+                        {
+                            dApiToUpdate.Remarks = eiiMessage;
+                        }
+
+                        name = interfacedMember.MemberName;
+                        value = dApiToUpdate.Remarks;
+
+                        isEII = true;
                     }
-                    dApiToUpdate.Remarks = eiiMessage + original;
-                    name = interfacedMember.MemberName;
-                    value = interfacedMember.Remarks;
-                    
-                    isEII = true;
                 }
 
                 if (!IsEmpty(value))

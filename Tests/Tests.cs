@@ -6,32 +6,82 @@ namespace DocsPortingTool.Tests
     public class Tests
     {
         [Fact]
-        public void PortRemarks() => Port("Remarks", false);
+        // Verifies that comments are ported, excluding EII comments.
+        public void Port_Remarks()
+        {
+            Port("Remarks", GetConfig(
+                skipInterfaceImplementations: true,
+                skipInterfaceRemarks: true,
+                skipRemarks: false
+            ));
+        }
 
         [Fact]
-        public void PortEII() => Port("EII", true);
+        // Verifies that EII comments are ported, including EII remarks.
+        public void Port_EII()
+        {
+            Port("EII", GetConfig(
+                skipInterfaceImplementations: false,
+                skipInterfaceRemarks: false,
+                skipRemarks: false
+            ));
+        }
 
-        private void Port(string testDataDir, bool includeInterface)
+        [Fact]
+        /// Verifies that EII comments are ported, except EII remarks.
+        public void Port_EII_NoRemarks()
+        {
+            Port("EII_NoRemarks", GetConfig(
+                skipInterfaceImplementations: false,
+                skipInterfaceRemarks: true,
+                skipRemarks: false
+            ));
+        }
+
+        private Configuration GetConfig(
+            bool disablePrompts = true,
+            bool printUndoc = false,
+            bool save = true,
+            bool skipExceptions = true,
+            bool skipInterfaceImplementations = true,
+            bool skipInterfaceRemarks = true,
+            bool skipRemarks = true
+        )
+        {
+            return new Configuration
+            {
+                DisablePrompts = disablePrompts,
+                PrintUndoc = printUndoc,
+                Save = save,
+                SkipExceptions = skipExceptions,
+                SkipInterfaceImplementations = skipInterfaceImplementations,
+                SkipInterfaceRemarks = skipInterfaceRemarks,
+                SkipRemarks = skipRemarks
+            };
+        }
+
+        private void Port(string testDataDir, Configuration c)
         {
             using TestDirectory tempDir = new TestDirectory();
-            TestData testData = new TestData(tempDir, testDataDir, includeInterface: includeInterface);
 
-            Configuration config = new Configuration
-            {
-                DisablePrompts = true,
-                PrintUndoc = false,
-                Save = true,
-                SkipExceptions = true,
-                SkipInterfaceImplementations = !includeInterface,
-                SkipRemarks = false
-            };
-            config.IncludedAssemblies.Add(testData.Assembly);
-            config.DirsDocsXml.Add(testData.Docs);
-            config.DirsTripleSlashXmls.Add(testData.TripleSlash);
+            TestData testData = new TestData(
+                tempDir,
+                testDataDir,
+                includeInterface: !c.SkipInterfaceImplementations
+            );
 
-            Analyzer analyzer = new Analyzer(config);
+            c.IncludedAssemblies.Add(testData.Assembly);
+            c.DirsDocsXml.Add(testData.Docs);
+            c.DirsTripleSlashXmls.Add(testData.TripleSlash);
+
+            Analyzer analyzer = new Analyzer(c);
             analyzer.Start();
 
+            Verify(testData);
+        }
+
+        private void Verify(TestData testData)
+        {
             string[] expectedLines = File.ReadAllLines(testData.ExpectedFilePath);
             string[] actualLines = File.ReadAllLines(testData.ActualFilePath);
 

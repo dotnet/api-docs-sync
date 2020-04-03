@@ -36,19 +36,19 @@ The instructions below assume %SourceRepos% is the root folder of all your git c
 Options:
 
    bool:           -DisablePrompts          Optional. Default is false (prompts are disabled).
-                                            Avoids prompting the user for input to correct some particular errors.
+                                             Avoids prompting the user for input to correct some particular errors.
                                                 Usage example:
                                                     -disableprompts true
 
 
 
     no arguments:   -h or -Help             Optional.
-                                            Displays this help message. If used, nothing else is processed and the program exits.
+                                             Displays this help message. If used, nothing else is processed and the program exits.
 
 
 
     folder path:    -Docs                   Mandatory.
-                                            The absolute directory root path where the Docs xml files are located.
+                                             The absolute directory root path where the Docs xml files are located.
                                                 Known locations:
                                                     > Runtime:      %SourceRepos%\dotnet-api-docs\xml
                                                     > WPF:          %SourceRepos%\dotnet-api-docs\xml
@@ -60,77 +60,77 @@ Options:
 
 
 
-    string list:    -ExcludedAssemblies         Optional. Default is empty (does not ignore any assemblies/namespaces).
-                                                Comma separated list (no spaces) of specific .NET assemblies/namespaces to ignore.
-                                                    Usage example:
-                                                        -excludedassemblies System.IO.Compression,System.IO.Pipes
+    string list:    -ExcludedAssemblies     Optional. Default is empty (does not ignore any assemblies/namespaces).
+                                             Comma separated list (no spaces) of specific .NET assemblies/namespaces to ignore.
+                                                Usage example:
+                                                    -excludedassemblies System.IO.Compression,System.IO.Pipes
 
 
 
-    string list:    -IncludedAssemblies         Mandatory.
-                                                Comma separated list (no spaces) of assemblies/namespaces to include.
-                                                    Usage example:
-                                                        -includedassemblies System.IO,System.Runtime.Intrinsics
+    string list:    -IncludedAssemblies     Mandatory.
+                                             Comma separated list (no spaces) of assemblies/namespaces to include.
+                                                Usage example:
+                                                    -includedassemblies System.IO,System.Runtime.Intrinsics
 
 
 
-    string list:    -ExcludedTypes              Optional. Default is empty (does not ignore any types).
-                                                Comma separated list (no spaces) of names of types to ignore.
-                                                    Usage example:
-                                                        -excludedtypes ArgumentException,Stream
+    string list:    -ExcludedTypes          Optional. Default is empty (does not ignore any types).
+                                             Comma separated list (no spaces) of names of types to ignore.
+                                                Usage example:
+                                                    -excludedtypes ArgumentException,Stream
 
 
 
-    string list:    -IncludedTypes              Mandatory. Default is empty (includes all types in the desired assemblies/namespaces).
-                                                Comma separated list (no spaces) of specific types to include.
-                                                    Usage example:
-                                                        -includedtypes FileStream,DirectoryInfo
+    string list:    -IncludedTypes          Mandatory. Default is empty (includes all types in the desired assemblies/namespaces).
+                                             Comma separated list (no spaces) of specific types to include.
+                                                Usage example:
+                                                    -includedtypes FileStream,DirectoryInfo
 
 
 
     bool:           -PrintUndoc             Optional. Default is false (prints a basic summary).
-                                            Prints a detailed summary of all the docs APIs that are undocumented.
+                                             Prints a detailed summary of all the docs APIs that are undocumented.
                                                 Usage example:
                                                     -printundoc true
 
 
 
     bool:           -Save                   Optional. Default is false (does not save changes).
-                                            Whether you want to save the changes in the dotnet-api-docs xml files.
+                                             Whether you want to save the changes in the dotnet-api-docs xml files.
                                                 Usage example:
                                                     -save true
 
 
 
     bool:           -SkipExceptions         Optional. Default is true (skips exceptions).
-                                            Whether you want exceptions to be ported or not.
-                                            Setting this to false can result in a lot of noise because there is no easy way
-                                            to detect if an exception has been ported already or not.
+                                             Whether you want exceptions to be ported or not.
+                                             Setting this to false can result in a lot of noise because there is no easy way
+                                             to detect if an exception has been ported already or not.
                                                 Usage example:
                                                     -skipexceptions false
 
 
 
     bool:           -SkipRemarks            Optional. Default is false (adds remarks).
-                                            Whether you want remarks to be ported or not.
+                                             Whether you want remarks to be ported or not.
                                                 Usage example:
                                                     -skipremarks true
 
 
 
     bool:    -SkipInterfaceImplementations  Optional. Default is false (includes interface implementations).
-                                            Whether you want the original interface documentation to be considered to fill the
-                                            undocumented API's documentation when the API itself does not provide its own documentation.
-                                            Setting this to false will include Explicit Interface Implementations as well.
+                                             Whether you want the original interface documentation to be considered to fill the
+                                             undocumented API's documentation when the API itself does not provide its own documentation.
+                                             Setting this to false will include Explicit Interface Implementations as well.
                                                 Usage example:
                                                     -skipinterfaceimplementations true
 
 
 
     bool     -SkipInterfaceRemarks          Optional. Default is true (excludes interface remarks).
-                                            Whether you want interface implementation remarks to be used when the API itself has no remarks.
-                                            Very noisy and generally the content in those remarks do not apply to the API that implements
-                                            the interface API.
+                                             Whether you want interface implementation remarks to be used when the API itself has no remarks.
+                                             Very noisy and generally the content in those remarks do not apply to the API that implements
+                                             the interface API.
                                                 Usage example:
                                                     -skipinterfaceremarks false
 

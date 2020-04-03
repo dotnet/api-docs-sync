@@ -6,7 +6,7 @@ namespace DocsPortingTool.Tests
 {
     public class TestDirectory : IDisposable
     {
-        private DirectoryInfo DirInfo;
+        private readonly DirectoryInfo DirInfo;
 
         public string FullPath => DirInfo.FullName;
 

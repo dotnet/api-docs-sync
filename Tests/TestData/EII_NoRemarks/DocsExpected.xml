@@ -92,7 +92,6 @@ These are the method remarks. They are pointing to a param: `myParam`.
 ## Remarks
 
 This member is an explicit interface member implementation. It can be used only when the <xref:MyNamespace.MyType> instance is cast to an <xref:System.IMyInterface> interface.
- Original interface method remarks that should show up in interface implementations if -skipInterfaceRemarks is set to `false`.
 
           ]]></format>
         </remarks>

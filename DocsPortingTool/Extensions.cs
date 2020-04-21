@@ -25,6 +25,9 @@ namespace DocsPortingTool
             return oldRemarks;
         }
 
+        // Some API DocIDs with types contain "{" and "}" to enclose the typeparam, which causes
+        // an exception to be thrown when trying to embed the string in a formatted string.
+        public static string Escaped(this string str) => str.Replace("{", "{{").Replace("}", "}}");
     }
 
 }

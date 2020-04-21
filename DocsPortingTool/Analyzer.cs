@@ -189,7 +189,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     // Any member can have an empty summary
-                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} summary: {name} = {value}";
+                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} summary: {name.Escaped()} = {value.Escaped()}";
                     PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -263,7 +263,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     // Any member can have an empty remark
-                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} remarks: {name} = {value}";
+                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} remarks: {name.Escaped()} = {value.Escaped()}";
                     PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -358,7 +358,7 @@ namespace DocsPortingTool
 
                         if (!IsEmpty(value))
                         {
-                            string message = $"{prefix} {GetIsEII(isEII)} ({GetIsCreated(created)}) param {name} = {value}";
+                            string message = $"{prefix} {GetIsEII(isEII)} ({GetIsCreated(created)}) param {name.Escaped()} = {value.Escaped()}";
                             PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                             TotalModifiedIndividualElements++;
                         }
@@ -376,7 +376,7 @@ namespace DocsPortingTool
                         {
                             dParam.Value = interfacedParam.Value;
 
-                            string message = $"{prefix} EII ({GetIsCreated(false)}) param {dParam.Name} = {dParam.Value}";
+                            string message = $"{prefix} EII ({GetIsCreated(false)}) param {dParam.Name.Escaped()} = {dParam.Value.Escaped()}";
                             PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                             TotalModifiedIndividualElements++;
                         }
@@ -428,7 +428,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     dMemberToUpdate.Value = value;
-                    string message = $"Member {GetIsEII(isEII)} property {name} = {value}";
+                    string message = $"Member {GetIsEII(isEII)} property {name.Escaped()} = {value.Escaped()}";
                     PrintModifiedMember(message, dMemberToUpdate.FilePath,dMemberToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -464,7 +464,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     dMemberToUpdate.Returns = value;
-                    string message = $"Method {GetIsEII(isEII)} returns {name} = {value}";
+                    string message = $"Method {GetIsEII(isEII)} returns {name.Escaped()} = {value.Escaped()}";
                     PrintModifiedMember(message, dMemberToUpdate.FilePath, dMemberToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -517,7 +517,7 @@ namespace DocsPortingTool
                     if (!IsEmpty(value))
                     {
                         dTypeParam.Value = value;
-                        string message = $"Member {GetIsEII(isEII)} ({GetIsCreated(created)}) typeparam {name} = {value}";
+                        string message = $"Member {GetIsEII(isEII)} ({GetIsCreated(created)}) typeparam {name.Escaped()} = {value.Escaped()}";
                         PrintModifiedMember(message, dTypeParam.ParentAPI.FilePath, dMemberToUpdate.DocId);
                         TotalModifiedIndividualElements++;
                     }
@@ -565,7 +565,7 @@ namespace DocsPortingTool
 
                     if (created || (!IsEmpty(tsException.Value) && IsEmpty(dException.Value)))
                     {
-                        string message = string.Format($"Exception ({GetIsCreated(created)}) {dException.Cref} = {dException.Value}");
+                        string message = string.Format($"Exception ({GetIsCreated(created)}) {dException.Cref.Escaped()} = {dException.Value.Escaped()}");
                         PrintModifiedMember(message, dException.ParentAPI.FilePath, dException.Cref);
 
                         TotalModifiedIndividualElements++;

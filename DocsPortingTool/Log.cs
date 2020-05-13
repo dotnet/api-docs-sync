@@ -225,7 +225,7 @@ Options:
 
 
 
-    string list:    -IncludedTypes              Mandatory. Default is empty (includes all types in the desired assemblies/namespaces).
+    string list:    -IncludedTypes              Optional. Default is empty (includes all types in the desired assemblies/namespaces).
                                                 Comma separated list (no spaces) of specific types to include.
                                                     Usage example:
                                                         -includedtypes FileStream,DirectoryInfo

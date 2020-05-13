@@ -5,7 +5,7 @@ namespace DocsPortingTool.Docs
 {
     public class DocsException
     {
-        private XElement XEException = null;
+        private readonly XElement XEException = null;
 
         public IDocsAPI ParentAPI
         {

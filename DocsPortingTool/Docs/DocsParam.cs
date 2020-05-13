@@ -4,7 +4,7 @@ namespace DocsPortingTool.Docs
 {
     public class DocsParam
     {
-        private XElement XEDocsParam = null;
+        private readonly XElement XEDocsParam = null;
         public IDocsAPI ParentAPI
         {
             get; private set;

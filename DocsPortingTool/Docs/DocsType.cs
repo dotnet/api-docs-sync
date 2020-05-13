@@ -12,7 +12,7 @@ namespace DocsPortingTool.Docs
     {
         public XDocument XDoc { get; set; } = null;
 
-        private XElement XERoot = null;
+        private readonly XElement XERoot = null;
 
         public override bool Changed { get; set; }
 

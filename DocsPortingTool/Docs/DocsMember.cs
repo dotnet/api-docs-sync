@@ -9,7 +9,7 @@ namespace DocsPortingTool.Docs
 {
     public class DocsMember : DocsAPI
     {
-        private XElement XEMember = null;
+        private readonly XElement XEMember = null;
         public DocsType ParentType { get; private set; }
 
         public override bool Changed

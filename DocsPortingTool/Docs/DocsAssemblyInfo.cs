@@ -6,7 +6,7 @@ namespace DocsPortingTool.Docs
 {
     public class DocsAssemblyInfo
     {
-        private XElement XEAssemblyInfo = null;
+        private readonly XElement XEAssemblyInfo = null;
         public string AssemblyName
         {
             get

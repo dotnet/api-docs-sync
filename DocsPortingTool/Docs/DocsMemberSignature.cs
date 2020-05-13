@@ -4,7 +4,7 @@ namespace DocsPortingTool.Docs
 {
     public class DocsMemberSignature
     {
-        private XElement XEMemberSignature = null;
+        private readonly XElement XEMemberSignature = null;
 
         public string Language
         {

@@ -8,7 +8,7 @@ namespace DocsPortingTool.Docs
     /// </summary>
     public class DocsTypeParam
     {
-        private XElement XEDocsTypeParam = null;
+        private readonly XElement XEDocsTypeParam = null;
         public IDocsAPI ParentAPI
         {
             get; private set;

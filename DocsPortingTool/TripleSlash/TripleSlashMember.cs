@@ -7,7 +7,7 @@ namespace DocsPortingTool.TripleSlash
 {
     public class TripleSlashMember
     {
-        private XElement XEMember;
+        private readonly XElement XEMember;
 
         public string Assembly { get; private set; }
 

@@ -9,7 +9,7 @@ namespace DocsPortingTool.Docs
 {
     public class DocsMember : DocsAPI
     {
-        private readonly XElement XEMember = null;
+        private readonly XElement XEMember;
         public DocsType ParentType { get; private set; }
 
         public override bool Changed
@@ -22,7 +22,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _memberName = null;
+        private string? _memberName;
         public string MemberName
         {
             get
@@ -35,7 +35,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private List<DocsMemberSignature> _memberSignatures;
+        private List<DocsMemberSignature>? _memberSignatures;
         public List<DocsMemberSignature> MemberSignatures
         {
             get
@@ -48,7 +48,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _docId = null;
+        private string? _docId;
         public override string DocId
         {
             get
@@ -104,7 +104,7 @@ namespace DocsPortingTool.Docs
                 return string.Empty;
             }
         }
-        private List<DocsParameter> _parameters;
+        private List<DocsParameter>? _parameters;
         public override List<DocsParameter> Parameters
         {
             get
@@ -127,7 +127,7 @@ namespace DocsPortingTool.Docs
         /// <summary>
         /// These are the TypeParameter elements found inside the TypeParameters section.
         /// </summary>
-        private List<DocsTypeParameter> _typeParameters;
+        private List<DocsTypeParameter>? _typeParameters;
         public List<DocsTypeParameter> TypeParameters
         {
             get
@@ -150,7 +150,7 @@ namespace DocsPortingTool.Docs
         /// <summary>
         /// These are the typeparam elements found inside the Docs section.
         /// </summary>
-        private List<DocsTypeParam> _typeParams;
+        private List<DocsTypeParam>? _typeParams;
         public List<DocsTypeParam> TypeParams
         {
             get
@@ -176,7 +176,7 @@ namespace DocsPortingTool.Docs
                 return XEMember.Element("Docs");
             }
         }
-        private List<DocsParam> _params;
+        private List<DocsParam>? _params;
         public override List<DocsParam> Params
         {
             get
@@ -199,7 +199,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return (ReturnType != "System.Void") ? GetNodesInPlainText("returns") : null;
+                return (ReturnType != "System.Void") ? GetNodesInPlainText("returns") : string.Empty;
             }
             set
             {
@@ -232,14 +232,14 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return (MemberType == "Property") ? GetNodesInPlainText("value") : null;
+                return (MemberType == "Property") ? GetNodesInPlainText("value") : string.Empty;
             }
             set
             {
                 SaveFormattedAsXml("value", value);
             }
         }
-        private List<string> _altMemberCref;
+        private List<string>? _altMemberCref;
         public List<string> AltMemberCref
         {
             get
@@ -258,7 +258,7 @@ namespace DocsPortingTool.Docs
                 return _altMemberCref;
             }
         }
-        private List<DocsException> _exceptions;
+        private List<DocsException>? _exceptions;
         public List<DocsException> Exceptions
         {
             get

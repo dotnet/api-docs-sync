@@ -4,7 +4,7 @@ namespace DocsPortingTool.TripleSlash
 {
     public class TripleSlashTypeParam
     {
-        public XElement XETypeParam = null;
+        public XElement XETypeParam;
 
         private string _name = string.Empty;
         public string Name

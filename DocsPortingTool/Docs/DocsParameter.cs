@@ -4,7 +4,7 @@ namespace DocsPortingTool.Docs
 {
     public class DocsParameter
     {
-        private readonly XElement XEParameter = null;
+        private readonly XElement XEParameter;
         public string Name
         {
             get

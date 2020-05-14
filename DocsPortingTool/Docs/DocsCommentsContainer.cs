@@ -307,7 +307,7 @@ namespace DocsPortingTool.Docs
                 int totalMembersAdded = 0;
                 Types.Add(docsType);
 
-                if (XmlHelper.TryGetChildElement(xDoc.Root, "Members", out XElement xeMembers))
+                if (XmlHelper.TryGetChildElement(xDoc.Root, "Members", out XElement? xeMembers) && xeMembers != null)
                 {
                     foreach (XElement xeMember in xeMembers.Elements("Member"))
                     {

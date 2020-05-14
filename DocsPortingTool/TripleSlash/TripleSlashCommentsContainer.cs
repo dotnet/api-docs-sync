@@ -146,7 +146,7 @@ namespace DocsPortingTool.TripleSlash
             }
 
             int totalAdded = 0;
-            if (XmlHelper.TryGetChildElement(xDoc.Root, "members", out XElement xeMembers))
+            if (XmlHelper.TryGetChildElement(xDoc.Root, "members", out XElement? xeMembers) && xeMembers != null)
             {
                 foreach (XElement xeMember in xeMembers.Elements("member"))
                 {

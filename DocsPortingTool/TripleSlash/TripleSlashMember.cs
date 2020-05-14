@@ -30,12 +30,12 @@ namespace DocsPortingTool.TripleSlash
             }
         }
 
-        private string _name = string.Empty;
+        private string? _name;
         public string Name
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_name))
+                if (_name == null)
                 {
                     _name = Configuration.ReplaceNamespace(XmlHelper.GetAttributeValue(XEMember, "name"));
                 }
@@ -43,7 +43,7 @@ namespace DocsPortingTool.TripleSlash
             }
         }
 
-        private List<TripleSlashParam> _params;
+        private List<TripleSlashParam>? _params;
         public List<TripleSlashParam> Params
         {
             get
@@ -56,7 +56,7 @@ namespace DocsPortingTool.TripleSlash
             }
         }
 
-        private List<TripleSlashTypeParam> _typeParams;
+        private List<TripleSlashTypeParam>? _typeParams;
         public List<TripleSlashTypeParam> TypeParams
         {
             get
@@ -69,7 +69,7 @@ namespace DocsPortingTool.TripleSlash
             }
         }
 
-        private List<TripleSlashException> _exceptions;
+        private List<TripleSlashException>? _exceptions;
         public IEnumerable<TripleSlashException> Exceptions
         {
             get
@@ -82,73 +82,57 @@ namespace DocsPortingTool.TripleSlash
             }
         }
 
-        private string _summary = string.Empty;
+        private string? _summary;
         public string Summary
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_summary))
+                if (_summary == null)
                 {
                     XElement xElement = XEMember.Element("summary");
-                    if (xElement != null)
-                        _summary = XmlHelper.GetNodesInPlainText(xElement);
+                    _summary = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _summary;
             }
         }
 
-        public string _value = string.Empty;
+        public string? _value;
         public string Value
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_value))
+                if (_value == null)
                 {
-                    try
-                    {
-                        XElement xElement = XEMember.Element("value");
-                        if (xElement != null)
-                            _value = XmlHelper.GetNodesInPlainText(xElement);
-                    }
-                    catch { }
+                    XElement xElement = XEMember.Element("value");
+                    _value = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _value;
             }
         }
 
-        private string _returns = string.Empty;
+        private string? _returns;
         public string Returns
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_returns))
+                if (_returns == null)
                 {
-                    try
-                    {
                         XElement xElement = XEMember.Element("returns");
-                        if (xElement != null)
-                            _returns = XmlHelper.GetNodesInPlainText(xElement);
-                    }
-                    catch { }
+                        _returns = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _returns;
             }
         }
 
-        private string _remarks = string.Empty;
+        private string? _remarks;
         public string Remarks
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(_remarks))
+                if (_remarks == null)
                 {
-                    try
-                    {
                         XElement xElement = XEMember.Element("remarks");
-                        if (xElement != null)
-                            _remarks = XmlHelper.GetNodesInPlainText(xElement);
-                    }
-                    catch { }
+                        _remarks = (xElement !=  null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _remarks;
             }
@@ -156,16 +140,12 @@ namespace DocsPortingTool.TripleSlash
 
         public TripleSlashMember(XElement xeMember, string assembly)
         {
-            if (xeMember == null)
-            {
-                throw new ArgumentNullException(nameof(xeMember));
-            }
             if (string.IsNullOrEmpty(assembly))
             {
                 throw new ArgumentNullException(nameof(assembly));
             }
 
-            XEMember = xeMember;
+            XEMember = xeMember ?? throw new ArgumentNullException(nameof(xeMember));
             Assembly = assembly;
         }
 

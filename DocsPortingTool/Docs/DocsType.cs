@@ -10,13 +10,13 @@ namespace DocsPortingTool.Docs
     /// </summary>
     public class DocsType : DocsAPI
     {
-        public XDocument XDoc { get; set; } = null;
+        public XDocument XDoc { get; set; }
 
-        private readonly XElement XERoot = null;
+        private readonly XElement XERoot;
 
         public override bool Changed { get; set; }
 
-        private string _name = null;
+        private string? _name;
         public string Name
         {
             get
@@ -29,7 +29,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _fullName = null;
+        private string? _fullName;
         public string FullName
         {
             get
@@ -42,7 +42,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _namespace = null;
+        private string? _namespace;
         public string Namespace
         {
             get
@@ -56,7 +56,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private List<DocsTypeSignature> _typesSignatures;
+        private List<DocsTypeSignature>? _typesSignatures;
         public List<DocsTypeSignature> TypeSignatures
         {
             get
@@ -69,7 +69,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _docId = null;
+        private string? _docId;
         public override string DocId
         {
             get
@@ -97,7 +97,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string _baseTypeName = null;
+        private string? _baseTypeName;
         public string BaseTypeName
         {
             get
@@ -117,7 +117,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private List<string> _interfaceNames;
+        private List<string>? _interfaceNames;
         public List<string> InterfaceNames
         {
             get
@@ -130,7 +130,7 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private List<DocsAttribute> _attributes;
+        private List<DocsAttribute>? _attributes;
         public List<DocsAttribute> Attributes
         {
             get
@@ -138,16 +138,13 @@ namespace DocsPortingTool.Docs
                 if (_attributes == null)
                 {
                     XElement e = XERoot.Element("Attributes");
-                    if (e != null)
-                    {
-                        _attributes = e.Elements("Attribute").Select(x => new DocsAttribute(x)).ToList();
-                    }
+                    _attributes = (e != null) ? e.Elements("Attribute").Select(x => new DocsAttribute(x)).ToList() : new List<DocsAttribute>();
                 }
                 return _attributes;
             }
         }
 
-        private List<DocsParameter> _parameters;
+        private List<DocsParameter>? _parameters;
         public override List<DocsParameter> Parameters
         {
             get
@@ -176,7 +173,7 @@ namespace DocsPortingTool.Docs
             }
         }
         
-        private List<DocsParam> _params;
+        private List<DocsParam>? _params;
         public override List<DocsParam> Params
         {
             get

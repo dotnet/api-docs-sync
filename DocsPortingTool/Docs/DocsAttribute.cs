@@ -4,7 +4,7 @@ namespace DocsPortingTool.Docs
 {
     public class DocsAttribute
     {
-        private readonly XElement XEAttribute = null;
+        private readonly XElement XEAttribute;
 
         public string FrameworkAlternate
         {

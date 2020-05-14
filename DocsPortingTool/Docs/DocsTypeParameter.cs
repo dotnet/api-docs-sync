@@ -9,7 +9,7 @@ namespace DocsPortingTool.Docs
     /// </summary>
     public class DocsTypeParameter
     {
-        private readonly XElement XETypeParameter = null;
+        private readonly XElement XETypeParameter;
         public string Name
         {
             get
@@ -17,14 +17,14 @@ namespace DocsPortingTool.Docs
                 return XmlHelper.GetAttributeValue(XETypeParameter, "Name");
             }
         }
-        private XElement Constraints
+        private XElement? Constraints
         {
             get
             {
                 return XETypeParameter.Element("Constraints");
             }
         }
-        private List<string> _constraintsParamterAttributes;
+        private List<string>? _constraintsParamterAttributes;
         public List<string> ConstraintsParameterAttributes
         {
             get

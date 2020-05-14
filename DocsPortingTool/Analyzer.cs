@@ -674,7 +674,7 @@ namespace DocsPortingTool
         }
 
         // Checks if the passed string is considered "empty" according to the Docs repo rules.
-        private bool IsEmpty(string s)
+        private bool IsEmpty(string? s)
         {
             return string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
         }

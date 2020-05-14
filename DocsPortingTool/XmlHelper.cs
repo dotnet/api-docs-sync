@@ -99,7 +99,7 @@ namespace DocsPortingTool
             return string.Empty;
         }
 
-        public static bool TryGetChildElement(XElement parent, string name, out XElement child)
+        public static bool TryGetChildElement(XElement parent, string name, out XElement? child)
         {
             child = null;
 
@@ -114,28 +114,23 @@ namespace DocsPortingTool
         public static string GetChildElementValue(XElement parent, string childName)
         {
             XElement child = parent.Element(childName);
+
             if (child != null)
             {
                 return GetNodesInPlainText(child);
             }
-            return null;
+
+            return string.Empty;
         }
 
         public static string GetNodesInPlainText(XElement element)
         {
-            string value = string.Empty;
-
             if (element == null)
             {
                 Log.Error("A null element was passed when attempting to retrieve the nodes in plain text.");
                 throw new ArgumentNullException(nameof(element));
             }
-            else
-            {
-                value = string.Join("", element.Nodes()).Trim();
-            }
-
-            return value;
+            return string.Join("", element.Nodes()).Trim();
         }
 
         public static void SaveFormattedAsMarkdown(XElement element, string newValue)

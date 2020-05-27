@@ -263,43 +263,54 @@ namespace DocsPortingTool.Docs
             DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root);
 
             bool add = false;
+            bool addedAsInterface = false;
 
-            // If it's an interface, add it if the user allowed it
-            if (docsType.Name.StartsWith('I') && !Config.SkipInterfaceImplementations)
+            if (!IsAssemblyExcluded(docsType))
             {
-                add = true;
-            }
-            // Otherwise, add the API only if it's part of the included assemblies
-            // or included types and is not among the excluded types
-            else if (!IsAssemblyExcluded(docsType))
-            {
-                foreach (string included in Config.IncludedAssemblies)
+                // If it's an interface, always add it if the user wants to detect EIIs,
+                // even if it's in an assembly that was not included but was not explicitly excluded
+                addedAsInterface = false;
+                if (!Config.SkipInterfaceImplementations)
                 {
-                    if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 ||
-                        docsType.FullName.StartsWith(included))
+                    // Interface files start with I, and have an 2nd alphabetic character
+                    addedAsInterface = docsType.Name.Length >= 2 && docsType.Name[0] == 'I' && docsType.Name[1] >= 'A' && docsType.Name[1] <= 'Z';
+                    add |= addedAsInterface;
+
+                }
+
+                // If it was already added above as an interface, skip this part
+                // Otherwise, find out if the type belongs to the included assemblies, and if specified, to the included (and not excluded) types
+                // This includes interfaces even if user wants to skip EIIs - They will be added if they belong to this namespace or to the list of 
+                // included (and not exluded) types, but will not be used for EII, but rather as normal types whose comments should be ported
+                if (!addedAsInterface)
+                {
+                    foreach (string included in Config.IncludedAssemblies)
                     {
-                        add = true;
-
-                        if (Config.IncludedTypes.Count() > 0)
+                        if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 ||
+                            docsType.FullName.StartsWith(included))
                         {
-                            if (!Config.IncludedTypes.Contains(docsType.Name))
-                            {
-                                add = false;
-                            }
-                        }
+                            add = true;
 
-                        if (Config.ExcludedTypes.Count() > 0)
-                        {
-                            if (Config.ExcludedTypes.Contains(docsType.Name))
+                            if (Config.IncludedTypes.Count() > 0)
                             {
-                                add = false;
+                                if (!Config.IncludedTypes.Contains(docsType.Name))
+                                {
+                                    add = false;
+                                }
                             }
-                        }
 
-                        break;
+                            if (Config.ExcludedTypes.Count() > 0)
+                            {
+                                if (Config.ExcludedTypes.Contains(docsType.Name))
+                                {
+                                    add = false;
+                                }
+                            }
+
+                            break;
+                        }
                     }
                 }
-                
             }
 
             if (add)
@@ -318,7 +329,7 @@ namespace DocsPortingTool.Docs
                 }
 
                 string message = $"Type {docsType.DocId} added with {totalMembersAdded} member(s) included.";
-                if (docsType.Name.StartsWith('I'))
+                if (addedAsInterface)
                 {
                     Log.Magenta("[Interface] - " + message);
                 }

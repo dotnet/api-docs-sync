@@ -146,7 +146,7 @@ namespace DocsPortingTool
         {
             interfacedMember = null;
 
-            if (dApiToUpdate is DocsMember member)
+            if (!Config.SkipInterfaceImplementations && dApiToUpdate is DocsMember member)
             {
                 string interfacedMemberDocId = member.ImplementsInterfaceMember;
                 if (!string.IsNullOrEmpty(interfacedMemberDocId))
@@ -681,29 +681,27 @@ namespace DocsPortingTool
 
         private bool CanAnalyzeAPI(DocsAPI api)
         {
-            bool result = false;
-            foreach (DocsAssemblyInfo apiAssembly in api.AssemblyInfos)
+            bool result = IsTypeAllowed(api);
+            if (result)
             {
-                foreach (string excluded in Config.ExcludedAssemblies)
+                foreach (DocsAssemblyInfo apiAssembly in api.AssemblyInfos)
                 {
-                    if (apiAssembly.AssemblyName.StartsWith(excluded))
+                    foreach (string excluded in Config.ExcludedAssemblies)
                     {
-                        return false; // No more analysis required
+                        if (apiAssembly.AssemblyName.StartsWith(excluded))
+                        {
+                            return false; // No more analysis required
+                        }
                     }
-                }
 
-                foreach (string included in Config.IncludedAssemblies)
-                {
-                    if (apiAssembly.AssemblyName.StartsWith(included))
+                    foreach (string included in Config.IncludedAssemblies)
                     {
-                        result = true; // Almost done, need to check types if needed
-                        break;
+                        if (apiAssembly.AssemblyName.StartsWith(included))
+                        {
+                            result = true; // Almost done, need to check types if needed
+                            break;
+                        }
                     }
-                }
-
-                if (result)
-                {
-                    return IsTypeAllowed(api);
                 }
             }
 

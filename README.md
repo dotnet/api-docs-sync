@@ -6,12 +6,16 @@ If an API is already documented in dotnet-api-docs, it will be ignored and skipp
 
 ### Instructions
 
-Assumptions:
+Assumptions for the example in the instructions:
 
 - Your source code project is dotnet/runtime.
+    - _But it can be any project that generates documentation, like WPF or WinForms for example._
 - Your docs project is dotnet/dotnet-api-docs.
+    - _But it can be any documentation project that contains xmls, like AspNetDocs._
 - The location of your github projects is the D:\ drive.
+    - _Your clones can be in any other folder ._
 - You want to port comments from the System.IO.FileSystem assembly.
+    - _It can be any namespace or group of namespaces._
 
 Steps:
 

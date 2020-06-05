@@ -9,7 +9,7 @@ If an API is already documented in dotnet-api-docs, it will be ignored and skipp
 Assumptions for the example in the instructions:
 
 - Your source code project is dotnet/runtime.
-    - _But it can be any project that generates documentation, like WPF or WinForms for example._
+    - _But it can be any project that generates xml documentation, like WPF or WinForms._
 - Your docs project is dotnet/dotnet-api-docs.
     - _But it can be any documentation project that contains xmls, like AspNetApiDocs._
 - The location of your github projects is the D:\ drive.

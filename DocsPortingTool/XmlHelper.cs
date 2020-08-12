@@ -9,71 +9,72 @@ namespace DocsPortingTool
     public class XmlHelper
     {
         private static readonly Dictionary<string, string> _replaceableNormalElementPatterns = new Dictionary<string, string> {
-            { "<c>null</c>",                "<see langword=\"null\" />"},
-            { "<c>true</c>",                "<see langword=\"true\" />"},
-            { "<c>false</c>",               "<see langword=\"false\" />"},
-            { " null ", " <see langword=\"null\" /> " },
-            { " true ", " <see langword=\"true\" /> " },
-            { " false ", " <see langword=\"false\" /> " },
-            { " null,", " <see langword=\"null\" />," },
-            { " true,", " <see langword=\"true\" />," },
-            { " false,", " <see langword=\"false\" />," },
-            { " null.", " <see langword=\"null\" />." },
-            { " true.", " <see langword=\"true\" />." },
-            { " false.", " <see langword=\"false\" />." },
-            { "null ", "<see langword=\"null\" /> " },
-            { "true ", "<see langword=\"true\" /> " },
-            { "false ", "<see langword=\"false\" /> " },
-            { "Null ", "<see langword=\"null\" /> " },
-            { "True ", "<see langword=\"true\" /> " },
-            { "False ", "<see langword=\"false\" /> " },
-            { "<c>",     "" },
-            { "</c>",    "" },
-            { "<para>",  "" },
-            { "</para>", "" },
-            { "></see>", " />" }
+            { "<c>null</c>",    "<see langword=\"null\" />"},
+            { "<c>true</c>",    "<see langword=\"true\" />"},
+            { "<c>false</c>",   "<see langword=\"false\" />"},
+            { " null ",         " <see langword=\"null\" /> " },
+            { " true ",         " <see langword=\"true\" /> " },
+            { " false ",        " <see langword=\"false\" /> " },
+            { " null,",         " <see langword=\"null\" />," },
+            { " true,",         " <see langword=\"true\" />," },
+            { " false,",        " <see langword=\"false\" />," },
+            { " null.",         " <see langword=\"null\" />." },
+            { " true.",         " <see langword=\"true\" />." },
+            { " false.",        " <see langword=\"false\" />." },
+            { "null ",          "<see langword=\"null\" /> " },
+            { "true ",          "<see langword=\"true\" /> " },
+            { "false ",         "<see langword=\"false\" /> " },
+            { "Null ",          "<see langword=\"null\" /> " },
+            { "True ",          "<see langword=\"true\" /> " },
+            { "False ",         "<see langword=\"false\" /> " },
+            { "></see>",        " />" }
         };
 
         private static readonly Dictionary<string, string> _replaceableMarkdownPatterns = new Dictionary<string, string> {
-            { "<see langword=\"null\"/>",   "`null`" },
-            { "<see langword=\"null\" />",  "`null`" },
-            { "<see langword=\"true\"/>",   "`true`" },
-            { "<see langword=\"true\" />",  "`true`" },
-            { "<see langword=\"false\"/>",  "`false`" },
-            { "<see langword=\"false\" />", "`false`" },
-            { "<c>null</c>",                "`null`"},
-            { "<c>true</c>",                "`true`"},
-            { "<c>false</c>",               "`false`"},
-            { " null ",            " `null` " },
-            { "'null'",            "`null`" },
-            { " null.",            " `null`." },
-            { " null,",            " `null`," },
-            { " false ",           " `false` " },
-            { "'false'",           "`false`" },
-            { " false.",           " `false`." },
-            { " false,",           " `false`," },
-            { " true ",            " `true` " },
-            { "'true'",            "`true`" },
-            { " true.",            " `true`." },
-            { " true,",            " `true`," },
-            { "null ", "`null` " },
-            { "true ", "`true` " },
-            { "false ", "`false` " },
-            { "Null ", "`null` " },
-            { "True ", "`true` " },
-            { "False ", "`false` " },
+            { "<see langword=\"null\"/>",    "`null`" },
+            { "<see langword=\"null\" />",   "`null`" },
+            { "<see langword=\"true\"/>",    "`true`" },
+            { "<see langword=\"true\" />",   "`true`" },
+            { "<see langword=\"false\"/>",   "`false`" },
+            { "<see langword=\"false\" />",  "`false`" },
+            { "<see cref=\"T:",              "<xref:" },
+            { "<see cref=\"F:",              "<xref:" },
+            { "<see cref=\"M:",              "<xref:" },
+            { "<see cref=\"P:",              "<xref:" },
+            { "<see cref=\"",                "<xref:" },
+            { " null ",                      " `null` " },
+            { "'null'",                      "`null`" },
+            { " null.",                      " `null`." },
+            { " null,",                      " `null`," },
+            { " false ",                     " `false` " },
+            { "'false'",                     "`false`" },
+            { " false.",                     " `false`." },
+            { " false,",                     " `false`," },
+            { " true ",                      " `true` " },
+            { "'true'",                      "`true`" },
+            { " true.",                      " `true`." },
+            { " true,",                      " `true`," },
+            { "null ",                       "`null` " },
+            { "true ",                       "`true` " },
+            { "false ",                      "`false` " },
+            { "Null ",                       "`null` " },
+            { "True ",                       "`true` " },
+            { "False ",                      "`false` " },
+            { "<c>",                         "`"},
+            { "</c>",                        "`"},
+            { "<para>",                      "" },
+            { "</para>",                     "\r\n\r\n" },
+            { "\" />",                       ">" },
+            { "<![CDATA[",                   "" },
+            { "]]>",                         "" },
             { "<note type=\"inheritinfo\">", ""},
-            { "</note>",           "" },
-            { "<see cref=\"T:",    "<xref:" },
-            { "<see cref=\"F:",    "<xref:" },
-            { "<see cref=\"M:",    "<xref:" },
-            { "<see cref=\"P:",    "<xref:" },
-            { "<see cref=\"",      "<xref:" },
-            { "<para>",            "" },
-            { "</para>",           "" },
-            { "\" />",             ">" },
-            { "<![CDATA[",         "" },
-            { "]]>",               "" }
+            { "</note>",                     "" }
+        };
+
+        private static readonly Dictionary<string, string> _replaceableExceptionPatterns = new Dictionary<string, string>{
+
+            { "<para>",  "\r\n" },
+            { "</para>", "" }
         };
 
         private static readonly Dictionary<string, string> _replaceableMarkdownRegexPatterns = new Dictionary<string, string> {
@@ -272,6 +273,19 @@ namespace DocsPortingTool
             return updatedValue;
         }
 
+        internal static string ReplaceExceptionPatterns(string value)
+        {
+            string updatedValue = value;
+            foreach (KeyValuePair<string, string> kvp in _replaceableExceptionPatterns)
+            {
+                if (updatedValue.Contains(kvp.Key))
+                {
+                    updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
+                }
+            }
+            return updatedValue;
+        }
+
         private static string ReplaceNormalElementPatterns(string value)
         {
             string updatedValue = value;
@@ -282,6 +296,7 @@ namespace DocsPortingTool
                     updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
                 }
             }
+
             return updatedValue;
         }
 

@@ -8,21 +8,25 @@ namespace DocsPortingTool
         // Adds a string to a list of strings if the element is not there yet. The method makes sure to escape unexpected curly brackets to prevent formatting exceptions.
         public static void AddIfNotExists(this List<string> list, string element)
         {
-            string cleanedElement = element.Replace("{", "{{").Replace("}", "}}");
+            string cleanedElement = element.Escaped();
             if (!list.Contains(cleanedElement))
             {
                 list.Add(cleanedElement);
             }
         }
 
-        // Removes the specified string from a remarks string
-        public static string CleanRemarksText(this string oldRemarks, string toRemove)
+        // Removes the specified subtrings from another string
+        public static string RemoveSubstrings(this string oldString, params string[] stringsToRemove)
         {
-            if (oldRemarks.Contains(toRemove))
+            string newString = oldString;
+            foreach (string toRemove in stringsToRemove)
             {
-                return oldRemarks.Replace(toRemove, string.Empty);
+                if (newString.Contains(toRemove))
+                {
+                    newString = newString.Replace(toRemove, string.Empty);
+                }
             }
-            return oldRemarks;
+            return newString;
         }
 
         // Some API DocIDs with types contain "{" and "}" to enclose the typeparam, which causes

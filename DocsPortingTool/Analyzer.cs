@@ -224,10 +224,10 @@ namespace DocsPortingTool
                     DocsMember memberToUpdate = (DocsMember)dApiToUpdate;
 
                     // Only attempt to port if the member name is the same as the interfaced member docid without prefix
-                    if (memberToUpdate.MemberName == interfacedMember.DocId.Substring(2))
+                    if (memberToUpdate.MemberName == interfacedMember.DocId[2..])
                     {
-                        string dMemberToUpdateTypeDocIdNoPrefix = memberToUpdate.ParentType.DocId.Substring(2);
-                        string interfacedMemberTypeDocIdNoPrefix = interfacedMember.ParentType.DocId.Substring(2);
+                        string dMemberToUpdateTypeDocIdNoPrefix = memberToUpdate.ParentType.DocId[2..];
+                        string interfacedMemberTypeDocIdNoPrefix = interfacedMember.ParentType.DocId[2..];
 
                         // Special text for EIIs in Remarks
                         string eiiMessage = $"This member is an explicit interface member implementation. It can be used only when the <xref:{dMemberToUpdateTypeDocIdNoPrefix}> instance is cast to an <xref:{interfacedMemberTypeDocIdNoPrefix}> interface.{Environment.NewLine + Environment.NewLine}";
@@ -235,11 +235,7 @@ namespace DocsPortingTool
                         string cleanedInterfaceRemarks = string.Empty;
                         if (!interfacedMember.Remarks.Contains(Configuration.ToBeAdded))
                         {
-                            cleanedInterfaceRemarks = interfacedMember.Remarks
-                                .CleanRemarksText("##Remarks")
-                                .CleanRemarksText("## Remarks")
-                                .CleanRemarksText("<![CDATA[")
-                                .CleanRemarksText("]]>");
+                            cleanedInterfaceRemarks = interfacedMember.Remarks.RemoveSubstrings("##Remarks", "## Remarks", "<![CDATA[", "]]>");
                         }
 
                         // Only port the interface remarks if the user desired that
@@ -547,14 +543,15 @@ namespace DocsPortingTool
                     if (dException == null)
                     {
                         AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
-                        dException = dMemberToUpdate.AddException(tsException.Cref, XmlHelper.GetNodesInPlainText(tsException.XEException));
+                        string text = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(tsException.XEException));
+                        dException = dMemberToUpdate.AddException(tsException.Cref, text);
                         created = true;
                     }
                     // If cref exists, check if the text has already been appended
                     else
                     {
                         XElement formattedException = tsException.XEException;
-                        string value = XmlHelper.GetNodesInPlainText(formattedException);
+                        string value = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(formattedException));
                         if (!dException.Value.Contains(value))
                         {
                             AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");

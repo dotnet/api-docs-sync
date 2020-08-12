@@ -67,60 +67,64 @@ namespace DocsPortingTool.Docs
 
         public void Save()
         {
-            if (Config.Save)
+            if (!Config.Save)
             {
-                List<string> savedFiles = new List<string>();
-                foreach (var type in Types.Where(x => x.Changed))
+                return;
+            }
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Encoding encoding = Encoding.GetEncoding(1252); // Preserves original xml encoding from Docs repo
+
+            List<string> savedFiles = new List<string>();
+            foreach (var type in Types.Where(x => x.Changed))
+            {
+                Log.Warning(false, $"Saving changes for {type.FilePath}:");
+
+                try
                 {
-                    Log.Warning(false, $"Saving changes for {type.FilePath}:");
+                    StreamReader sr = new StreamReader(type.FilePath);
+                    int x = sr.Read(); // Force the first read to be done so the encoding is detected
+                    sr.Close();
 
-                    try
+                    // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
+                    XmlWriterSettings xws = new XmlWriterSettings
                     {
-                        StreamReader sr = new StreamReader(type.FilePath);
-                        int x = sr.Read(); // Force the first read to be done so the encoding is detected
-                        Encoding encoding = sr.CurrentEncoding;
-                        sr.Close();
+                        OmitXmlDeclaration = true,
+                        Indent = true,
+                        Encoding = encoding,
+                        CheckCharacters = false
+                    };
 
-                        // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                        XmlWriterSettings xws = new XmlWriterSettings
-                        {
-                            OmitXmlDeclaration = true,
-                            Indent = true,
-                            Encoding = encoding, //Encoding.GetEncoding("ISO-8859-1"),
-                            CheckCharacters = false
-                        };
-
-                        using (XmlWriter xw = XmlWriter.Create(type.FilePath, xws))
-                        {
-                            type.XDoc.Save(xw);
-                        }
-
-                        // Workaround to delete the annoying endline added by XmlWriter.Save
-                        string fileData = File.ReadAllText(type.FilePath);
-                        if (!fileData.EndsWith(Environment.NewLine))
-                        {
-                            File.WriteAllText(type.FilePath, fileData + Environment.NewLine, encoding);
-                        }
-
-                        Log.Success(" [Saved]");
-                    }
-                    catch (Exception e)
+                    using (XmlWriter xw = XmlWriter.Create(type.FilePath, xws))
                     {
-                        Log.Error(e.Message);
-                        Log.Line();
-                        Log.Error(e.StackTrace ?? string.Empty);
-                        if (e.InnerException != null)
-                        {
-                            Log.Line();
-                            Log.Error(e.InnerException.Message);
-                            Log.Line();
-                            Log.Error(e.InnerException.StackTrace ?? string.Empty);
-                        }
-                        System.Threading.Thread.Sleep(1000);
+                        type.XDoc.Save(xw);
                     }
 
-                    Log.Line();
+                    // Workaround to delete the annoying endline added by XmlWriter.Save
+                    string fileData = File.ReadAllText(type.FilePath);
+                    if (!fileData.EndsWith(Environment.NewLine))
+                    {
+                        File.WriteAllText(type.FilePath, fileData + Environment.NewLine, encoding);
+                    }
+
+                    Log.Success(" [Saved]");
                 }
+                catch (Exception e)
+                {
+                    Log.Error(e.Message);
+                    Log.Line();
+                    Log.Error(e.StackTrace ?? string.Empty);
+                    if (e.InnerException != null)
+                    {
+                        Log.Line();
+                        Log.Error(e.InnerException.Message);
+                        Log.Line();
+                        Log.Error(e.InnerException.StackTrace ?? string.Empty);
+                    }
+                    System.Threading.Thread.Sleep(1000);
+                }
+
+                Log.Line();
             }
         }
 

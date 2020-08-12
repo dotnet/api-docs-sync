@@ -11,8 +11,7 @@ namespace DocsPortingTool.Tests
         {
             Port("Remarks", GetConfig(
                 skipInterfaceImplementations: true,
-                skipInterfaceRemarks: true,
-                skipRemarks: false
+                skipInterfaceRemarks: true
             ));
         }
 
@@ -22,8 +21,7 @@ namespace DocsPortingTool.Tests
         {
             Port("EII", GetConfig(
                 skipInterfaceImplementations: false,
-                skipInterfaceRemarks: false,
-                skipRemarks: false
+                skipInterfaceRemarks: false
             ));
         }
 
@@ -33,8 +31,26 @@ namespace DocsPortingTool.Tests
         {
             Port("EII_NoRemarks", GetConfig(
                 skipInterfaceImplementations: false,
-                skipInterfaceRemarks: true,
-                skipRemarks: false
+                skipInterfaceRemarks: true
+            ));
+        }
+
+        [Fact]
+        /// Verifies that exceptions are ported.
+        public void Port_Exceptions()
+        {
+            Port("Exceptions", GetConfig(
+                portMemberExceptions: true
+            ));
+        }
+
+        [Fact]
+        /// Verifies that when an exception has already been ported, but went through language review, does not get ported if its above the difference threshold.
+        public void Port_Exception_ExistingCref()
+        {
+            Port("Exception_ExistingCref", GetConfig(
+                portMemberExceptions: true,
+                exceptionCollisionThreshold: 60
             ));
         }
 
@@ -42,10 +58,12 @@ namespace DocsPortingTool.Tests
             bool disablePrompts = true,
             bool printUndoc = false,
             bool save = true,
-            bool skipExceptions = true,
             bool skipInterfaceImplementations = true,
             bool skipInterfaceRemarks = true,
-            bool skipRemarks = true
+            bool portTypeRemarks = true,
+            bool portMemberRemarks = true,
+            bool portMemberExceptions = false,
+            int exceptionCollisionThreshold = 70
         )
         {
             return new Configuration
@@ -53,10 +71,12 @@ namespace DocsPortingTool.Tests
                 DisablePrompts = disablePrompts,
                 PrintUndoc = printUndoc,
                 Save = save,
-                SkipExceptions = skipExceptions,
                 SkipInterfaceImplementations = skipInterfaceImplementations,
                 SkipInterfaceRemarks = skipInterfaceRemarks,
-                SkipRemarks = skipRemarks
+                PortTypeRemarks = portTypeRemarks,
+                PortMemberRemarks = portMemberRemarks,
+                PortMemberExceptions = portMemberExceptions,
+                ExceptionCollisionThreshold = exceptionCollisionThreshold
             };
         }
 
@@ -85,14 +105,14 @@ namespace DocsPortingTool.Tests
             string[] expectedLines = File.ReadAllLines(testData.ExpectedFilePath);
             string[] actualLines = File.ReadAllLines(testData.ActualFilePath);
 
-            Assert.Equal(expectedLines.Length, actualLines.Length);
-
             for (int i = 0; i < expectedLines.Length; i++)
             {
                 string expectedLine = expectedLines[i];
                 string actualLine = actualLines[i];
                 Assert.Equal(expectedLine, actualLine);
             }
+
+            Assert.Equal(expectedLines.Length, actualLines.Length);
         }
 
     }

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name="T:MyNamespace.MyType">
+      <summary>This is the type summary.</summary>
+    </member>
+    <member name="M:MyNamespace.MyType.MyMethod">
+      <summary>This is the method summary.</summary>
+      <exception cref="T:System.ArgumentNullException">This is the original text of ArgumentNullException thrown for MyMethod.</exception>
+      <exception cref="T:System.IndexOutOfRangeException">This is the original text of IndexOutOfRangeException thrown for MyMethod.</exception>
+    </member>
+  </members>
+</doc>

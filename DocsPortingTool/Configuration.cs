@@ -12,17 +12,27 @@ namespace DocsPortingTool
         {
             DisablePrompts,
             Docs,
+            ExceptionCollisionThreshold,
             ExcludedAssemblies,
             ExcludedTypes,
             IncludedAssemblies,
             IncludedTypes,
             Initial,
+            PortMemberExceptions,
+            PortMemberParams,
+            PortMemberProperties,
+            PortMemberReturns,
+            PortMemberRemarks,
+            PortMemberSummaries,
+            PortMemberTypeParams,
+            PortTypeParams, // Params of a Type
+            PortTypeRemarks,
+            PortTypeSummaries,
+            PortTypeTypeParams, // TypeParams of a Type
             PrintUndoc,
             Save,
-            SkipExceptions,
             SkipInterfaceImplementations,
             SkipInterfaceRemarks,
-            SkipRemarks,
             TripleSlash
         }
 
@@ -38,13 +48,29 @@ namespace DocsPortingTool
         public HashSet<string> IncludedTypes { get; } = new HashSet<string>();
         public HashSet<string> ExcludedTypes { get; } = new HashSet<string>();
 
+        public bool DisablePrompts { get; set; } = false;
+        public int ExceptionCollisionThreshold { get; set; } = 70;
+        public bool PortMemberExceptions { get; set; } = false;
+        public bool PortMemberParams { get; set; } = true;
+        public bool PortMemberProperties { get; set; } = true;
+        public bool PortMemberReturns { get; set; } = true;
+        public bool PortMemberRemarks { get; set; } = true;
+        public bool PortMemberSummaries { get; set; } = true;
+        public bool PortMemberTypeParams { get; set; } = true;
+        /// <summary>
+        /// Params of a Type.
+        /// </summary>
+        public bool PortTypeParams { get; set; } = true;
+        public bool PortTypeRemarks { get; set; } = true;
+        public bool PortTypeSummaries { get; set; } = true;
+        /// <summary>
+        /// TypeParams of a Type.
+        /// </summary>
+        public bool PortTypeTypeParams { get; set; } = true;
+        public bool PrintUndoc { get; set; } = false;
         public bool Save { get; set; } = false;
-        public bool SkipExceptions { get; set; } = true;
-        public bool SkipRemarks { get; set; } = false;
         public bool SkipInterfaceImplementations { get; set; } = false;
         public bool SkipInterfaceRemarks { get; set; } = true;
-        public bool DisablePrompts { get; set; } = false;
-        public bool PrintUndoc { get; set; } = false;
 
         public static Configuration GetFromCommandLineArguments(string[] args)
         {
@@ -65,16 +91,7 @@ namespace DocsPortingTool
                 {
                     case Mode.DisablePrompts:
                         {
-                            if (!bool.TryParse(arg, out bool disablePrompts))
-                            {
-                                Log.LogErrorAndExit($"Invalid boolean value for the disablePrompts argument: {arg}");
-                            }
-
-                            config.DisablePrompts = disablePrompts;
-
-                            Log.Cyan("Disable prompts:");
-                            Log.Info($"  -  {config.DisablePrompts}");
-
+                            config.DisablePrompts = ParseOrExit(arg, "Disable prompts");
                             mode = Mode.Initial;
                             break;
                         }
@@ -99,6 +116,24 @@ namespace DocsPortingTool
                             mode = Mode.Initial;
                             break;
 
+                        }
+
+                    case Mode.ExceptionCollisionThreshold:
+                        {
+                            if (!int.TryParse(arg, out int value))
+                            {
+                                Log.LogErrorAndExit($"Invalid int value for 'Exception collision threshold' argument: {arg}");
+                            }
+                            else if (value < 1 || value > 100)
+                            {
+                                Log.LogErrorAndExit($"Value needs to be between 0 and 100: {value}");
+                            }
+
+                            config.ExceptionCollisionThreshold = value;
+
+                            Log.Cyan($"Exception collision threshold:");
+                            Log.Info($" - {value}");
+                            break;
                         }
 
                     case Mode.ExcludedAssemblies:
@@ -191,63 +226,103 @@ namespace DocsPortingTool
 
                     case Mode.Initial:
                         {
-                            switch (arg.ToLowerInvariant())
+                            switch (arg.ToUpperInvariant())
                             {
-                                case "-docs":
+                                case "-DOCS":
                                     mode = Mode.Docs;
                                     break;
 
-                                case "-disableprompts":
+                                case "-DISABLEPROMPTS":
                                     mode = Mode.DisablePrompts;
                                     break;
 
-                                case "-excludedassemblies":
+                                case "EXCEPTIONCOLLISIONTHRESHOLD":
+                                    mode = Mode.ExceptionCollisionThreshold;
+                                    break;
+
+                                case "-EXCLUDEDASSEMBLIES":
                                     mode = Mode.ExcludedAssemblies;
                                     break;
 
-                                case "-excludedtypes":
+                                case "-EXCLUDEDTYPES":
                                     mode = Mode.ExcludedTypes;
                                     break;
 
-                                case "-h":
-                                case "-help":
+                                case "-H":
+                                case "-HELP":
                                     Log.PrintHelp();
                                     Environment.Exit(0);
                                     break;
 
-                                case "-includedassemblies":
+                                case "-INCLUDEDASSEMBLIES":
                                     mode = Mode.IncludedAssemblies;
                                     break;
 
-                                case "-includedtypes":
+                                case "-INCLUDEDTYPES":
                                     mode = Mode.IncludedTypes;
                                     break;
 
-                                case "-printundoc":
+                                case "-PORTMEMBEREXCEPTIONS":
+                                    mode = Mode.PortMemberExceptions;
+                                    break;
+
+                                case "-PORTMEMBERPARAMS":
+                                    mode = Mode.PortMemberParams;
+                                    break;
+
+                                case "-PORTMEMBERPROPERTIES":
+                                    mode = Mode.PortMemberProperties;
+                                    break;
+
+                                case "-PORTMEMBERRETURNS":
+                                    mode = Mode.PortMemberReturns;
+                                    break;
+
+                                case "-PORTMEMBERREMARKS":
+                                    mode = Mode.PortMemberRemarks;
+                                    break;
+
+                                case "-PORTMEMBERSUMMARIES":
+                                    mode = Mode.PortMemberSummaries;
+                                    break;
+
+                                case "-PORTMEMBERTYPEPARAMS":
+                                    mode = Mode.PortMemberTypeParams;
+                                    break;
+
+                                case "-PORTTYPEPARAMS": // Params of a Type
+                                    mode = Mode.PortTypeParams;
+                                    break;
+
+                                case "-PORTTYPEREMARKS":
+                                    mode = Mode.PortTypeRemarks;
+                                    break;
+
+                                case "-PORTTYPESUMMARIES":
+                                    mode = Mode.PortTypeSummaries;
+                                    break;
+
+                                case "-PORTTYPETYPEPARAMS": // TypeParams of a Type
+                                    mode = Mode.PortTypeTypeParams;
+                                    break;
+
+                                case "-PRINTUNDOC":
                                     mode = Mode.PrintUndoc;
                                     break;
 
-                                case "-save":
+                                case "-SAVE":
                                     mode = Mode.Save;
                                     break;
 
-                                case "-skipexceptions":
-                                    mode = Mode.SkipExceptions;
-                                    break;
-
-                                case "-skipinterfaceimplementations":
+                                case "-SKIPINTERFACEIMPLEMENTATIONS":
                                     mode = Mode.SkipInterfaceImplementations;
                                     break;
 
-                                case "-skipinterfaceremarks":
+                                case "-SKIPINTERFACEREMARKS":
                                     mode = Mode.SkipInterfaceRemarks;
                                     break;
 
-                                case "-skipremarks":
-                                    mode = Mode.SkipRemarks;
-                                    break;
-
-                                case "-tripleslash":
+                                case "-TRIPLESLASH":
                                     mode = Mode.TripleSlash;
                                     break;
                                 default:
@@ -257,99 +332,107 @@ namespace DocsPortingTool
                             break;
                         }
 
+                    case Mode.PortMemberExceptions:
+                        {
+                            config.PortMemberExceptions = ParseOrExit(arg, "Port member Exceptions");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortMemberParams:
+                        {
+                            config.PortMemberParams = ParseOrExit(arg, "Port member Params");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortMemberProperties:
+                        {
+                            config.PortMemberProperties = ParseOrExit(arg, "Port member Properties");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortMemberRemarks:
+                        {
+                            config.PortMemberRemarks = ParseOrExit(arg, "Port member Remarks");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortMemberReturns:
+                        {
+                            config.PortMemberReturns = ParseOrExit(arg, "Port member Returns");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortMemberSummaries:
+                        {
+                            config.PortMemberSummaries = ParseOrExit(arg, "Port member Summaries");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortMemberTypeParams:
+                        {
+                            config.PortMemberTypeParams = ParseOrExit(arg, "Port member TypeParams");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortTypeParams: // Params of a Type
+                        {
+                            config.PortTypeParams = ParseOrExit(arg, "Port Type Params");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortTypeRemarks:
+                        {
+                            config.PortTypeRemarks = ParseOrExit(arg, "Port Type Remarks");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortTypeSummaries:
+                        {
+                            config.PortTypeSummaries = ParseOrExit(arg, "Port Type Summaries");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortTypeTypeParams: // TypeParams of a Type
+                        {
+                            config.PortTypeTypeParams = ParseOrExit(arg, "Port Type TypeParams");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
                     case Mode.PrintUndoc:
                         {
-                            if (!bool.TryParse(arg, out bool printUndoc))
-                            {
-                                Log.LogErrorAndExit("Invalid boolean value for the printundoc argument: {0}", arg);
-                            }
-
-                            config.PrintUndoc = printUndoc;
-
-                            Log.Cyan("Print undocumented:");
-                            Log.Info($"  -  {config.PrintUndoc}");
-
+                            config.PrintUndoc = ParseOrExit(arg, "Print undoc");
                             mode = Mode.Initial;
                             break;
                         }
 
                     case Mode.Save:
                         {
-                            if (!bool.TryParse(arg, out bool save))
-                            {
-                                Log.LogErrorAndExit($"Invalid boolean value for the save argument: {arg}");
-                            }
-
-                            config.Save = save;
-
-                            Log.Cyan("Save:");
-                            Log.Info($"  -  {config.Save}");
-
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.SkipExceptions:
-                        {
-                            if (!bool.TryParse(arg, out bool skipExceptions))
-                            {
-                                Log.LogErrorAndExit($"Invalid boolean value for the skipExceptions argument: {arg}");
-                            }
-
-                            config.SkipExceptions = skipExceptions;
-
-                            Log.Cyan("Skip exceptions:");
-                            Log.Info($"  -  {config.SkipExceptions}");
-
+                            config.Save = ParseOrExit(arg, "Save");
                             mode = Mode.Initial;
                             break;
                         }
 
                     case Mode.SkipInterfaceImplementations:
                         {
-                            if (!bool.TryParse(arg, out bool skipInterfaceImplementations))
-                            {
-                                Log.LogErrorAndExit($"Invalid boolean value for the skipInterfaceImplementations argument: {arg}");
-                            }
-
-                            config.SkipInterfaceImplementations = skipInterfaceImplementations;
-
-                            Log.Cyan("Skip interface implementations:");
-                            Log.Info($"  -  {config.SkipInterfaceImplementations}");
-
+                            config.SkipInterfaceImplementations = ParseOrExit(arg, "Skip interface implementations");
                             mode = Mode.Initial;
                             break;
                         }
 
                     case Mode.SkipInterfaceRemarks:
                         {
-                            if (!bool.TryParse(arg, out bool skipInterfaceRemarks))
-                            {
-                                Log.LogErrorAndExit($"Invalid boolean value for skipInterfaceRemarks argument: {arg}");
-                            }
-
-                            config.SkipInterfaceRemarks = skipInterfaceRemarks;
-
-                            Log.Cyan("Skip interface remarks:");
-                            Log.Info($" - {config.SkipInterfaceRemarks}");
-
-                            mode = Mode.Initial;
-
-                            break;
-                        }
-
-                    case Mode.SkipRemarks:
-                        {
-                            if (!bool.TryParse(arg, out bool skipRemarks))
-                            {
-                                Log.LogErrorAndExit($"Invalid boolean value for the skipRemarks argument: {arg}");
-                            }
-
-                            config.SkipRemarks = skipRemarks;
-
-                            Log.Cyan("Skip remarks:");
-                            Log.Info($"  -  {config.SkipRemarks}");
-
+                            config.SkipInterfaceRemarks = ParseOrExit(arg, "Skip appending interface remarks");
                             mode = Mode.Initial;
                             break;
                         }
@@ -412,5 +495,18 @@ namespace DocsPortingTool
             return str.Replace("Microsoft.Data", "System.Data");
         }
 
+        // Tries to parse the user argument string as boolean, and if it fails, exits the program.
+        private static bool ParseOrExit(string arg, string paramFriendlyName)
+        {
+            if (!bool.TryParse(arg, out bool value))
+            {
+                Log.LogErrorAndExit($"Invalid boolean value for '{paramFriendlyName}' argument: {arg}");
+            }
+
+            Log.Cyan($"{paramFriendlyName}:");
+            Log.Info($" - {value}");
+
+            return value;
+        }
     }
 }

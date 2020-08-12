@@ -9,46 +9,52 @@ namespace DocsPortingTool.Docs
 {
     public class DocsMember : DocsAPI
     {
-        private readonly XElement XEMember;
+        private string? _memberName;
+        private List<DocsMemberSignature>? _memberSignatures;
+        private string? _docId;
+        private List<string>? _altMemberCref;
+        private List<DocsException>? _exceptions;
+
+        public DocsMember(string filePath, DocsType parentType, XElement xeMember)
+            : base(xeMember)
+        {
+            FilePath = filePath;
+            ParentType = parentType;
+            AssemblyInfos.AddRange(XERoot.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)));
+        }
+
         public DocsType ParentType { get; private set; }
 
         public override bool Changed
         {
             get => ParentType.Changed;
-            set
-            {
-                if (value == true)
-                    ParentType.Changed = true;
-            }
+            set => ParentType.Changed |= value;
         }
 
-        private string? _memberName;
         public string MemberName
         {
             get
             {
                 if (_memberName == null)
                 {
-                    _memberName = XmlHelper.GetAttributeValue(XEMember, "MemberName");
+                    _memberName = XmlHelper.GetAttributeValue(XERoot, "MemberName");
                 }
                 return _memberName;
             }
         }
 
-        private List<DocsMemberSignature>? _memberSignatures;
         public List<DocsMemberSignature> MemberSignatures
         {
             get
             {
                 if (_memberSignatures == null)
                 {
-                    _memberSignatures = XEMember.Elements("MemberSignature").Select(x => new DocsMemberSignature(x)).ToList();
+                    _memberSignatures = XERoot.Elements("MemberSignature").Select(x => new DocsMemberSignature(x)).ToList();
                 }
                 return _memberSignatures;
             }
         }
 
-        private string? _docId;
         public override string DocId
         {
             get
@@ -76,14 +82,15 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                return XmlHelper.GetChildElementValue(XEMember, "MemberType");
+                return XmlHelper.GetChildElementValue(XERoot, "MemberType");
             }
         }
+
         public string ImplementsInterfaceMember
         {
             get
             {
-                XElement xeImplements = XEMember.Element("Implements");
+                XElement xeImplements = XERoot.Element("Implements");
                 if (xeImplements != null)
                 {
                     return XmlHelper.GetChildElementValue(xeImplements, "InterfaceMember");
@@ -96,7 +103,7 @@ namespace DocsPortingTool.Docs
         {
             get
             {
-                XElement xeReturnValue = XEMember.Element("ReturnValue");
+                XElement xeReturnValue = XERoot.Element("ReturnValue");
                 if (xeReturnValue != null)
                 {
                     return XmlHelper.GetChildElementValue(xeReturnValue, "ReturnType");
@@ -104,97 +111,7 @@ namespace DocsPortingTool.Docs
                 return string.Empty;
             }
         }
-        private List<DocsParameter>? _parameters;
-        public override List<DocsParameter> Parameters
-        {
-            get
-            {
-                if (_parameters == null)
-                {
-                    XElement xeParameters = XEMember.Element("Parameters");
-                    if (xeParameters != null)
-                    {
-                        _parameters = xeParameters.Elements("Parameter").Select(x => new DocsParameter(x)).ToList();
-                    }
-                    else
-                    {
-                        _parameters = new List<DocsParameter>();
-                    }
-                }
-                return _parameters;
-            }
-        }
-        /// <summary>
-        /// These are the TypeParameter elements found inside the TypeParameters section.
-        /// </summary>
-        private List<DocsTypeParameter>? _typeParameters;
-        public List<DocsTypeParameter> TypeParameters
-        {
-            get
-            {
-                if (_typeParameters == null)
-                {
-                    XElement xeTypeParameters = XEMember.Element("TypeParameters");
-                    if (xeTypeParameters != null)
-                    {
-                        _typeParameters = xeTypeParameters.Elements("TypeParameter").Select(x => new DocsTypeParameter(x)).ToList();
-                    }
-                    else
-                    {
-                        _typeParameters = new List<DocsTypeParameter>();
-                    }
-                }
-                return _typeParameters;
-            }
-        }
-        /// <summary>
-        /// These are the typeparam elements found inside the Docs section.
-        /// </summary>
-        private List<DocsTypeParam>? _typeParams;
-        public List<DocsTypeParam> TypeParams
-        {
-            get
-            {
-                if (_typeParams == null)
-                {
-                    if (Docs != null)
-                    {
-                        _typeParams = Docs.Elements("typeparam").Select(x => new DocsTypeParam(this, x)).ToList();
-                    }
-                    else
-                    {
-                        _typeParams = new List<DocsTypeParam>();
-                    }
-                }
-                return _typeParams;
-            }
-        }
-        public override XElement Docs
-        {
-            get
-            {
-                return XEMember.Element("Docs");
-            }
-        }
-        private List<DocsParam>? _params;
-        public override List<DocsParam> Params
-        {
-            get
-            {
-                if (_params == null)
-                {
-                    if (Docs != null)
-                    {
-                        _params = Docs.Elements("param").Select(x => new DocsParam(this, x)).ToList();
-                    }
-                    else
-                    {
-                        _params = new List<DocsParam>();
-                    }
-                }
-                return _params;
-            }
-        }
+
         public string Returns
         {
             get
@@ -206,6 +123,7 @@ namespace DocsPortingTool.Docs
                 SaveFormattedAsXml("returns", value);
             }
         }
+
         public override string Summary
         {
             get
@@ -217,6 +135,7 @@ namespace DocsPortingTool.Docs
                 SaveFormattedAsXml("summary", value);
             }
         }
+
         public override string Remarks
         {
             get
@@ -228,6 +147,7 @@ namespace DocsPortingTool.Docs
                 SaveFormattedAsMarkdown("remarks", value);
             }
         }
+
         public string Value
         {
             get
@@ -239,7 +159,7 @@ namespace DocsPortingTool.Docs
                 SaveFormattedAsXml("value", value);
             }
         }
-        private List<string>? _altMemberCref;
+
         public List<string> AltMemberCref
         {
             get
@@ -258,7 +178,7 @@ namespace DocsPortingTool.Docs
                 return _altMemberCref;
             }
         }
-        private List<DocsException>? _exceptions;
+
         public List<DocsException> Exceptions
         {
             get
@@ -278,14 +198,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        public DocsMember(string filePath, DocsType parentType, XElement xeMember)
-        {
-            FilePath = filePath;
-            ParentType = parentType;
-            XEMember = xeMember;
-            _assemblyInfos.AddRange(XEMember.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)));
-        }
-
         public override string ToString()
         {
             return DocId;
@@ -298,15 +210,6 @@ namespace DocsPortingTool.Docs
             XmlHelper.AddChildFormattedAsXml(Docs, exception, value);
             Changed = true;
             return new DocsException(this, exception);
-        }
-
-        public DocsTypeParam AddTypeParam(string name, string value)
-        {
-            XElement typeParam = new XElement("typeparam");
-            typeParam.SetAttributeValue("name", name);
-            XmlHelper.AddChildFormattedAsXml(Docs, typeParam, value);
-            Changed = true;
-            return new DocsTypeParam(this, typeParam);
         }
     }
 }

@@ -82,6 +82,7 @@ namespace DocsPortingTool
                     TryPortMissingSummaryForAPI(dTypeToUpdate, tsTypeToPort, null);
                     TryPortMissingRemarksForAPI(dTypeToUpdate, tsTypeToPort, null, skipInterfaceRemarks: true);
                     TryPortMissingParamsForAPI(dTypeToUpdate, tsTypeToPort, null); // Some types, like delegates, have params
+                    TryPortMissingTypeParamsForAPI(dTypeToUpdate, tsTypeToPort, null); // Type names ending with <T> have TypeParams
                 }
 
                 if (dTypeToUpdate.Changed)
@@ -108,7 +109,7 @@ namespace DocsPortingTool
                 TryPortMissingSummaryForAPI(dMemberToUpdate, tsMemberToPort, interfacedMember);
                 TryPortMissingRemarksForAPI(dMemberToUpdate, tsMemberToPort, interfacedMember, Config.SkipInterfaceRemarks);
                 TryPortMissingParamsForAPI(dMemberToUpdate, tsMemberToPort, interfacedMember);
-                TryPortMissingTypeParamsForMember(dMemberToUpdate, tsMemberToPort, interfacedMember);
+                TryPortMissingTypeParamsForAPI(dMemberToUpdate, tsMemberToPort, interfacedMember);
                 TryPortMissingExceptionsForMember(dMemberToUpdate, tsMemberToPort);
 
                 // Properties sometimes don't have a <value> but have a <returns>
@@ -162,6 +163,12 @@ namespace DocsPortingTool
         // Ports the summary for the specified API if the field is undocumented.
         private void TryPortMissingSummaryForAPI(IDocsAPI dApiToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember)
         {
+            if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeSummaries ||
+                dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberSummaries)
+            {
+                return;
+            }
+
             // Only port if undocumented in MS Docs
             if (IsEmpty(dApiToUpdate.Summary))
             {
@@ -189,7 +196,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     // Any member can have an empty summary
-                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} summary: {name.Escaped()} = {value.Escaped()}";
+                    string message = $"{dApiToUpdate.Kind} {GetIsEII(isEII)} summary: {name.Escaped()} = {value.Escaped()}";
                     PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -199,7 +206,8 @@ namespace DocsPortingTool
         // Ports the remarks for the specified API if the field is undocumented.
         private void TryPortMissingRemarksForAPI(IDocsAPI dApiToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember, bool skipInterfaceRemarks)
         {
-            if (Config.SkipRemarks)
+            if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeRemarks ||
+                dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberRemarks)
             {
                 return;
             }
@@ -259,7 +267,7 @@ namespace DocsPortingTool
                 if (!IsEmpty(value))
                 {
                     // Any member can have an empty remark
-                    string message = $"{dApiToUpdate.Prefix} {GetIsEII(isEII)} remarks: {name.Escaped()} = {value.Escaped()}";
+                    string message = $"{dApiToUpdate.Kind} {GetIsEII(isEII)} remarks: {name.Escaped()} = {value.Escaped()}";
                     PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                     TotalModifiedIndividualElements++;
                 }
@@ -269,11 +277,16 @@ namespace DocsPortingTool
         // Ports all the parameter descriptions for the specified API if any of them is undocumented.
         private void TryPortMissingParamsForAPI(IDocsAPI dApiToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember)
         {
+            if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeParams ||
+                dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberParams)
+            {
+                return;
+            }
+
             bool created;
             bool isEII;
             string name;
             string value;
-            string prefix = dApiToUpdate.Prefix;
 
             if (tsMemberToPort != null)
             {
@@ -354,7 +367,7 @@ namespace DocsPortingTool
 
                         if (!IsEmpty(value))
                         {
-                            string message = $"{prefix} {GetIsEII(isEII)} ({GetIsCreated(created)}) param {name.Escaped()} = {value.Escaped()}";
+                            string message = $"{dApiToUpdate.Kind} {GetIsEII(isEII)} ({GetIsCreated(created)}) param {name.Escaped()} = {value.Escaped()}";
                             PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                             TotalModifiedIndividualElements++;
                         }
@@ -372,7 +385,7 @@ namespace DocsPortingTool
                         {
                             dParam.Value = interfacedParam.Value;
 
-                            string message = $"{prefix} EII ({GetIsCreated(false)}) param {dParam.Name.Escaped()} = {dParam.Value.Escaped()}";
+                            string message = $"{dApiToUpdate.Kind} EII ({GetIsCreated(false)}) param {dParam.Name.Escaped()} = {dParam.Value.Escaped()}";
                             PrintModifiedMember(message, dApiToUpdate.FilePath, dApiToUpdate.DocId);
                             TotalModifiedIndividualElements++;
                         }
@@ -381,9 +394,74 @@ namespace DocsPortingTool
             }
         }
 
+        // Ports all the type parameter descriptions for the specified API if any of them is undocumented.
+        private void TryPortMissingTypeParamsForAPI(IDocsAPI dApiToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember)
+        {
+            if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeTypeParams ||
+                dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberTypeParams)
+            {
+                return;
+            }
+
+            if (tsMemberToPort != null)
+            {
+                foreach (TripleSlashTypeParam tsTypeParam in tsMemberToPort.TypeParams)
+                {
+                    bool isEII = false;
+                    string name = string.Empty;
+                    string value = string.Empty;
+
+                    DocsTypeParam dTypeParam = dApiToUpdate.TypeParams.FirstOrDefault(x => x.Name == tsTypeParam.Name);
+
+                    bool created = false;
+                    if (dTypeParam == null)
+                    {
+                        ProblematicAPIs.AddIfNotExists($"TypeParam=[{tsTypeParam.Name}] in Member=[{dApiToUpdate.DocId}]");
+                        dTypeParam = dApiToUpdate.AddTypeParam(tsTypeParam.Name, XmlHelper.GetNodesInPlainText(tsTypeParam.XETypeParam));
+                        created = true;
+                    }
+
+                    // But it can still be empty, try to retrieve it
+                    if (IsEmpty(dTypeParam.Value))
+                    {
+                        // try to port triple slash comments
+                        if (!IsEmpty(tsTypeParam.Value))
+                        {
+                            name = tsTypeParam.Name;
+                            value = tsTypeParam.Value;
+                        }
+                        // or try to find if it implements a documented interface
+                        else if (interfacedMember != null)
+                        {
+                            DocsTypeParam interfacedTypeParam = interfacedMember.TypeParams.FirstOrDefault(x => x.Name == dTypeParam.Name);
+                            if (interfacedTypeParam != null)
+                            {
+                                name = interfacedTypeParam.Name;
+                                value = interfacedTypeParam.Value;
+                                isEII = true;
+                            }
+                        }
+                    }
+
+                    if (!IsEmpty(value))
+                    {
+                        dTypeParam.Value = value;
+                        string message = $"{dApiToUpdate.Kind} {GetIsEII(isEII)} ({GetIsCreated(created)}) typeparam {name.Escaped()} = {value.Escaped()}";
+                        PrintModifiedMember(message, dTypeParam.ParentAPI.FilePath, dApiToUpdate.DocId);
+                        TotalModifiedIndividualElements++;
+                    }
+                }
+            }
+        }
+
         // Tries to document the passed property.
         private void TryPortMissingPropertyForMember(DocsMember dMemberToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember)
         {
+            if (!Config.PortMemberProperties)
+            {
+                return;
+            }
+
             if (IsEmpty(dMemberToUpdate.Value))
             {
                 string name = string.Empty;
@@ -434,6 +512,11 @@ namespace DocsPortingTool
         // Tries to document the passed method.
         private void TryPortMissingMethodForMember(DocsMember dMemberToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember)
         {
+            if (!Config.PortMemberReturns)
+            {
+                return;
+            }
+
             if (IsEmpty(dMemberToUpdate.Returns))
             {
                 string name = string.Empty;
@@ -467,66 +550,12 @@ namespace DocsPortingTool
             }
         }
 
-        // Ports all the type parameter descriptions for the specified API if any of them is undocumented.
-        private void TryPortMissingTypeParamsForMember(DocsMember dMemberToUpdate, TripleSlashMember? tsMemberToPort, DocsMember? interfacedMember)
-        {
-            if (tsMemberToPort != null)
-            {
-                foreach (TripleSlashTypeParam tsTypeParam in tsMemberToPort.TypeParams)
-                {
-                    bool isEII = false;
-                    string name = string.Empty;
-                    string value = string.Empty;
-
-                    DocsTypeParam dTypeParam = dMemberToUpdate.TypeParams.FirstOrDefault(x => x.Name == tsTypeParam.Name);
-
-                    bool created = false;
-                    if (dTypeParam == null)
-                    {
-                        ProblematicAPIs.AddIfNotExists($"TypeParam=[{tsTypeParam.Name}] in Member=[{dMemberToUpdate.DocId}]");
-                        dTypeParam = dMemberToUpdate.AddTypeParam(tsTypeParam.Name, XmlHelper.GetNodesInPlainText(tsTypeParam.XETypeParam));
-                        created = true;
-                    }
-
-                    // But it can still be empty, try to retrieve it
-                    if (IsEmpty(dTypeParam.Value))
-                    {
-                        // try to port triple slash comments
-                        if (!IsEmpty(tsTypeParam.Value))
-                        {
-                            name = tsTypeParam.Name;
-                            value = tsTypeParam.Value;
-                        }
-                        // or try to find if it implements a documented interface
-                        else if (interfacedMember != null)
-                        {
-                            DocsTypeParam interfacedTypeParam = interfacedMember.TypeParams.FirstOrDefault(x => x.Name == dTypeParam.Name);
-                            if (interfacedTypeParam != null)
-                            {
-                                name = interfacedTypeParam.Name;
-                                value = interfacedTypeParam.Value;
-                                isEII = true;
-                            }
-                        }
-                    }
-
-                    if (!IsEmpty(value))
-                    {
-                        dTypeParam.Value = value;
-                        string message = $"Member {GetIsEII(isEII)} ({GetIsCreated(created)}) typeparam {name.Escaped()} = {value.Escaped()}";
-                        PrintModifiedMember(message, dTypeParam.ParentAPI.FilePath, dMemberToUpdate.DocId);
-                        TotalModifiedIndividualElements++;
-                    }
-                }
-            }
-        }
-
         // Ports all the exceptions for the specified API.
         // They are only processed if the user specified in the command arguments to NOT skip exceptions.
         // All exceptions get ported, because there is no easy way to determine if an exception is already documented or not.
         private void TryPortMissingExceptionsForMember(DocsMember dMemberToUpdate, TripleSlashMember? tsMemberToPort)
         {
-            if (Config.SkipExceptions)
+            if (!Config.PortMemberExceptions)
             {
                 return;
             }
@@ -552,7 +581,7 @@ namespace DocsPortingTool
                     {
                         XElement formattedException = tsException.XEException;
                         string value = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(formattedException));
-                        if (!dException.Value.Contains(value))
+                        if (!dException.WordCountCollidesAboveThreshold(value, 60))
                         {
                             AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
                             dException.AppendException(value);

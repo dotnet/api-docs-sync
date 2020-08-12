@@ -183,7 +183,7 @@ namespace DocsPortingTool
             parent.Add(child);
         }
 
-        public static void SaveFormattedAsXml(XElement element, string newValue)
+        public static void SaveFormattedAsXml(XElement element, string newValue, bool removeUndesiredEndlines = true)
         {
             if (element == null)
             {
@@ -195,7 +195,7 @@ namespace DocsPortingTool
 
             var attributes = element.Attributes();
 
-            string updatedValue = RemoveUndesiredEndlines(newValue);
+            string updatedValue = removeUndesiredEndlines ? RemoveUndesiredEndlines(newValue) : newValue;
             updatedValue = ReplaceNormalElementPatterns(updatedValue);
 
             // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed by replacing the nodes.
@@ -215,7 +215,7 @@ namespace DocsPortingTool
             element.ReplaceAttributes(attributes);
         }
 
-        public static void AppendFormattedAsXml(XElement element, string valueToAppend)
+        public static void AppendFormattedAsXml(XElement element, string valueToAppend, bool removeUndesiredEndlines)
         {
             if (element == null)
             {
@@ -223,7 +223,7 @@ namespace DocsPortingTool
                 throw new ArgumentNullException(nameof(element));
             }
 
-            SaveFormattedAsXml(element, GetNodesInPlainText(element) + valueToAppend);
+            SaveFormattedAsXml(element, GetNodesInPlainText(element) + valueToAppend, removeUndesiredEndlines);
         }
 
         public static void AddChildFormattedAsXml(XElement parent, XElement child, string childValue)
@@ -246,7 +246,7 @@ namespace DocsPortingTool
 
         private static string RemoveUndesiredEndlines(string value)
         {
-            Regex regex = new Regex(@"((?'undesiredEndlinePrefix'[^\.\:])[\r\n]+[ \t]*)");
+            Regex regex = new Regex(@"((?'undesiredEndlinePrefix'[^\.\:])(\r\n)+[ \t]*)");
             string newValue = value;
             if (regex.IsMatch(value))
             {

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name="T:MyNamespace.MyType">
+      <summary>This is the type summary.</summary>
+    </member>
+    <member name="M:MyNamespace.MyType.MyMethod">
+      <summary>This is the method summary. </summary>
+      <exception cref="T:System.NinetyPercentCollisionException">Word1 Word2 Word3 Word4 Word5 Word6 Word7 Word8 Word9 Word10.</exception>
+      <exception cref="T:System.EightyPercentCollisionException">Word1 Word2 Word3 Word4 Word5 Word6 Word7 Word8 Word9 Word10.</exception>
+      <exception cref="T:System.SeventyPercentCollisionException">Word1 Word2 Word3 Word4 Word5 Word6 Word7 Word8 Word9 Word10.</exception>
+      <exception cref="T:System.SixtyPercentCollisionException">Word1 Word2 Word3 Word4 Word5 Word6 Word7 Word8 Word9 Word10.</exception>
+      <exception cref="T:System.FiftyPercentCollisionException">Word1 Word2 Word3 Word4 Word5 Word6 Word7 Word8 Word9 Word10.</exception>
+    </member>
+  </members>
+</doc>

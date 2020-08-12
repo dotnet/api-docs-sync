@@ -179,117 +179,176 @@ The instructions below assume %SourceRepos% is the root folder of all your git c
 
 Options:
 
-   bool:           -DisablePrompts          Optional. Default is false (prompts are disabled).
-                                            Avoids prompting the user for input to correct some particular errors.
-                                                Usage example:
-                                                    -disableprompts true
+
+                               MANDATORY
+  ------------------------------------------------------------
+  |    PARAMETER     |           TYPE          | DESCRIPTION |
+  ------------------------------------------------------------
+
+    -Docs                 folder path           The absolute directory root path where the Docs xml files are located.
+                                                    Known locations:
+                                                        > Runtime:      %SourceRepos%\dotnet-api-docs\xml
+                                                        > WPF:          %SourceRepos%\dotnet-api-docs\xml
+                                                        > WinForms:     %SourceRepos%\dotnet-api-docs\xml
+                                                        > ASP.NET MVC:  %SourceRepos%\AspNetApiDocs\aspnet-mvc\xml
+                                                        > ASP.NET Core: %SourceRepos%\AspNetApiDocs\aspnet-core\xml
+                                                    Usage example:
+                                                        -Docs %SourceRepos%\dotnet-api-docs\xml,%SourceRepos%\AspNetApiDocs\aspnet-mvc\xml
+
+    -TripleSlash         comma-separated        A comma separated list (no spaces) of absolute directory paths where we should recursively 
+                            folder paths        look for triple slash comment xml files.
+                                                    Known locations:
+                                                        > Runtime:   %SourceRepos%\runtime\artifacts\bin\
+                                                        > CoreCLR:   %SourceRepos%\runtime\artifacts\bin\coreclr\Windows_NT.x64.Release\IL\
+                                                        > WinForms:  %SourceRepos%\winforms\artifacts\bin\
+                                                        > WPF:       %SourceRepos%\wpf\.tools\native\bin\dotnet-api-docs_netcoreapp3.0\0.0.0.1\_intellisense\netcore-3.0\
+                                                    Usage example:
+                                                        -TripleSlash %SourceRepos%\corefx\artifacts\bin\,%SourceRepos%\winforms\artifacts\bin\
+
+    -IncludedAssemblies     string list         Comma separated list (no spaces) of assemblies/namespaces to include.
+                                                    Usage example:
+                                                        -IncludedAssemblies System.IO,System.Runtime.Intrinsics
 
 
+                               OPTIONAL
+  ------------------------------------------------------------
+  |    PARAMETER     |           TYPE          | DESCRIPTION |
+  ------------------------------------------------------------
 
-    no arguments:   -h or -Help             Optional.
-                                            Displays this help message. If used, nothing else is processed and the program exits.
+    -h | -Help              no arguments        Displays this help message. If used, nothing else is processed and the program exits.
 
+    -DisablePrompts         bool                Default is false (prompts are disabled).
+                                                Avoids prompting the user for input to correct some particular errors.
+                                                    Usage example:
+                                                        -DisablePrompts true
 
+    -ExceptionCollisionThreshold  int (0-100)   Default is 70 (If >=70% of words collide, the string is not ported).
+                                                Decides how sensitive the detection of existing exception strings should be.
+                                                The tool compares the Docs exception string with the Triple Slash exception string.
+                                                If the number of words found in the Docs exception is below the specified threshold,
+                                                then the Triple Slash string is appended at the end of the Docs string.
+                                                The user is expected to verify the value.
+                                                The reason for this is that exceptions go through language review, and may contain more
+                                                than one root cause (separated by '-or-'), and there is no easy way to know if the string
+                                                has already been ported or not.
+                                                    Usage example:
+                                                        -ExceptionCollisionThreshold 60
 
-    folder path:    -Docs                   Mandatory.
-                                            The absolute directory root path where the Docs xml files are located.
-                                                Known locations:
-                                                    > Runtime:      %SourceRepos%\dotnet-api-docs\xml
-                                                    > WPF:          %SourceRepos%\dotnet-api-docs\xml
-                                                    > WinForms:     %SourceRepos%\dotnet-api-docs\xml
-                                                    > ASP.NET MVC:  %SourceRepos%\AspNetApiDocs\aspnet-mvc\xml
-                                                    > ASP.NET Core: %SourceRepos%\AspNetApiDocs\aspnet-core\xml
-                                                Usage example:
-                                                    -docs %SourceRepos%\dotnet-api-docs\xml,%SourceRepos%\AspNetApiDocs\aspnet-mvc\xml
-
-
-
-    string list:    -ExcludedAssemblies         Optional. Default is empty (does not ignore any assemblies/namespaces).
+    -ExcludedAssemblies     string list         Default is empty (does not ignore any assemblies/namespaces).
                                                 Comma separated list (no spaces) of specific .NET assemblies/namespaces to ignore.
                                                     Usage example:
-                                                        -excludedassemblies System.IO.Compression,System.IO.Pipes
+                                                        -ExcludedAssemblies System.IO.Compression,System.IO.Pipes
 
-
-
-    string list:    -IncludedAssemblies         Mandatory.
-                                                Comma separated list (no spaces) of assemblies/namespaces to include.
-                                                    Usage example:
-                                                        -includedassemblies System.IO,System.Runtime.Intrinsics
-
-
-
-    string list:    -ExcludedTypes              Optional. Default is empty (does not ignore any types).
+    -ExcludedTypes          string list         Default is empty (does not ignore any types).
                                                 Comma separated list (no spaces) of names of types to ignore.
                                                     Usage example:
-                                                        -excludedtypes ArgumentException,Stream
+                                                        -ExcludedTypes ArgumentException,Stream
 
-
-
-    string list:    -IncludedTypes              Optional. Default is empty (includes all types in the desired assemblies/namespaces).
+    -IncludedTypes          string list         Default is empty (includes all types in the desired assemblies/namespaces).
                                                 Comma separated list (no spaces) of specific types to include.
                                                     Usage example:
-                                                        -includedtypes FileStream,DirectoryInfo
+                                                        -IncludedTypes FileStream,DirectoryInfo
 
+    -PortMemberExceptions       bool            Default is false (ports Member exceptions).
+                                                Enable or disable finding and porting Member exceptions.
+                                                Setting this to false can result in a lot of noise because there is
+                                                no easy way to detect if an exception has been ported already or not.
+                                                See `-ExceptionCollisionThreshold` to set the collision sensitivity.
+                                                    Usage example:
+                                                        -PortMemberExceptions true
 
+    -PortMemberParams           bool            Default is true (ports Member parameters).
+                                                Enable or disable finding and porting Member parameters.
+                                                    Usage example:
+                                                        -PortMemberParams false
 
-    bool:           -PrintUndoc             Optional. Default is false (prints a basic summary).
-                                            Prints a detailed summary of all the docs APIs that are undocumented.
-                                                Usage example:
-                                                    -printundoc true
+    -PortMemberProperties       bool            Default is true (ports Member properties).
+                                                Enable or disable finding and porting Member properties.
+                                                    Usage example:
+                                                        -PortMemberProperties false
 
+    -PortMemberReturns          bool            Default is true (ports Member return values).
+                                                Enable or disable finding and porting Member return values.
+                                                    Usage example:
+                                                        -PortMemberReturns false
 
+    -PortMemberRemarks          bool            Default is true (ports Member remarks).
+                                                Enable or disable finding and porting Member remarks.
+                                                    Usage example:
+                                                        -PortMemberRemarks false
 
-    bool:           -Save                   Optional. Default is false (does not save changes).
-                                            Whether you want to save the changes in the dotnet-api-docs xml files.
-                                                Usage example:
-                                                    -save true
+    -PortMemberSummaries        bool            Default is true (ports Member summaries).
+                                                Enable or disable finding and porting Member summaries.
+                                                    Usage example:
+                                                        -PortMemberSummaries false
 
+    -PortMemberTypeParams       bool            Default is true (ports Member TypeParams).
+                                                Enable or disable finding and porting Member TypeParams.
+                                                    Usage example:
+                                                        -PortMemberTypeParams false
 
+    -PortTypeParams             bool            Default is true (ports Type Params).
+                                                Enable or disable finding and porting Type Params.
+                                                    Usage example:
+                                                        -PortTypeParams false
 
-    bool:           -SkipExceptions         Optional. Default is true (skips exceptions).
-                                            Whether you want exceptions to be ported or not.
-                                            Setting this to false can result in a lot of noise because there is no easy way
-                                            to detect if an exception has been ported already or not.
-                                                Usage example:
-                                                    -skipexceptions false
+    -PortTypeRemarks            bool            Default is true (ports Type remarks).
+                                                Enable or disable finding and porting Type remarks.
+                                                    Usage example:
+                                                        -PortTypeRemarks false
 
+    -PortTypeSummaries          bool            Default is true (ports Type summaries).
+                                                Enable or disable finding and porting Type summaries.
+                                                    Usage example:
+                                                        -PortTypeSummaries false
 
+    -PortTypeTypeParams         bool            Default is true (ports Type TypeParams).
+                                                Enable or disable finding and porting Type TypeParams.
+                                                    Usage example:
+                                                        -PortTypeTypeParams false
 
-    bool:           -SkipRemarks            Optional. Default is false (adds remarks).
-                                            Whether you want remarks to be ported or not.
-                                                Usage example:
-                                                    -skipremarks true
+    -PrintUndoc                 bool            Default is false (prints a basic summary).
+                                                Prints a detailed summary of all the docs APIs that are undocumented.
+                                                    Usage example:
+                                                        -PrintUndoc true
 
+    -Save                       bool            Default is false (does not save changes).
+                                                Whether you want to save the changes in the dotnet-api-docs xml files.
+                                                    Usage example:
+                                                        -Save true
 
+    -SkipInterfaceImplementations       bool    Default is false (includes interface implementations).
+                                                Whether you want the original interface documentation to be considered to fill the
+                                                undocumented API's documentation when the API itself does not provide its own documentation.
+                                                Setting this to false will include Explicit Interface Implementations as well.
+                                                    Usage example:
+                                                        -SkipInterfaceImplementations true
 
-    bool:    -SkipInterfaceImplementations  Optional. Default is false (includes interface implementations).
-                                            Whether you want the original interface documentation to be considered to fill the
-                                            undocumented API's documentation when the API itself does not provide its own documentation.
-                                            Setting this to false will include Explicit Interface Implementations as well.
-                                                Usage example:
-                                                    -skipinterfaceimplementations true
+     -SkipInterfaceRemarks              bool    Default is true (excludes appending interface remarks).
+                                                Whether you want interface implementation remarks to be used when the API itself has no remarks.
+                                                Very noisy and generally the content in those remarks do not apply to the API that implements
+                                                the interface API.
+                                                    Usage example:
+                                                        -SkipInterfaceRemarks false
 
+            ");
+            Warning(@"
+    tl;dr: Just specify these parameters:
 
+        -Docs <path>
+        -TripleSlash <path1>[,<path2>,...,<pathN>]
+        -IncludedAssemblies <namespace1>[,<namespace2>,...<namespaceN>]
+        -PortMemberExceptions <true|false>
+        -Save true
 
-    bool     -SkipInterfaceRemarks          Optional. Default is true (excludes interface remarks).
-                                            Whether you want interface implementation remarks to be used when the API itself has no remarks.
-                                            Very noisy and generally the content in those remarks do not apply to the API that implements
-                                            the interface API.
-                                                Usage example:
-                                                    -skipinterfaceremarks false
+    Example:
+        DocsPortingTool \
+            -Docs D:\dotnet-api-docs\xml \
+            -TripleSlash D:\runtime\artifacts\bin\coreclr\Windows_NT.x64.Release\IL\,D:\runtime\artifacts\bin\ \
+            -IncludedAssemblies System.IO.FileSystem,System.Runtime.Intrinsics \
+            -PortMemberExceptions true \
+            -Save true
 
-
-
-    folder path:   -TripleSlash             Mandatory.
-                                            A comma separated list (no spaces) of absolute directory paths where we should recursively 
-                                            look for triple slash comment xml files.
-                                                Known locations:
-                                                    > Runtime:   %SourceRepos%\runtime\artifacts\bin\
-                                                    > CoreCLR:   %SourceRepos%\runtime\artifacts\bin\coreclr\Windows_NT.x64.Release\IL\
-                                                    > WinForms:  %SourceRepos%\winforms\artifacts\bin\
-                                                    > WPF:       %SourceRepos%\wpf\.tools\native\bin\dotnet-api-docs_netcoreapp3.0\0.0.0.1\_intellisense\netcore-3.0\
-                                                Usage example:
-                                                    -tripleslash %SourceRepos%\corefx\artifacts\bin\,%SourceRepos%\winforms\artifacts\bin\
             ");
         }
     }

@@ -10,13 +10,27 @@ namespace DocsPortingTool.Docs
     /// </summary>
     public class DocsType : DocsAPI
     {
-        public XDocument XDoc { get; set; }
+        private string? _name;
+        private string? _fullName;
+        private string? _namespace;
+        private string? _docId;
+        private string? _baseTypeName;
+        private List<string>? _interfaceNames;
+        private List<DocsAttribute>? _attributes;
+        private List<DocsTypeSignature>? _typesSignatures;
 
-        private readonly XElement XERoot;
+        public DocsType(string filePath, XDocument xDoc, XElement xeRoot)
+            : base(xeRoot)
+        {
+            FilePath = filePath;
+            XDoc = xDoc;
+            AssemblyInfos.AddRange(XERoot.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)));
+        }
+
+        public XDocument XDoc { get; set; }
 
         public override bool Changed { get; set; }
 
-        private string? _name;
         public string Name
         {
             get
@@ -29,7 +43,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string? _fullName;
         public string FullName
         {
             get
@@ -42,7 +55,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string? _namespace;
         public string Namespace
         {
             get
@@ -56,7 +68,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private List<DocsTypeSignature>? _typesSignatures;
         public List<DocsTypeSignature> TypeSignatures
         {
             get
@@ -69,7 +80,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string? _docId;
         public override string DocId
         {
             get
@@ -97,7 +107,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private string? _baseTypeName;
         public string BaseTypeName
         {
             get
@@ -109,6 +118,7 @@ namespace DocsPortingTool.Docs
                 return _baseTypeName;
             }
         }
+
         public XElement Interfaces
         {
             get
@@ -117,7 +127,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private List<string>? _interfaceNames;
         public List<string> InterfaceNames
         {
             get
@@ -130,7 +139,6 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private List<DocsAttribute>? _attributes;
         public List<DocsAttribute> Attributes
         {
             get
@@ -141,55 +149,6 @@ namespace DocsPortingTool.Docs
                     _attributes = (e != null) ? e.Elements("Attribute").Select(x => new DocsAttribute(x)).ToList() : new List<DocsAttribute>();
                 }
                 return _attributes;
-            }
-        }
-
-        private List<DocsParameter>? _parameters;
-        public override List<DocsParameter> Parameters
-        {
-            get
-            {
-                if (_parameters == null)
-                {
-                    XElement xeParameters = XERoot.Element("Parameters");
-                    if (xeParameters != null)
-                    {
-                        _parameters = xeParameters.Elements("Parameter").Select(x => new DocsParameter(x)).ToList();
-                    }
-                    else
-                    {
-                        _parameters = new List<DocsParameter>();
-                    }
-                }
-                return _parameters;
-            }
-        }
-        
-        public override XElement Docs
-        {
-            get
-            {
-                return XERoot.Element("Docs");
-            }
-        }
-        
-        private List<DocsParam>? _params;
-        public override List<DocsParam> Params
-        {
-            get
-            {
-                if (_params == null)
-                {
-                    if (Docs != null)
-                    {
-                        _params = Docs.Elements("param").Select(x => new DocsParam(this, x)).ToList();
-                    }
-                    else
-                    {
-                        _params = new List<DocsParam>();
-                    }
-                }
-                return _params;
             }
         }
 
@@ -215,14 +174,6 @@ namespace DocsPortingTool.Docs
             {
                 SaveFormattedAsMarkdown("remarks", value);
             }
-        }
-
-        public DocsType(string filePath, XDocument xDoc, XElement xeRoot)
-        {
-            FilePath = filePath;
-            XDoc = xDoc;
-            XERoot = xeRoot;
-            _assemblyInfos.AddRange(XERoot.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)));
         }
 
         public override string ToString()

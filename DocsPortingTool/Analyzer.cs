@@ -555,7 +555,7 @@ namespace DocsPortingTool
         // All exceptions get ported, because there is no easy way to determine if an exception is already documented or not.
         private void TryPortMissingExceptionsForMember(DocsMember dMemberToUpdate, TripleSlashMember? tsMemberToPort)
         {
-            if (!Config.PortMemberExceptions)
+            if (!Config.PortExceptionsExisting && !Config.PortExceptionsNew)
             {
                 return;
             }
@@ -569,7 +569,7 @@ namespace DocsPortingTool
                     bool created = false;
 
                     // First time adding the cref
-                    if (dException == null)
+                    if (Config.PortExceptionsNew && dException == null)
                     {
                         AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
                         string text = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(tsException.XEException));
@@ -577,7 +577,7 @@ namespace DocsPortingTool
                         created = true;
                     }
                     // If cref exists, check if the text has already been appended
-                    else
+                    else if (Config.PortExceptionsExisting)
                     {
                         XElement formattedException = tsException.XEException;
                         string value = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(formattedException));

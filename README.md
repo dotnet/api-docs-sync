@@ -11,7 +11,6 @@ Just specify these parameters:
     -Docs <path>
     -TripleSlash <path1>[,<path2>,...,<pathN>]
     -IncludedAssemblies <namespace1>[,<namespace2>,...<namespaceN>]
-    -PortMemberExceptions <true|false>
     -Save true
 
 Example:
@@ -20,7 +19,6 @@ Example:
         -Docs D:\dotnet-api-docs\xml \
         -TripleSlash D:\runtime\artifacts\bin\coreclr\Windows_NT.x64.Release\IL\,D:\runtime\artifacts\bin\ \
         -IncludedAssemblies System.IO.FileSystem,System.Runtime.Intrinsics \
-        -PortMemberExceptions true \
         -Save true
 ```
 
@@ -119,13 +117,19 @@ You can run `./install-as-tool.ps1` to install as a dotnet tool in your PATH.
                                                     Usage example:
                                                         -IncludedTypes FileStream,DirectoryInfo
 
-    -PortMemberExceptions       bool            Default is false (ports Member exceptions).
-                                                Enable or disable finding and porting Member exceptions.
-                                                Setting this to false can result in a lot of noise because there is
-                                                no easy way to detect if an exception has been ported already or not.
+    -PortExceptionsExisting     bool            Default is false (does not find and append existing exceptions).
+                                                Enable or disable finding, porting and appending summaries from existing exceptions.
+                                                Setting this to true can result in a lot of noise because there is
+                                                no easy way to detect if an exception summary has been ported already or not,
+                                                especially after it went through language review.
                                                 See `-ExceptionCollisionThreshold` to set the collision sensitivity.
                                                     Usage example:
-                                                        -PortMemberExceptions true
+                                                        -PortExceptionsExisting true
+
+    -PortExceptionsNew          bool            Default is true (ports new exceptions).
+                                                Enable or disable finding and porting new exceptions.
+                                                    Usage example:
+                                                        -PortExceptionsNew false
 
     -PortMemberParams           bool            Default is true (ports Member parameters).
                                                 Enable or disable finding and porting Member parameters.

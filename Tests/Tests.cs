@@ -6,50 +6,62 @@ namespace DocsPortingTool.Tests
     public class Tests
     {
         [Fact]
-        // Verifies that comments are ported, excluding EII comments.
-        public void Port_Remarks()
+        // Verifies the basic case of porting all regular fields.
+        public void Port_Basic()
         {
-            Port("Remarks", GetConfig(
+            Port("Basic", GetConfig());
+        }
+
+        [Fact]
+        // Ports Type remarks from triple slash.
+        // Ports Method remarks from triple slash.
+        // No interface strings should be ported.
+        public void Port_Remarks_NoEII_NoInterfaceRemarks()
+        {
+            Port("Remarks_NoEII_NoInterfaceRemarks", GetConfig(
                 skipInterfaceImplementations: true,
                 skipInterfaceRemarks: true
             ));
         }
 
         [Fact]
-        // Verifies that EII comments are ported, including EII remarks.
-        public void Port_EII()
+        // Ports Type remarks from triple slash.
+        // Ports Method remarks from triple slash.
+        // Ports EII message and interface method remarks.
+        public void Port_Remarks_WithEII_WithInterfaceRemarks()
         {
-            Port("EII", GetConfig(
+            Port("Remarks_WithEII_WithInterfaceRemarks", GetConfig(
                 skipInterfaceImplementations: false,
                 skipInterfaceRemarks: false
             ));
         }
 
         [Fact]
-        /// Verifies that EII comments are ported, except EII remarks.
-        public void Port_EII_NoRemarks()
+        // Ports Type remarks from triple slash.
+        // Ports Method remarks from triple slash.
+        // Ports EII message but no interface method remarks.
+        public void Port_Remarks_WithEII_NoInterfaceRemarks()
         {
-            Port("EII_NoRemarks", GetConfig(
+            Port("Remarks_WithEII_NoInterfaceRemarks", GetConfig(
                 skipInterfaceImplementations: false,
                 skipInterfaceRemarks: true
             ));
         }
 
         [Fact]
-        /// Verifies that exceptions are ported.
+        /// Verifies that new exceptions are ported.
         public void Port_Exceptions()
         {
-            Port("Exceptions", GetConfig(
-                portMemberExceptions: true
-            ));
+            Port("Exceptions", GetConfig());
         }
 
         [Fact]
-        /// Verifies that when an exception has already been ported, but went through language review, does not get ported if its above the difference threshold.
+        /// Verifies that when an exception has already been ported, but went through
+        /// language review, does not get ported if its above the difference threshold.
         public void Port_Exception_ExistingCref()
         {
             Port("Exception_ExistingCref", GetConfig(
-                portMemberExceptions: true,
+                portExceptionsExisting: true,
                 exceptionCollisionThreshold: 60
             ));
         }
@@ -62,7 +74,7 @@ namespace DocsPortingTool.Tests
             bool skipInterfaceRemarks = true,
             bool portTypeRemarks = true,
             bool portMemberRemarks = true,
-            bool portMemberExceptions = false,
+            bool portExceptionsExisting = false,
             int exceptionCollisionThreshold = 70
         )
         {
@@ -75,7 +87,7 @@ namespace DocsPortingTool.Tests
                 SkipInterfaceRemarks = skipInterfaceRemarks,
                 PortTypeRemarks = portTypeRemarks,
                 PortMemberRemarks = portMemberRemarks,
-                PortMemberExceptions = portMemberExceptions,
+                PortExceptionsExisting = portExceptionsExisting,
                 ExceptionCollisionThreshold = exceptionCollisionThreshold
             };
         }

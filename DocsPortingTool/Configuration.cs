@@ -18,7 +18,8 @@ namespace DocsPortingTool
             IncludedAssemblies,
             IncludedTypes,
             Initial,
-            PortMemberExceptions,
+            PortExceptionsExisting,
+            PortExceptionsNew,
             PortMemberParams,
             PortMemberProperties,
             PortMemberReturns,
@@ -50,7 +51,8 @@ namespace DocsPortingTool
 
         public bool DisablePrompts { get; set; } = false;
         public int ExceptionCollisionThreshold { get; set; } = 70;
-        public bool PortMemberExceptions { get; set; } = false;
+        public bool PortExceptionsExisting { get; set; } = false;
+        public bool PortExceptionsNew { get; set; } = true;
         public bool PortMemberParams { get; set; } = true;
         public bool PortMemberProperties { get; set; } = true;
         public bool PortMemberReturns { get; set; } = true;
@@ -262,8 +264,12 @@ namespace DocsPortingTool
                                     mode = Mode.IncludedTypes;
                                     break;
 
-                                case "-PORTMEMBEREXCEPTIONS":
-                                    mode = Mode.PortMemberExceptions;
+                                case "-PORTEXCEPTIONSEXISTING":
+                                    mode = Mode.PortExceptionsExisting;
+                                    break;
+
+                                case "-PORTEXCEPTIONSNEW":
+                                    mode = Mode.PortExceptionsNew;
                                     break;
 
                                 case "-PORTMEMBERPARAMS":
@@ -332,9 +338,16 @@ namespace DocsPortingTool
                             break;
                         }
 
-                    case Mode.PortMemberExceptions:
+                    case Mode.PortExceptionsExisting:
                         {
-                            config.PortMemberExceptions = ParseOrExit(arg, "Port member Exceptions");
+                            config.PortExceptionsExisting = ParseOrExit(arg, "Port existing exceptions");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortExceptionsNew:
+                        {
+                            config.PortExceptionsNew = ParseOrExit(arg, "Port new exceptions");
                             mode = Mode.Initial;
                             break;
                         }

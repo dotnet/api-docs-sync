@@ -581,7 +581,7 @@ namespace DocsPortingTool
                     {
                         XElement formattedException = tsException.XEException;
                         string value = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(formattedException));
-                        if (!dException.WordCountCollidesAboveThreshold(value, 60))
+                        if (!dException.WordCountCollidesAboveThreshold(value, Config.ExceptionCollisionThreshold))
                         {
                             AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
                             dException.AppendException(value);

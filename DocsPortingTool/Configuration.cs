@@ -14,8 +14,10 @@ namespace DocsPortingTool
             Docs,
             ExceptionCollisionThreshold,
             ExcludedAssemblies,
+            ExcludedNamespaces,
             ExcludedTypes,
             IncludedAssemblies,
+            IncludedNamespaces,
             IncludedTypes,
             Initial,
             PortExceptionsExisting,
@@ -46,6 +48,8 @@ namespace DocsPortingTool
 
         public HashSet<string> IncludedAssemblies { get; } = new HashSet<string>();
         public HashSet<string> ExcludedAssemblies { get; } = new HashSet<string>();
+        public HashSet<string> IncludedNamespaces { get; } = new HashSet<string>();
+        public HashSet<string> ExcludedNamespaces { get; } = new HashSet<string>();
         public HashSet<string> IncludedTypes { get; } = new HashSet<string>();
         public HashSet<string> ExcludedTypes { get; } = new HashSet<string>();
 
@@ -160,6 +164,28 @@ namespace DocsPortingTool
                             break;
                         }
 
+                    case Mode.ExcludedNamespaces:
+                        {
+                            string[] splittedArg = arg.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+
+                            if (splittedArg.Length > 0)
+                            {
+                                Log.Cyan("Excluded namespaces:");
+                                foreach (string ns in splittedArg)
+                                {
+                                    Log.Cyan($" - {ns}");
+                                    config.ExcludedNamespaces.Add(ns);
+                                }
+                            }
+                            else
+                            {
+                                Log.LogErrorPrintHelpAndExit("You must specify at least one namespace.");
+                            }
+
+                            mode = Mode.Initial;
+                            break;
+                        }
+
                     case Mode.ExcludedTypes:
                         {
                             string[] splittedArg = arg.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
@@ -198,6 +224,28 @@ namespace DocsPortingTool
                             else
                             {
                                 Log.LogErrorPrintHelpAndExit("You must specify at least one assembly.");
+                            }
+
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.IncludedNamespaces:
+                        {
+                            string[] splittedArg = arg.Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+
+                            if (splittedArg.Length > 0)
+                            {
+                                Log.Cyan($"Included namespaces:");
+                                foreach (string ns in splittedArg)
+                                {
+                                    Log.Cyan($" - {ns}");
+                                    config.IncludedNamespaces.Add(ns);
+                                }
+                            }
+                            else
+                            {
+                                Log.LogErrorPrintHelpAndExit("You must specify at least one namespace.");
                             }
 
                             mode = Mode.Initial;
@@ -246,6 +294,10 @@ namespace DocsPortingTool
                                     mode = Mode.ExcludedAssemblies;
                                     break;
 
+                                case "-EXCLUDEDNAMESPACES":
+                                    mode = Mode.ExcludedNamespaces;
+                                    break;
+
                                 case "-EXCLUDEDTYPES":
                                     mode = Mode.ExcludedTypes;
                                     break;
@@ -258,6 +310,10 @@ namespace DocsPortingTool
 
                                 case "-INCLUDEDASSEMBLIES":
                                     mode = Mode.IncludedAssemblies;
+                                    break;
+
+                                case "-INCLUDEDNAMESPACES":
+                                    mode = Mode.IncludedNamespaces;
                                     break;
 
                                 case "-INCLUDEDTYPES":
@@ -486,26 +542,20 @@ namespace DocsPortingTool
 
             if (config.DirsDocsXml == null)
             {
-                Log.LogErrorPrintHelpAndExit("You must specify a path to the dotnet-api-docs xml folder with -docs.");
+                Log.LogErrorPrintHelpAndExit($"You must specify a path to the dotnet-api-docs xml folder with {nameof(Docs)}.");
             }
 
             if (config.DirsTripleSlashXmls.Count == 0)
             {
-                Log.LogErrorPrintHelpAndExit("You must specify at least one triple slash xml folder path with -tripleslash.");
+                Log.LogErrorPrintHelpAndExit($"You must specify at least one triple slash xml folder path with {nameof(TripleSlash)}.");
             }
 
             if (config.IncludedAssemblies.Count == 0)
             {
-                Log.LogErrorPrintHelpAndExit("You must specify at least one assembly with -include.");
+                Log.LogErrorPrintHelpAndExit($"You must specify at least one assembly with {nameof(IncludedAssemblies)}.");
             }
 
             return config;
-        }
-
-        // Hardcoded namespaces that need to be renamed to what MS Docs uses.
-        public static string ReplaceNamespace(string str)
-        {
-            return str.Replace("Microsoft.Data", "System.Data");
         }
 
         // Tries to parse the user argument string as boolean, and if it fails, exits the program.

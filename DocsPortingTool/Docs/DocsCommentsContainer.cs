@@ -69,6 +69,11 @@ namespace DocsPortingTool.Docs
         {
             if (!Config.Save)
             {
+                Log.Line();
+                Log.Error("[No files were saved]");
+                Log.Warning($"Did you forget to specify '-{nameof(Config.Save)} true'?");
+                Log.Line();
+
                 return;
             }
 
@@ -143,7 +148,8 @@ namespace DocsPortingTool.Docs
 
             foreach (DirectoryInfo rootDir in Config.DirsDocsXml)
             {
-                foreach (string included in Config.IncludedAssemblies)
+                // Try to find folders with the names of assemblies AND namespaces (if the user specified any)
+                foreach (string included in Config.IncludedAssemblies.Concat(Config.IncludedNamespaces))
                 {
                     foreach (DirectoryInfo subDir in rootDir.EnumerateDirectories($"{included}*", SearchOption.TopDirectoryOnly))
                     {
@@ -183,7 +189,8 @@ namespace DocsPortingTool.Docs
                         foreach (DirectoryInfo subDir in rootDir.EnumerateDirectories("System*", SearchOption.AllDirectories))
                         {
                             if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) &&
-                                Config.ExcludedAssemblies.Count(excluded => subDir.Name.StartsWith(excluded)) == 0 &&
+                                // Exclude any folder that starts with the excluded assemblies OR excluded namespaces
+                                Config.ExcludedAssemblies.Concat(Config.ExcludedNamespaces).Count(excluded => subDir.Name.StartsWith(excluded)) == 0 &&
                                 !subDir.Name.EndsWith(".Tests"))
                             {
                                 foreach (FileInfo fileInfo in subDir.EnumerateFiles("I*.xml", SearchOption.AllDirectories))
@@ -288,7 +295,7 @@ namespace DocsPortingTool.Docs
                 // included (and not exluded) types, but will not be used for EII, but rather as normal types whose comments should be ported
                 if (!addedAsInterface)
                 {
-                    foreach (string included in Config.IncludedAssemblies)
+                    foreach (string included in Config.IncludedAssemblies.Concat(Config.IncludedNamespaces))
                     {
                         if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 ||
                             docsType.FullName.StartsWith(included))

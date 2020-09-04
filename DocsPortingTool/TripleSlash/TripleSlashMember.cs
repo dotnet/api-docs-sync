@@ -20,10 +20,10 @@ namespace DocsPortingTool.TripleSlash
                 if (string.IsNullOrWhiteSpace(_namespace))
                 {
                     string[] splittedParenthesis = Name.Split('(', StringSplitOptions.RemoveEmptyEntries);
-                    string withoutParenthesisAndPrefix = splittedParenthesis[0].Substring(2);
+                    string withoutParenthesisAndPrefix = splittedParenthesis[0][2..]; // Exclude the "X:" prefix
                     string[] splittedDots = withoutParenthesisAndPrefix.Split('.', StringSplitOptions.RemoveEmptyEntries);
 
-                    _namespace = Configuration.ReplaceNamespace(string.Join('.', splittedDots.Take(splittedDots.Length - 1)));
+                    _namespace = string.Join('.', splittedDots.Take(splittedDots.Length - 1));
                 }
 
                 return _namespace;
@@ -31,13 +31,16 @@ namespace DocsPortingTool.TripleSlash
         }
 
         private string? _name;
+        /// <summary>
+        /// The API DocId.
+        /// </summary>
         public string Name
         {
             get
             {
                 if (_name == null)
                 {
-                    _name = Configuration.ReplaceNamespace(XmlHelper.GetAttributeValue(XEMember, "name"));
+                    _name = XmlHelper.GetAttributeValue(XEMember, "name");
                 }
                 return _name;
             }

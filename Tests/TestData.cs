@@ -7,7 +7,12 @@ namespace DocsPortingTool.Tests
     {
         private string TestDataRootDir => @"..\..\..\TestData";
 
+        public const string TestAssembly = "MyAssembly";
+        public const string TestNamespace = "MyNamespace";
+        public const string TestType = "MyType";
+
         public string Assembly { get; private set; }
+        public string Namespace { get; private set; }
         public string Type { get; private set; }
         public DirectoryInfo TripleSlash { get; private set; }
         public DirectoryInfo Docs { get; private set; }
@@ -21,16 +26,20 @@ namespace DocsPortingTool.Tests
         /// <summary>Docs file with the interface from which the type inherits.</summary>
         public string InterfaceFilePath { get; private set; }
 
-        public TestData(TestDirectory tempDir, string testDataDir, string assemblyName = "MyAssembly", string typeName = "MyType", bool includeInterface = false)
+        public TestData(TestDirectory tempDir, string testDataDir, string assemblyName, string namespaceName, string typeName, bool skipInterfaceImplementations = true)
         {
+            Assert.False(string.IsNullOrWhiteSpace(assemblyName));
+            Assert.False(string.IsNullOrWhiteSpace(typeName));
+
             Assembly = assemblyName;
+            Namespace = string.IsNullOrEmpty(namespaceName) ? assemblyName : namespaceName;
             Type = typeName;
 
             TripleSlash = tempDir.CreateSubdirectory("TripleSlash");
-            DirectoryInfo tsAssemblyDir = TripleSlash.CreateSubdirectory(assemblyName);
+            DirectoryInfo tsAssemblyDir = TripleSlash.CreateSubdirectory(Assembly);
 
             Docs = tempDir.CreateSubdirectory("Docs");
-            DirectoryInfo docsAssemblyDir = Docs.CreateSubdirectory(assemblyName);
+            DirectoryInfo docsAssemblyDir = Docs.CreateSubdirectory(Namespace);
 
             string testDataPath = Path.Combine(TestDataRootDir, testDataDir);
 
@@ -42,8 +51,8 @@ namespace DocsPortingTool.Tests
             Assert.True(File.Exists(docsOriginFilePath));
             Assert.True(File.Exists(docsOriginExpectedFilePath));
 
-            OriginalFilePath = Path.Combine(tsAssemblyDir.FullName, $"{typeName}.xml");
-            ActualFilePath = Path.Combine(docsAssemblyDir.FullName, $"{typeName}.xml");
+            OriginalFilePath = Path.Combine(tsAssemblyDir.FullName, $"{Type}.xml");
+            ActualFilePath = Path.Combine(docsAssemblyDir.FullName, $"{Type}.xml");
             ExpectedFilePath = Path.Combine(tempDir.FullPath, "DocsExpected.xml");
 
             File.Copy(tsOriginFilePath, OriginalFilePath);
@@ -54,7 +63,7 @@ namespace DocsPortingTool.Tests
             Assert.True(File.Exists(ActualFilePath));
             Assert.True(File.Exists(ExpectedFilePath));
 
-            if (includeInterface)
+            if (!skipInterfaceImplementations)
             {
                 string interfaceFilePath = Path.Combine(testDataPath, "DocsInterface.xml");
                 Assert.True(File.Exists(interfaceFilePath));

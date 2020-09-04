@@ -152,32 +152,27 @@ namespace DocsPortingTool.TripleSlash
                 {
                     TripleSlashMember member = new TripleSlashMember(xeMember, assembly);
 
-                    bool add = false;
-                    foreach (string included in Config.IncludedAssemblies)
+                    if (Config.IncludedAssemblies.Any(toInclude => member.Assembly.StartsWith(toInclude)) &&
+                        !Config.ExcludedAssemblies.Any(toExclude => member.Assembly.StartsWith(toExclude)))
                     {
-                        if (member.Assembly.StartsWith(included) ||
-                            member.Name.Substring(2).StartsWith(included) ||
-                            member.Namespace.StartsWith(included) ||
-                            Configuration.ReplaceNamespace(member.Assembly).StartsWith(included))
+                        bool add = false;
+                        if (Config.IncludedNamespaces.Count == 0)
                         {
+                            // No namespaces provided by the user means they
+                            // want to port everything from that assembly
                             add = true;
-                            break;
                         }
-                    }
-
-                    foreach (string excluded in Config.ExcludedAssemblies)
-                    {
-                        if (member.Assembly.StartsWith(excluded) || member.Name.Substring(2).StartsWith(excluded))
+                        else
                         {
-                            add = false;
-                            break;
+                            add = Config.IncludedNamespaces.Any(toInclude => member.Namespace.StartsWith(toInclude)) &&
+                                !Config.ExcludedNamespaces.Any(toExclude => member.Namespace.StartsWith(toExclude));
                         }
-                    }
 
-                    if (add)
-                    {
-                        totalAdded++;
-                        Members.Add(member);
+                        if (add)
+                        {
+                            totalAdded++;
+                            Members.Add(member);
+                        }
                     }
                 }
             }

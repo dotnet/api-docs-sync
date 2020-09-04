@@ -205,9 +205,13 @@ Options:
                                                     Usage example:
                                                         -TripleSlash %SourceRepos%\corefx\artifacts\bin\,%SourceRepos%\winforms\artifacts\bin\
 
-    -IncludedAssemblies     string list         Comma separated list (no spaces) of assemblies/namespaces to include.
+    -IncludedAssemblies     string list         Comma separated list (no spaces) of assemblies to include.
                                                     Usage example:
-                                                        -IncludedAssemblies System.IO,System.Runtime.Intrinsics
+                                                        -IncludedAssemblies System.IO,System.Runtime
+
+                                                IMPORTANT: 
+                                                Namespaces usually match the assembly name. There are some exceptions, like with types that live in
+                                                the System.Runtime assembly. For those cases, make sure to also specify the -IncludedNamespaces argument.
 
 
                                OPTIONAL
@@ -239,10 +243,20 @@ Options:
                                                     Usage example:
                                                         -ExcludedAssemblies System.IO.Compression,System.IO.Pipes
 
+    -ExcludedNamespaces     string list         Default is empty (does not exclude any namespaces from the specified assemblies).
+                                                Comma separated list (no spaces) of specific namespaces to exclude from the specified assemblies.
+                                                    Usage example:
+                                                        -ExcludedNamespaces System.Runtime.Intrinsics,System.Reflection.Metadata
+
     -ExcludedTypes          string list         Default is empty (does not ignore any types).
                                                 Comma separated list (no spaces) of names of types to ignore.
                                                     Usage example:
                                                         -ExcludedTypes ArgumentException,Stream
+
+    -IncludedNamespaces     string list         Default is empty (includes all namespaces from the specified assemblies).
+                                                Comma separated list (no spaces) of specific namespaces to include from the specified assemblies.
+                                                    Usage example:
+                                                        -IncludedNamespaces System,System.Data
 
     -IncludedTypes          string list         Default is empty (includes all types in the desired assemblies/namespaces).
                                                 Comma separated list (no spaces) of specific types to include.
@@ -349,9 +363,13 @@ Options:
     Example:
         DocsPortingTool \
             -Docs D:\dotnet-api-docs\xml \
-            -TripleSlash D:\runtime\artifacts\bin\coreclr\Windows_NT.x64.Release\IL,D:\runtime\artifacts\bin \
+            -TripleSlash D:\runtime\artifacts\bin \
             -IncludedAssemblies System.IO.FileSystem,System.Runtime.Intrinsics \
             -Save true
+");
+            Magenta(@"
+    Note:
+        If the names of your assemblies differ from the namespaces wheres your APIs live, specify the -IncludedNamespaces argument too.
 
             ");
         }

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name="T:MyNamespace.MyType">
+      <summary>This is the summary of MyNamespace.MyType. The namespace is not the same as the assembly.</summary>
+    </member>
+    <member name="M:MyNamespace.MyMethod">
+      <summary>This is the summary of MyNamespace.MyMethod. The namespace is not the same as the assembly.</summary>
+    </member>
+  </members>
+</doc>

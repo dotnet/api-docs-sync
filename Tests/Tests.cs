@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
@@ -9,7 +10,23 @@ namespace DocsPortingTool.Tests
         // Verifies the basic case of porting all regular fields.
         public void Port_Basic()
         {
-            Port("Basic", GetConfig());
+            Port("Basic");
+        }
+
+        [Fact]
+        // Verifies porting of APIs living in namespaces whose name match their assembly.
+        public void Port_AssemblyAndNamespaceSame()
+        {
+            Port("AssemblyAndNamespaceSame");
+        }
+
+        [Fact]
+        // Verifies porting of APIs living in namespaces whose name does not match their assembly.
+        public void Port_AssemblyAndNamespaceDifferent()
+        {
+            Port("AssemblyAndNamespaceDifferent",
+                assemblyName: "MyAssembly",
+                namespaceName: "MyNamespace");
         }
 
         [Fact]
@@ -18,10 +35,9 @@ namespace DocsPortingTool.Tests
         // No interface strings should be ported.
         public void Port_Remarks_NoEII_NoInterfaceRemarks()
         {
-            Port("Remarks_NoEII_NoInterfaceRemarks", GetConfig(
+            Port("Remarks_NoEII_NoInterfaceRemarks",
                 skipInterfaceImplementations: true,
-                skipInterfaceRemarks: true
-            ));
+                skipInterfaceRemarks: true);
         }
 
         [Fact]
@@ -30,10 +46,9 @@ namespace DocsPortingTool.Tests
         // Ports EII message and interface method remarks.
         public void Port_Remarks_WithEII_WithInterfaceRemarks()
         {
-            Port("Remarks_WithEII_WithInterfaceRemarks", GetConfig(
+            Port("Remarks_WithEII_WithInterfaceRemarks",
                 skipInterfaceImplementations: false,
-                skipInterfaceRemarks: false
-            ));
+                skipInterfaceRemarks: false);
         }
 
         [Fact]
@@ -42,17 +57,16 @@ namespace DocsPortingTool.Tests
         // Ports EII message but no interface method remarks.
         public void Port_Remarks_WithEII_NoInterfaceRemarks()
         {
-            Port("Remarks_WithEII_NoInterfaceRemarks", GetConfig(
+            Port("Remarks_WithEII_NoInterfaceRemarks",
                 skipInterfaceImplementations: false,
-                skipInterfaceRemarks: true
-            ));
+                skipInterfaceRemarks: true);
         }
 
         [Fact]
         /// Verifies that new exceptions are ported.
         public void Port_Exceptions()
         {
-            Port("Exceptions", GetConfig());
+            Port("Exceptions");
         }
 
         [Fact]
@@ -60,13 +74,13 @@ namespace DocsPortingTool.Tests
         /// language review, does not get ported if its above the difference threshold.
         public void Port_Exception_ExistingCref()
         {
-            Port("Exception_ExistingCref", GetConfig(
+            Port("Exception_ExistingCref",
                 portExceptionsExisting: true,
-                exceptionCollisionThreshold: 60
-            ));
+                exceptionCollisionThreshold: 60);
         }
 
-        private Configuration GetConfig(
+        private void Port(
+            string testDataDir,
             bool disablePrompts = true,
             bool printUndoc = false,
             bool save = true,
@@ -75,10 +89,23 @@ namespace DocsPortingTool.Tests
             bool portTypeRemarks = true,
             bool portMemberRemarks = true,
             bool portExceptionsExisting = false,
-            int exceptionCollisionThreshold = 70
-        )
+            int exceptionCollisionThreshold = 70,
+            string assemblyName = TestData.TestAssembly,
+            string namespaceName = null, // Most namespaces have the same assembly name
+            string typeName = TestData.TestType)
         {
-            return new Configuration
+            using TestDirectory tempDir = new TestDirectory();
+
+            TestData testData = new TestData(
+                tempDir,
+                testDataDir,
+                skipInterfaceImplementations: skipInterfaceImplementations,
+                assemblyName: assemblyName,
+                namespaceName: namespaceName,
+                typeName: typeName
+            );
+
+            Configuration c = new Configuration
             {
                 DisablePrompts = disablePrompts,
                 PrintUndoc = printUndoc,
@@ -90,19 +117,14 @@ namespace DocsPortingTool.Tests
                 PortExceptionsExisting = portExceptionsExisting,
                 ExceptionCollisionThreshold = exceptionCollisionThreshold
             };
-        }
 
-        private void Port(string testDataDir, Configuration c)
-        {
-            using TestDirectory tempDir = new TestDirectory();
+            c.IncludedAssemblies.Add(assemblyName);
 
-            TestData testData = new TestData(
-                tempDir,
-                testDataDir,
-                includeInterface: !c.SkipInterfaceImplementations
-            );
+            if (!string.IsNullOrEmpty(namespaceName))
+            {
+                c.IncludedNamespaces.Add(namespaceName);
+            }
 
-            c.IncludedAssemblies.Add(testData.Assembly);
             c.DirsDocsXml.Add(testData.Docs);
             c.DirsTripleSlashXmls.Add(testData.TripleSlash);
 

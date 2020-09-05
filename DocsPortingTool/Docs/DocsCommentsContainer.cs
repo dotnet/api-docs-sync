@@ -6,40 +6,6 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-/*
-root: Type 1:1
-    TypeSignature 1:M
-    AssemblyInfo 1:M
-        AssemblyName 1:1
-        AssemblyVersion 1:M
-    Base 1:1
-        BaseTypeName 1:1
-    Interfaces 0:1
-        Interface 0:1
-            InterfaceName 1:1
-    Docs 1:1
-        summary 1:1
-        remarks 1:1
-    Members 1:1
-        Member 1:1
-            MemberSignature 1:M
-            MemberType 1:1
-            AssemblyInfo 1:M
-                AssemblyName 1:1
-                AssemblyVersion 1:M
-            ReturnValue 1:1
-                ReturnType 1:1
-            Parameters 0:1
-                Parameter 1:M
-            TypeParameters 0:1
-                TypeParameter 1:M
-            Docs 1:1
-                param 0:M // One for each Parameter above
-                summary 1:1
-                returns 0:1
-                remarks 0:1
-                typeparam 0:M // One for each TypeParameter above
-*/
 namespace DocsPortingTool.Docs
 {
     public class DocsCommentsContainer
@@ -58,10 +24,14 @@ namespace DocsPortingTool.Docs
 
         public void CollectFiles()
         {
+            Log.Info("Looking for Docs xml files...");
+
             foreach (FileInfo fileInfo in EnumerateFiles())
             {
                 LoadFile(fileInfo);
             }
+
+            Log.Success("Finished looking for Docs xml files.");
             Log.Line();
         }
 
@@ -133,51 +103,44 @@ namespace DocsPortingTool.Docs
             }
         }
 
-        private bool HasAllowedName(FileInfo fileInfo)
+        private bool HasAllowedDirName(DirectoryInfo dirInfo)
+        {
+            return !Configuration.ForbiddenDirectories.Contains(dirInfo.Name) && !dirInfo.Name.EndsWith(".Tests");
+        }
+
+        private bool HasAllowedFileName(FileInfo fileInfo)
         {
             return !fileInfo.Name.StartsWith("ns-") &&
                 fileInfo.Name != "index.xml" &&
                 fileInfo.Name != "_filter.xml";
         }
 
-        private List<FileInfo> EnumerateFiles()
+        private IEnumerable<FileInfo> EnumerateFiles()
         {
-            Log.Info("Looking for Docs xml files...");
-
-            List<FileInfo> fileInfos = new List<FileInfo>();
+            var includedAssembliesAndNamespaces = Config.IncludedAssemblies.Concat(Config.IncludedNamespaces);
+            var excludedAssembliesAndNamespaces = Config.ExcludedAssemblies.Concat(Config.ExcludedNamespaces);
 
             foreach (DirectoryInfo rootDir in Config.DirsDocsXml)
             {
                 // Try to find folders with the names of assemblies AND namespaces (if the user specified any)
-                foreach (string included in Config.IncludedAssemblies.Concat(Config.IncludedNamespaces))
+                foreach (string included in includedAssembliesAndNamespaces)
                 {
+                    // If the user specified a sub-assembly or sub-namespace to exclude, we need to skip it
+                    if (excludedAssembliesAndNamespaces.Any(excluded => included.StartsWith(excluded)))
+                    {
+                        continue;
+                    }
+
                     foreach (DirectoryInfo subDir in rootDir.EnumerateDirectories($"{included}*", SearchOption.TopDirectoryOnly))
                     {
-                        if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) && !subDir.Name.EndsWith(".Tests"))
+                        if (HasAllowedDirName(subDir))
                         {
                             foreach (FileInfo fileInfo in subDir.EnumerateFiles("*.xml", SearchOption.AllDirectories))
                             {
-                                if (HasAllowedName(fileInfo))
+                                if (HasAllowedFileName(fileInfo))
                                 {
-                                    string nameWithoutExtension = fileInfo.Name.Replace(".xml", string.Empty);
-                                    if (Config.IncludedTypes.Count > 0)
-                                    {
-                                        if (Config.IncludedTypes.Contains(nameWithoutExtension))
-                                        {
-                                            fileInfos.Add(fileInfo);
-                                        }
-                                    }
-                                    else if (Config.ExcludedTypes.Count > 0)
-                                    {
-                                        if (!Config.ExcludedTypes.Contains(nameWithoutExtension))
-                                        {
-                                            fileInfos.Add(fileInfo);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        fileInfos.Add(fileInfo);
-                                    }
+                                    // LoadFile will determine if the Type is allowed or not
+                                    yield return fileInfo;
                                 }
                             }
                         }
@@ -185,20 +148,20 @@ namespace DocsPortingTool.Docs
 
                     if (!Config.SkipInterfaceImplementations)
                     {
-                        // Find interfaces
+                        // Find interfaces only inside System.* folders.
+                        // Including Microsoft.* folders reaches the max limit of files to include in a list, plus there are no essential interfaces there.
                         foreach (DirectoryInfo subDir in rootDir.EnumerateDirectories("System*", SearchOption.AllDirectories))
                         {
                             if (!Configuration.ForbiddenDirectories.Contains(subDir.Name) &&
                                 // Exclude any folder that starts with the excluded assemblies OR excluded namespaces
-                                Config.ExcludedAssemblies.Concat(Config.ExcludedNamespaces).Count(excluded => subDir.Name.StartsWith(excluded)) == 0 &&
-                                !subDir.Name.EndsWith(".Tests"))
+                                !excludedAssembliesAndNamespaces.Any(excluded => subDir.Name.StartsWith(excluded)) && !subDir.Name.EndsWith(".Tests"))
                             {
+                                // Ensure including interface files that start with I and then an uppercase letter, and prevent including files like 'Int'
                                 foreach (FileInfo fileInfo in subDir.EnumerateFiles("I*.xml", SearchOption.AllDirectories))
                                 {
-                                    // Ensure including interface files that start with I and then an uppercase letter, and prevent including files like 'Int'
                                     if (fileInfo.Name[1] >= 'A' || fileInfo.Name[1] <= 'Z')
                                     {
-                                        fileInfos.Add(fileInfo);
+                                        yield return fileInfo;
                                     }
                                 }
                             }
@@ -206,23 +169,6 @@ namespace DocsPortingTool.Docs
                     }
                 }
             }
-
-            Log.Success("Finished looking for Docs xml files");
-
-            return fileInfos;
-        }
-
-        private bool IsAssemblyExcluded(DocsType docsType)
-        {
-            foreach (string excluded in Config.ExcludedAssemblies)
-            {
-                if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(excluded)) > 0 || docsType.FullName.StartsWith(excluded))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private void LoadFile(FileInfo fileInfo)
@@ -233,41 +179,10 @@ namespace DocsPortingTool.Docs
                 return;
             }
 
-            if (fileInfo.Name.StartsWith("ns-"))
-            {
-                Log.Warning($"Skipping namespace file: {fileInfo.FullName}");
-                return;
-            }
-
             xDoc = XDocument.Load(fileInfo.FullName);
 
-            if (xDoc.Root == null)
+            if (IsXmlMalformed(xDoc, fileInfo.FullName))
             {
-                Log.Error($"Docs xml file does not have a root element: {fileInfo.FullName}");
-                return;
-            }
-
-            if (xDoc.Root.Name == "Namespace")
-            {
-                Log.Error($"Skipping namespace file (should have been filtered already): {fileInfo.FullName}");
-                return;
-            }
-
-            if (xDoc.Root.Name != "Type")
-            {
-                Log.Error($"Docs xml file does not have a 'Type' root element: {fileInfo.FullName}");
-                return;
-            }
-
-            if (!xDoc.Root.HasElements)
-            {
-                Log.Error($"Docs xml file Type element does not have any children: {fileInfo.FullName}");
-                return;
-            }
-
-            if (xDoc.Root.Elements("Docs").Count() != 1)
-            {
-                Log.Error($"Docs xml file Type element does not have a Docs child: {fileInfo.FullName}");
                 return;
             }
 
@@ -276,7 +191,11 @@ namespace DocsPortingTool.Docs
             bool add = false;
             bool addedAsInterface = false;
 
-            if (!IsAssemblyExcluded(docsType))
+            bool containsForbiddenAssembly = docsType.AssemblyInfos.Any(assemblyInfo =>
+                                                Config.ExcludedAssemblies.Any(excluded => assemblyInfo.AssemblyName.StartsWith(excluded)) ||
+                                                Config.ExcludedNamespaces.Any(excluded => assemblyInfo.AssemblyName.StartsWith(excluded)));
+
+            if (!containsForbiddenAssembly)
             {
                 // If it's an interface, always add it if the user wants to detect EIIs,
                 // even if it's in an assembly that was not included but was not explicitly excluded
@@ -289,36 +208,27 @@ namespace DocsPortingTool.Docs
 
                 }
 
-                // If it was already added above as an interface, skip this part
-                // Otherwise, find out if the type belongs to the included assemblies, and if specified, to the included (and not excluded) types
-                // This includes interfaces even if user wants to skip EIIs - They will be added if they belong to this namespace or to the list of 
-                // included (and not exluded) types, but will not be used for EII, but rather as normal types whose comments should be ported
-                if (!addedAsInterface)
+                bool containsAllowedAssembly = docsType.AssemblyInfos.Any(assemblyInfo =>
+                                                    Config.IncludedAssemblies.Any(included => assemblyInfo.AssemblyName.StartsWith(included)) ||
+                                                    Config.IncludedNamespaces.Any(included => assemblyInfo.AssemblyName.StartsWith(included)));
+
+                if (containsAllowedAssembly)
                 {
-                    foreach (string included in Config.IncludedAssemblies.Concat(Config.IncludedNamespaces))
+                    // If it was already added above as an interface, skip this part
+                    // Otherwise, find out if the type belongs to the included assemblies, and if specified, to the included (and not excluded) types
+                    // This includes interfaces even if user wants to skip EIIs - They will be added if they belong to this namespace or to the list of 
+                    // included (and not exluded) types, but will not be used for EII, but rather as normal types whose comments should be ported
+                    if (!addedAsInterface)
                     {
-                        if (docsType.AssemblyInfos.Count(x => x.AssemblyName.StartsWith(included)) > 0 ||
-                            docsType.FullName.StartsWith(included))
+                        // Either the user didn't specify namespace filtering (allow all namespaces) or specified particular ones to include/exclude
+                        if (!Config.IncludedNamespaces.Any() ||
+                                (Config.IncludedNamespaces.Any(included => docsType.Namespace.StartsWith(included)) &&
+                                 !Config.ExcludedNamespaces.Any(excluded => docsType.Namespace.StartsWith(excluded))))
                         {
-                            add = true;
-
-                            if (Config.IncludedTypes.Count() > 0)
-                            {
-                                if (!Config.IncludedTypes.Contains(docsType.Name))
-                                {
-                                    add = false;
-                                }
-                            }
-
-                            if (Config.ExcludedTypes.Count() > 0)
-                            {
-                                if (Config.ExcludedTypes.Contains(docsType.Name))
-                                {
-                                    add = false;
-                                }
-                            }
-
-                            break;
+                            // Can add if the user didn't specify type filtering (allow all types), or specified particular ones to include/exclude
+                            add = !Config.IncludedTypes.Any() ||
+                                    (Config.IncludedTypes.Contains(docsType.Name) &&
+                                     !Config.ExcludedTypes.Contains(docsType.Name));
                         }
                     }
                 }
@@ -353,6 +263,41 @@ namespace DocsPortingTool.Docs
                     Log.Success(message);
                 }
             }
+        }
+
+        private bool IsXmlMalformed(XDocument xDoc, string fileName)
+        {
+            if (xDoc.Root == null)
+            {
+                Log.Error($"Docs xml file does not have a root element: {fileName}");
+                return true;
+            }
+
+            if (xDoc.Root.Name == "Namespace")
+            {
+                Log.Error($"Skipping namespace file (should have been filtered already): {fileName}");
+                return true;
+            }
+
+            if (xDoc.Root.Name != "Type")
+            {
+                Log.Error($"Docs xml file does not have a 'Type' root element: {fileName}");
+                return true;
+            }
+
+            if (!xDoc.Root.HasElements)
+            {
+                Log.Error($"Docs xml file Type element does not have any children: {fileName}");
+                return true;
+            }
+
+            if (xDoc.Root.Elements("Docs").Count() != 1)
+            {
+                Log.Error($"Docs xml file Type element does not have a Docs child: {fileName}");
+                return true;
+            }
+
+            return false;
         }
     }
 }

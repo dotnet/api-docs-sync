@@ -32,5 +32,7 @@ namespace DocsPortingTool.Docs
         {
             XEAssemblyInfo = xeAssemblyInfo;
         }
+
+        public override string ToString() => AssemblyName;
     }
 }

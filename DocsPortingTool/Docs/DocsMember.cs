@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
 
 namespace DocsPortingTool.Docs
@@ -62,17 +60,14 @@ namespace DocsPortingTool.Docs
                 if (_docId == null)
                 {
                     _docId = string.Empty;
-                    DocsMemberSignature ms = MemberSignatures.FirstOrDefault(x => x.Language == "DocId");
+                    DocsMemberSignature? ms = MemberSignatures.FirstOrDefault(x => x.Language == "DocId");
                     if (ms == null)
                     {
                         string message = string.Format("Could not find a DocId MemberSignature for '{0}'", MemberName);
                         Log.Error(message);
-                        throw new NullReferenceException(message);
+                        throw new MissingMemberException(message);
                     }
-                    else
-                    {
-                        _docId = ms.Value;
-                    }
+                     _docId = ms.Value;
                 }
                 return _docId;
             }

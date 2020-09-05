@@ -1,5 +1,5 @@
-﻿<Type Name="MyType" FullName="MyNamespace.MyType">
-  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType" />
+﻿<Type Name="MyType" FullName="MyAssembly.MyType">
+  <TypeSignature Language="DocId" Value="T:MyAssembly.MyType" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
     <AssemblyVersion>4.0.0.0</AssemblyVersion>
@@ -18,7 +18,7 @@
   </Docs>
   <Members>
     <Member MemberName="MyMethod">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyMethod" />
+      <MemberSignature Language="DocId" Value="M:MyAssembly.MyType.MyMethod" />
       <MemberType>Method</MemberType>
       <Implements />
       <AssemblyInfo>
@@ -35,7 +35,7 @@
       </Docs>
     </Member>
     <Member MemberName="MyInterfaceMethod">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyInterfaceMethod" />
+      <MemberSignature Language="DocId" Value="M:MyAssembly.MyType.MyInterfaceMethod" />
       <MemberType>Method</MemberType>
       <Implements>
         <InterfaceMember>M:System.IMyInterface.MyInterfaceMethod</InterfaceMember>
@@ -54,7 +54,7 @@
       </Docs>
     </Member>
     <Member MemberName="System.IMyInterface.MyInterfaceMethod">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.System#IMyInterface#MyInterfaceMethod" />
+      <MemberSignature Language="DocId" Value="M:MyAssembly.MyType.System#IMyInterface#MyInterfaceMethod" />
       <MemberType>Method</MemberType>
       <Implements>
         <InterfaceMember>M:System.IMyInterface.MyInterfaceMethod</InterfaceMember>

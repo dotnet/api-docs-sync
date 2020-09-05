@@ -69,11 +69,6 @@ namespace DocsPortingTool
         // Tries to find a triple slash element from which to port documentation for the specified Docs type.
         private void PortMissingCommentsForType(DocsType dTypeToUpdate)
         {
-            if (!CanAnalyzeAPI(dTypeToUpdate))
-            {
-                return;
-            }
-
             TripleSlashMember tsTypeToPort = TripleSlashComments.Members.FirstOrDefault(x => x.Name == dTypeToUpdate.DocIdEscaped);
             if (tsTypeToPort != null)
             {
@@ -96,12 +91,8 @@ namespace DocsPortingTool
         // Tries to find a triple slash element from which to port documentation for the specified Docs member.
         private void PortMissingCommentsForMember(DocsMember dMemberToUpdate)
         {
-            if (!CanAnalyzeAPI(dMemberToUpdate))
-            {
-                return;
-            }
-
-            TripleSlashMember tsMemberToPort = TripleSlashComments.Members.FirstOrDefault(x => x.Name == dMemberToUpdate.DocIdEscaped);
+            string docId = dMemberToUpdate.DocIdEscaped;
+            TripleSlashMember tsMemberToPort = TripleSlashComments.Members.FirstOrDefault(x => x.Name == docId);
             TryGetEIIMember(dMemberToUpdate, out DocsMember? interfacedMember);
 
             if (tsMemberToPort != null || interfacedMember != null)
@@ -705,80 +696,6 @@ namespace DocsPortingTool
             return string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
         }
 
-        private bool CanAnalyzeAPI(DocsAPI api)
-        {
-            bool result = IsTypeAllowed(api);
-            if (result)
-            {
-                foreach (DocsAssemblyInfo apiAssembly in api.AssemblyInfos)
-                {
-                    foreach (string excluded in Config.ExcludedAssemblies)
-                    {
-                        if (apiAssembly.AssemblyName.StartsWith(excluded))
-                        {
-                            return false; // No more analysis required
-                        }
-                    }
-
-                    foreach (string included in Config.IncludedAssemblies)
-                    {
-                        if (apiAssembly.AssemblyName.StartsWith(included))
-                        {
-                            result = true; // Almost done, need to check types if needed
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        private bool IsTypeAllowed(DocsAPI api)
-        {
-            // All types are allowed
-            if (Config.ExcludedTypes.Count() == 0 &&
-                Config.IncludedTypes.Count() == 0)
-            {
-                return true;
-            }
-
-            string typeName;
-            string typeFullName;
-
-            if (api is DocsType type)
-            {
-                typeName = type.Name;
-                typeFullName = type.FullName;
-            }
-            else if (api is DocsMember member)
-            {
-                typeName = member.ParentType.Name;
-                typeFullName = member.ParentType.FullName;
-            }
-            else
-            {
-                throw new InvalidCastException();
-            }
-
-            if (Config.ExcludedTypes.Count() > 0)
-            {
-                if (Config.ExcludedTypes.Contains(typeName) || Config.ExcludedTypes.Contains(typeFullName))
-                {
-                    return false;
-                }
-            }
-            if (Config.IncludedTypes.Count() > 0)
-            {
-                if (Config.IncludedTypes.Contains(typeName) || Config.IncludedTypes.Contains(typeFullName))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Standard formatted print message for a modified element.
         /// </summary>
@@ -939,21 +856,21 @@ namespace DocsPortingTool
             Log.Info($"Total modified files: {ModifiedFiles.Count}");
             foreach (string file in ModifiedFiles)
             {
-                Log.Warning($"    - {file}");
+                Log.Success($"    - {file}");
             }
 
             Log.Line();
             Log.Info($"Total modified types: {ModifiedTypes.Count}");
             foreach (string type in ModifiedTypes)
             {
-                Log.Warning($"    - {type}");
+                Log.Success($"    - {type}");
             }
 
             Log.Line();
             Log.Info($"Total modified APIs: {ModifiedAPIs.Count}");
             foreach (string api in ModifiedAPIs)
             {
-                Log.Warning($"    - {api}");
+                Log.Success($"    - {api}");
             }
 
             Log.Line();
@@ -967,12 +884,12 @@ namespace DocsPortingTool
             Log.Info($"Total added exceptions: {AddedExceptions.Count}");
             foreach (string exception in AddedExceptions)
             {
-                Log.Warning($"    - {exception}");
+                Log.Success($"    - {exception}");
             }
 
             Log.Line();
             Log.Info(false, "Total modified individual elements: ");
-            Log.Warning($"{TotalModifiedIndividualElements}");
+            Log.Success($"{TotalModifiedIndividualElements}");
         }
     }
 }

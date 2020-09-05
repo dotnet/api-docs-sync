@@ -69,7 +69,7 @@ namespace DocsPortingTool
         // Tries to find a triple slash element from which to port documentation for the specified Docs type.
         private void PortMissingCommentsForType(DocsType dTypeToUpdate)
         {
-            TripleSlashMember tsTypeToPort = TripleSlashComments.Members.FirstOrDefault(x => x.Name == dTypeToUpdate.DocIdEscaped);
+            TripleSlashMember? tsTypeToPort = TripleSlashComments.Members.FirstOrDefault(x => x.Name == dTypeToUpdate.DocIdEscaped);
             if (tsTypeToPort != null)
             {
                 if (tsTypeToPort.Name == dTypeToUpdate.DocIdEscaped)
@@ -92,7 +92,7 @@ namespace DocsPortingTool
         private void PortMissingCommentsForMember(DocsMember dMemberToUpdate)
         {
             string docId = dMemberToUpdate.DocIdEscaped;
-            TripleSlashMember tsMemberToPort = TripleSlashComments.Members.FirstOrDefault(x => x.Name == docId);
+            TripleSlashMember? tsMemberToPort = TripleSlashComments.Members.FirstOrDefault(x => x.Name == docId);
             TryGetEIIMember(dMemberToUpdate, out DocsMember? interfacedMember);
 
             if (tsMemberToPort != null || interfacedMember != null)
@@ -290,7 +290,7 @@ namespace DocsPortingTool
                         name = string.Empty;
                         value = string.Empty;
 
-                        TripleSlashParam tsParam = tsMemberToPort.Params.FirstOrDefault(x => x.Name == dParam.Name);
+                        TripleSlashParam? tsParam = tsMemberToPort.Params.FirstOrDefault(x => x.Name == dParam.Name);
 
                         // When not found, it's a bug in Docs (param name not the same as source/ref), so need to ask the user to indicate correct name
                         if (tsParam == null)
@@ -322,7 +322,7 @@ namespace DocsPortingTool
                                     // or try to find if it implements a documented interface
                                     else if (interfacedMember != null)
                                     {
-                                        DocsParam interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == newTsParam.Name || x.Name == dParam.Name);
+                                        DocsParam? interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == newTsParam.Name || x.Name == dParam.Name);
                                         if (interfacedParam != null)
                                         {
                                             dParam.Value = interfacedParam.Value;
@@ -345,7 +345,7 @@ namespace DocsPortingTool
                         // or try to find if it implements a documented interface
                         else if (interfacedMember != null)
                         {
-                            DocsParam interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == dParam.Name);
+                            DocsParam? interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == dParam.Name);
                             if (interfacedParam != null)
                             {
                                 dParam.Value = interfacedParam.Value;
@@ -371,7 +371,7 @@ namespace DocsPortingTool
                 {
                     if (IsEmpty(dParam.Value))
                     {
-                        DocsParam interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == dParam.Name);
+                        DocsParam? interfacedParam = interfacedMember.Params.FirstOrDefault(x => x.Name == dParam.Name);
                         if (interfacedParam != null && !IsEmpty(interfacedParam.Value))
                         {
                             dParam.Value = interfacedParam.Value;
@@ -402,7 +402,7 @@ namespace DocsPortingTool
                     string name = string.Empty;
                     string value = string.Empty;
 
-                    DocsTypeParam dTypeParam = dApiToUpdate.TypeParams.FirstOrDefault(x => x.Name == tsTypeParam.Name);
+                    DocsTypeParam? dTypeParam = dApiToUpdate.TypeParams.FirstOrDefault(x => x.Name == tsTypeParam.Name);
 
                     bool created = false;
                     if (dTypeParam == null)
@@ -424,7 +424,7 @@ namespace DocsPortingTool
                         // or try to find if it implements a documented interface
                         else if (interfacedMember != null)
                         {
-                            DocsTypeParam interfacedTypeParam = interfacedMember.TypeParams.FirstOrDefault(x => x.Name == dTypeParam.Name);
+                            DocsTypeParam? interfacedTypeParam = interfacedMember.TypeParams.FirstOrDefault(x => x.Name == dTypeParam.Name);
                             if (interfacedTypeParam != null)
                             {
                                 name = interfacedTypeParam.Name;
@@ -556,11 +556,11 @@ namespace DocsPortingTool
                 // Exceptions are a special case: If a new one is found in code, but does not exist in docs, the whole element needs to be added
                 foreach (TripleSlashException tsException in tsMemberToPort.Exceptions)
                 {
-                    DocsException dException = dMemberToUpdate.Exceptions.FirstOrDefault(x => x.Cref == tsException.Cref);
+                    DocsException? dException = dMemberToUpdate.Exceptions.FirstOrDefault(x => x.Cref == tsException.Cref);
                     bool created = false;
 
                     // First time adding the cref
-                    if (Config.PortExceptionsNew && dException == null)
+                    if (dException == null && Config.PortExceptionsNew)
                     {
                         AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
                         string text = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(tsException.XEException));
@@ -568,7 +568,7 @@ namespace DocsPortingTool
                         created = true;
                     }
                     // If cref exists, check if the text has already been appended
-                    else if (Config.PortExceptionsExisting)
+                    else if (dException != null && Config.PortExceptionsExisting)
                     {
                         XElement formattedException = tsException.XEException;
                         string value = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(formattedException));
@@ -580,12 +580,15 @@ namespace DocsPortingTool
                         }
                     }
 
-                    if (created || (!IsEmpty(tsException.Value) && IsEmpty(dException.Value)))
+                    if (dException !=  null)
                     {
-                        string message = string.Format($"Exception ({GetIsCreated(created)}) {dException.Cref.Escaped()} = {dException.Value.Escaped()}");
-                        PrintModifiedMember(message, dException.ParentAPI.FilePath, dException.Cref);
+                        if (created || (!IsEmpty(tsException.Value) && IsEmpty(dException.Value)))
+                        {
+                            string message = string.Format($"Exception ({GetIsCreated(created)}) {dException.Cref.Escaped()} = {dException.Value.Escaped()}");
+                            PrintModifiedMember(message, dException.ParentAPI.FilePath, dException.Cref);
 
-                        TotalModifiedIndividualElements++;
+                            TotalModifiedIndividualElements++;
+                        }
                     }
                 }
             }

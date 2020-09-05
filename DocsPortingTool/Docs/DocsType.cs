@@ -86,12 +86,12 @@ namespace DocsPortingTool.Docs
             {
                 if (_docId == null)
                 {
-                    DocsTypeSignature dts = TypeSignatures.FirstOrDefault(x => x.Language == "DocId");
+                    DocsTypeSignature? dts = TypeSignatures.FirstOrDefault(x => x.Language == "DocId");
                     if (dts == null)
                     {
                         string message = $"DocId TypeSignature not found for FullName";
                         Log.Error($"DocId TypeSignature not found for FullName");
-                        throw new Exception(message);
+                        throw new MissingMemberException(message);
                     }
                     _docId = dts.Value;
                 }

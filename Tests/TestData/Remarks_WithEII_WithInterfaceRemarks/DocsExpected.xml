@@ -21,7 +21,7 @@
 
 These are the type remarks. They also have a cref link: <xref:MyNamespace.MyType.MyMethod()>.
 
-          ]]></format>
+      ]]></format>
     </remarks>
   </Docs>
   <Members>

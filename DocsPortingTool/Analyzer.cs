@@ -51,6 +51,12 @@ namespace DocsPortingTool
             DocsComments.Save();
         }
 
+        // Checks if the passed string is considered "empty" according to the Docs repo rules.
+        internal static bool IsEmpty(string? s)
+        {
+            return string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
+        }
+
         private void PortMissingComments()
         {
             Log.Info("Looking for triple slash comments that can be ported...");
@@ -691,12 +697,6 @@ namespace DocsPortingTool
             }
 
             return created;
-        }
-
-        // Checks if the passed string is considered "empty" according to the Docs repo rules.
-        private bool IsEmpty(string? s)
-        {
-            return string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
         }
 
         /// <summary>

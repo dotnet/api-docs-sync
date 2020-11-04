@@ -115,7 +115,14 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                SaveFormattedAsXml("returns", value);
+                if (ReturnType != "System.Void")
+                {
+                    SaveFormattedAsXml("returns", value, addIfMissing: false);
+                }
+                else
+                {
+                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocIdEscaped}");
+                }
             }
         }
 
@@ -127,7 +134,7 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                SaveFormattedAsXml("summary", value);
+                SaveFormattedAsXml("summary", value, addIfMissing: true);
             }
         }
 
@@ -139,7 +146,7 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                SaveFormattedAsMarkdown("remarks", value);
+                SaveFormattedAsMarkdown("remarks", value, addIfMissing: !Analyzer.IsEmpty(value), isMember: true);
             }
         }
 
@@ -151,7 +158,14 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                SaveFormattedAsXml("value", value);
+                if (MemberType == "Property")
+                {
+                    SaveFormattedAsXml("value", value, addIfMissing: true);
+                }
+                else
+                {
+                    Log.Warning($"Attempted to save a value element for an API that is not a property: {DocIdEscaped}");
+                }
             }
         }
 

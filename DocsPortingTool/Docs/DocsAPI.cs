@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -182,11 +183,11 @@ namespace DocsPortingTool.Docs
 
         protected string GetNodesInPlainText(string name)
         {
-            if (TryGetElement(name, out XElement element))
+            if (TryGetElement(name, addIfMissing: false, out XElement? element))
             {
                 if (name == "remarks")
                 {
-                    XElement formatElement = element.Element("format");
+                    XElement? formatElement = element.Element("format");
                     if (formatElement != null)
                     {
                         element = formatElement;
@@ -198,37 +199,36 @@ namespace DocsPortingTool.Docs
             return string.Empty;
         }
 
-        protected void SaveFormattedAsXml(string name, string value)
+        protected void SaveFormattedAsXml(string name, string value, bool addIfMissing)
         {
-            if (TryGetElement(name, out XElement element))
+            if (TryGetElement(name, addIfMissing, out XElement? element))
             {
                 XmlHelper.SaveFormattedAsXml(element, value);
                 Changed = true;
             }
         }
 
-        protected void SaveFormattedAsMarkdown(string name, string value)
+        protected void SaveFormattedAsMarkdown(string name, string value, bool addIfMissing, bool isMember)
         {
-            if (TryGetElement(name, out XElement element))
+            if (TryGetElement(name, addIfMissing, out XElement? element))
             {
-                XmlHelper.SaveFormattedAsMarkdown(element, value);
+                XmlHelper.SaveFormattedAsMarkdown(element, value, isMember);
                 Changed = true;
             }
         }
 
-        // Returns true if the element existed, false if it had to be created with "To be added." as value.
-        private bool TryGetElement(string name, out XElement element)
+        // Returns true if the element existed or had to be created with "To be added." as value. Returns false the element was not found and a new one was not created.
+        private bool TryGetElement(string name, bool addIfMissing, [NotNullWhen(returnValue: true)] out XElement? element)
         {
             element = Docs.Element(name);
 
-            if (element == null)
+            if (element == null && addIfMissing)
             {
                 element = new XElement(name);
                 XmlHelper.AddChildFormattedAsXml(Docs, element, Configuration.ToBeAdded);
-                return false;
             }
 
-            return true;
+            return element != null;
         }
     }
 }

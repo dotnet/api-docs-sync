@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name="T:MyNamespace.MyEnum">
+      <summary>This is the enum type summary.</summary>
+      <remarks>This is the enum type remark.</remarks>
+    </member>
+    <member name="F:MyNamespace.MyEnum.MyOption0">
+      <summary>This is the first option of MyEnum. Notice it has no remark.</summary>
+    </member>
+    <member name="F:MyNamespace.MyEnum.MyOption1">
+      <summary>This is the second option of MyEnum. Notice it has a remark.</summary>
+      <remarks>This is the second option remark.</remarks>
+    </member>
+  </members>
+</doc>

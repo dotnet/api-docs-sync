@@ -14,6 +14,12 @@ namespace DocsPortingTool.Tests
         }
 
         [Fact]
+        public void Port_DontAddMissingRemarks()
+        {
+            Port("DontAddMissingRemarks");
+        }
+
+        [Fact]
         // Verifies porting of APIs living in namespaces whose name match their assembly.
         public void Port_AssemblyAndNamespaceSame()
         {

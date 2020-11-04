@@ -27,13 +27,13 @@ Example:
 Assumptions for the example in the instructions:
 
 - Your source code project is dotnet/runtime.
-    - _But it can be any project that generates xml documentation, like WPF or WinForms._
+    - _But it can be any project that generates xml documentation, like WPF, WinForms or WCF._
 - Your docs project is dotnet/dotnet-api-docs.
-    - _But it can be any documentation project that contains xmls, like AspNetApiDocs._
+    - _But it can be any other documentation project that contains xmls, like dotnet/AspNetApiDocs._
 - The location of your github projects is the D:\ drive.
-    - _Your clones can be in any other folder ._
+    - _Your git clones can be in any other folder ._
 - You want to port comments from the System.IO.FileSystem assembly.
-    - _It can be any namespace or group of namespaces._
+    - _It can be any combination of assemblies or namespaces._
 
 Steps:
 
@@ -42,7 +42,16 @@ Steps:
 3. Clone this repo (carlossanlop/DocsPortingTool).
 4. Run the command with the desired arguments.
 
+
+### Install
+
 You can run `./install-as-tool.ps1` to install as a dotnet tool in your PATH.
+
+Instructions for installing: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-tool-install
+
+Don't forget to update it before using in the future, in case any improvements have been added.
+
+Instructions for updating: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-tool-update
 
 
 ### Command line options

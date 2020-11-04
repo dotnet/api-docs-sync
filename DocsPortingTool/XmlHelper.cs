@@ -134,7 +134,7 @@ namespace DocsPortingTool
             return string.Join("", element.Nodes()).Trim();
         }
 
-        public static void SaveFormattedAsMarkdown(XElement element, string newValue)
+        public static void SaveFormattedAsMarkdown(XElement element, string newValue, bool isMember)
         {
             if (element == null)
             {
@@ -157,7 +157,9 @@ namespace DocsPortingTool
                 remarksTitle = "## Remarks\r\n\r\n";
             }
 
-            xeFormat.ReplaceAll(new XCData("\r\n\r\n" + remarksTitle + updatedValue + "\r\n\r\n          "));
+            string spaces = isMember ? "          " : "      ";
+
+            xeFormat.ReplaceAll(new XCData("\r\n\r\n" + remarksTitle + updatedValue + "\r\n\r\n" + spaces));
 
             // Attribute at the end, otherwise it would be replaced by ReplaceAll
             xeFormat.SetAttributeValue("type", "text/markdown");
@@ -165,7 +167,7 @@ namespace DocsPortingTool
             element.Add(xeFormat);
         }
 
-        public static void AddChildFormattedAsMarkdown(XElement parent, XElement child, string childValue)
+        public static void AddChildFormattedAsMarkdown(XElement parent, XElement child, string childValue, bool isMember)
         {
             if (parent == null)
             {
@@ -179,7 +181,7 @@ namespace DocsPortingTool
                 throw new ArgumentNullException(nameof(child));
             }
 
-            SaveFormattedAsMarkdown(child, childValue);
+            SaveFormattedAsMarkdown(child, childValue, isMember);
             parent.Add(child);
         }
 

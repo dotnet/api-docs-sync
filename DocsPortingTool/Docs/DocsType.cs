@@ -160,7 +160,7 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                SaveFormattedAsXml("summary", value);
+                SaveFormattedAsXml("summary", value, addIfMissing: true);
             }
         }
 
@@ -172,7 +172,7 @@ namespace DocsPortingTool.Docs
             }
             set
             {
-                SaveFormattedAsMarkdown("remarks", value);
+                SaveFormattedAsMarkdown("remarks", value, addIfMissing: !Analyzer.IsEmpty(value), isMember: false);
             }
         }
 

@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Program": {
+      "commandName": "Project",
+      "commandLineArgs": "-CsProj D:\\runtime\\src\\libraries\\System.IO.Compression\\src\\System.IO.Compression.csproj -Docs D:\\dotnet-api-docs\\xml -Save true -Direction ToTripleSlash -IncludedAssemblies System.IO.Compression,System.IO.Compression.Brotli -SkipInterfaceImplementations true",
+      "environmentVariables": {
+        "DOCS_IOT": "D:\\iot\\artifacts\\bin",
+        "DOCS_CORECLR": "D:\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\",
+        "DOCS_WINFORMS": "D:\\winforms\\artifacts\\bin\\",
+        "DOCS_WPF": "D:\\wpf\\.tools\\native\\bin\\dotnet-api-docs_netcoreapp3.0\\0.0.0.1\\_intellisense\\\\netcore-3.0\\",
+        "DOCS_RUNTIME": "D:\\runtime\\artifacts\\bin\\"
+      }
+    }
+  }
+}

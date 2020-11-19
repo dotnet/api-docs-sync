@@ -2,7 +2,7 @@
 using System.IO;
 using Xunit;
 
-namespace DocsPortingTool.Tests
+namespace Libraries.Tests
 {
     public class TestDirectory : IDisposable
     {

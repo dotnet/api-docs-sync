@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
-namespace DocsPortingTool.Tests
+namespace Libraries.Tests
 {
     public class Tests
     {
@@ -10,60 +9,60 @@ namespace DocsPortingTool.Tests
         // Verifies the basic case of porting all regular fields.
         public void Port_Basic()
         {
-            Port("Basic");
+            PortToDocs("Basic");
         }
 
         [Fact]
         public void Port_DontAddMissingRemarks()
         {
-            Port("DontAddMissingRemarks");
+            PortToDocs("DontAddMissingRemarks");
         }
 
         [Fact]
         // Verifies porting of APIs living in namespaces whose name match their assembly.
         public void Port_AssemblyAndNamespaceSame()
         {
-            Port("AssemblyAndNamespaceSame");
+            PortToDocs("AssemblyAndNamespaceSame");
         }
 
         [Fact]
         // Verifies porting of APIs living in namespaces whose name does not match their assembly.
         public void Port_AssemblyAndNamespaceDifferent()
         {
-            Port("AssemblyAndNamespaceDifferent",
+            PortToDocs("AssemblyAndNamespaceDifferent",
                 assemblyName: "MyAssembly",
                 namespaceName: "MyNamespace");
         }
 
         [Fact]
-        // Ports Type remarks from triple slash.
-        // Ports Method remarks from triple slash.
+        // Ports Type remarks from IntelliSense xml.
+        // Ports Method remarks from IntelliSense xml.
         // No interface strings should be ported.
         public void Port_Remarks_NoEII_NoInterfaceRemarks()
         {
-            Port("Remarks_NoEII_NoInterfaceRemarks",
+            PortToDocs("Remarks_NoEII_NoInterfaceRemarks",
                 skipInterfaceImplementations: true,
                 skipInterfaceRemarks: true);
         }
 
         [Fact]
-        // Ports Type remarks from triple slash.
-        // Ports Method remarks from triple slash.
+        // Ports Type remarks from IntelliSense xml.
+        // Ports Method remarks from IntelliSense xml.
         // Ports EII message and interface method remarks.
         public void Port_Remarks_WithEII_WithInterfaceRemarks()
         {
-            Port("Remarks_WithEII_WithInterfaceRemarks",
+            PortToDocs("Remarks_WithEII_WithInterfaceRemarks",
                 skipInterfaceImplementations: false,
                 skipInterfaceRemarks: false);
         }
 
         [Fact]
-        // Ports Type remarks from triple slash.
-        // Ports Method remarks from triple slash.
+        // Ports Type remarks from IntelliSense xml.
+        // Ports Method remarks from IntelliSense xml.
         // Ports EII message but no interface method remarks.
         public void Port_Remarks_WithEII_NoInterfaceRemarks()
         {
-            Port("Remarks_WithEII_NoInterfaceRemarks",
+            PortToDocs("Remarks_WithEII_NoInterfaceRemarks",
                 skipInterfaceImplementations: false,
                 skipInterfaceRemarks: true);
         }
@@ -72,7 +71,7 @@ namespace DocsPortingTool.Tests
         /// Verifies that new exceptions are ported.
         public void Port_Exceptions()
         {
-            Port("Exceptions");
+            PortToDocs("Exceptions");
         }
 
         [Fact]
@@ -80,12 +79,12 @@ namespace DocsPortingTool.Tests
         /// language review, does not get ported if its above the difference threshold.
         public void Port_Exception_ExistingCref()
         {
-            Port("Exception_ExistingCref",
+            PortToDocs("Exception_ExistingCref",
                 portExceptionsExisting: true,
                 exceptionCollisionThreshold: 60);
         }
 
-        private void Port(
+        private void PortToDocs(
             string testDataDir,
             bool disablePrompts = true,
             bool printUndoc = false,
@@ -132,10 +131,10 @@ namespace DocsPortingTool.Tests
             }
 
             c.DirsDocsXml.Add(testData.Docs);
-            c.DirsTripleSlashXmls.Add(testData.TripleSlash);
+            c.DirsIntelliSense.Add(testData.IntelliSenseAndDLL);
 
-            Analyzer analyzer = new Analyzer(c);
-            analyzer.Start();
+            var porter = new ToDocsPorter(c);
+            porter.Start();
 
             Verify(testData);
         }

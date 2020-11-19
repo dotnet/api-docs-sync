@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using Xunit;
 
-namespace DocsPortingTool.Tests
+namespace Libraries.Tests
 {
     public class TestData
     {
@@ -14,10 +14,10 @@ namespace DocsPortingTool.Tests
         public string Assembly { get; private set; }
         public string Namespace { get; private set; }
         public string Type { get; private set; }
-        public DirectoryInfo TripleSlash { get; private set; }
+        public DirectoryInfo IntelliSenseAndDLL { get; private set; }
         public DirectoryInfo Docs { get; private set; }
 
-        /// <summary>Triple slash xml file.</summary>
+        /// <summary>IntelliSense xml file.</summary>
         public string OriginalFilePath { get; private set; }
         /// <summary>Docs file as we should expect it to look.</summary>
         public string ExpectedFilePath { get; private set; }
@@ -35,8 +35,8 @@ namespace DocsPortingTool.Tests
             Namespace = string.IsNullOrEmpty(namespaceName) ? assemblyName : namespaceName;
             Type = typeName;
 
-            TripleSlash = tempDir.CreateSubdirectory("TripleSlash");
-            DirectoryInfo tsAssemblyDir = TripleSlash.CreateSubdirectory(Assembly);
+            IntelliSenseAndDLL = tempDir.CreateSubdirectory("IntelliSenseAndDLL");
+            DirectoryInfo tsAssemblyDir = IntelliSenseAndDLL.CreateSubdirectory(Assembly);
 
             Docs = tempDir.CreateSubdirectory("Docs");
             DirectoryInfo docsAssemblyDir = Docs.CreateSubdirectory(Namespace);

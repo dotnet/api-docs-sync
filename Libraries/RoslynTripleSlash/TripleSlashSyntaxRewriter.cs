@@ -131,7 +131,7 @@ namespace Libraries.RoslynTripleSlash
 
             if (!UseBoilerplate)
             {
-                if (!TryGetType(node, symbol, out DocsType? type))
+                if (!TryGetType(symbol, out DocsType? type))
                 {
                     return node;
                 }
@@ -239,13 +239,6 @@ namespace Libraries.RoslynTripleSlash
                 XmlElementSyntax xmlRemarks = SyntaxFactory.XmlRemarksElement(xmlRemarksContent);
 
                 return GetXmlTrivia(xmlRemarks, leadingWhitespace);
-
-                //DocumentationCommentTriviaSyntax triviaNode = SyntaxFactory.DocumentationComment(SyntaxKind.SingleLineDocumentationCommentTrivia, content);
-                //SyntaxTrivia docCommentTrivia = SyntaxFactory.Trivia(triviaNode);
-
-                //return leadingWhitespace
-                //.Add(docCommentTrivia)
-                //.Add(SyntaxFactory.CarriageReturnLineFeed);
             }
 
             return new();
@@ -267,7 +260,7 @@ namespace Libraries.RoslynTripleSlash
 
         private SyntaxTriviaList GetTypeParam(string name, string text, SyntaxTriviaList leadingWhitespace)
         {
-            var attribute = new SyntaxList<XmlAttributeSyntax>(SyntaxFactory.XmlTextAttribute("name", text));
+            var attribute = new SyntaxList<XmlAttributeSyntax>(SyntaxFactory.XmlTextAttribute(name, text));
             SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(text);
             return GetXmlTrivia("typeparam", attribute, contents, leadingWhitespace);
         }
@@ -333,19 +326,32 @@ namespace Libraries.RoslynTripleSlash
         private SyntaxTokenList GetTextAsTokens(string text, SyntaxTriviaList leadingWhitespace)
         {
             string whitespace = leadingWhitespace.ToFullString().Replace(Environment.NewLine, "");
-            var tokens = new List<SyntaxToken>();
-            foreach (string line in text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
-            {
-                tokens.Add(SyntaxFactory.XmlTextNewLine(Environment.NewLine + whitespace)); // Needs to be textnewline, and below needs to be textliteral
-                tokens.Add(SyntaxFactory.XmlTextLiteral(SyntaxTriviaList.Create(SyntaxFactory.SyntaxTrivia(SyntaxKind.DocumentationCommentExteriorTrivia, string.Empty)), line, line, default));
-            }
+            SyntaxToken newLineAndWhitespace = SyntaxFactory.XmlTextNewLine(Environment.NewLine + whitespace);
 
+            SyntaxTrivia leadingTrivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.DocumentationCommentExteriorTrivia, string.Empty);
+            SyntaxTriviaList leading = SyntaxTriviaList.Create(leadingTrivia);
+
+            var tokens = new List<SyntaxToken>();
+            tokens.Add(newLineAndWhitespace);
+            foreach (string line in text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                SyntaxToken token = SyntaxFactory.XmlTextLiteral(leading, line, line, default);
+                tokens.Add(token);
+                tokens.Add(newLineAndWhitespace);
+            }
             return SyntaxFactory.TokenList(tokens);
         }
 
         private SyntaxList<XmlNodeSyntax> GetContentsInRows(string text)
         {
-            return new(SyntaxFactory.XmlText(text)); // TODO: Press enter!
+            var nodes = new SyntaxList<XmlNodeSyntax>();
+            foreach (string line in text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var tokenList = SyntaxFactory.ParseTokens(line).ToArray(); // Prevents unexpected change from "<" to "&lt;"
+                XmlTextSyntax xmlText = SyntaxFactory.XmlText(tokenList);
+                return nodes.Add(xmlText);
+            }
+            return nodes;
         }
 
         private SyntaxTriviaList GetXmlTrivia(XmlNodeSyntax node, SyntaxTriviaList leadingWhitespace)
@@ -393,7 +399,7 @@ namespace Libraries.RoslynTripleSlash
             return member != null;
         }
 
-        private bool TryGetType(SyntaxNode node, ISymbol symbol, [NotNullWhen(returnValue: true)] out DocsType? type)
+        private bool TryGetType(ISymbol symbol, [NotNullWhen(returnValue: true)] out DocsType? type)
         {
             type = null;
 

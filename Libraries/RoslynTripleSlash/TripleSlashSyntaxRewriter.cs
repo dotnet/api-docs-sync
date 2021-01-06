@@ -25,6 +25,11 @@ namespace Libraries.RoslynTripleSlash
             UseBoilerplate = useBoilerplate;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         public override SyntaxNode? VisitClassDeclaration(ClassDeclarationSyntax node)
         {
             SyntaxNode? baseNode = base.VisitClassDeclaration(node);
@@ -233,8 +238,8 @@ namespace Libraries.RoslynTripleSlash
         {
             if (!UseBoilerplate && !text.IsDocsEmpty())
             {
-                string trimmedRemarks = text.RemoveSubstrings("<![CDATA[", "]]>").Trim();
-                SyntaxTokenList cdata = GetTextAsTokens(trimmedRemarks, leadingWhitespace.Add(SyntaxFactory.CarriageReturnLineFeed));
+                string trimmedRemarks = text.RemoveSubstrings("<![CDATA[", "]]>").Trim(); // The SyntaxFactory needs to add this
+                SyntaxTokenList cdata = GetTextAsTokens(trimmedRemarks, leadingWhitespace.Add(SyntaxFactory.CarriageReturnLineFeed), addInitialNewLine: true);
                 XmlNodeSyntax xmlRemarksContent = SyntaxFactory.XmlCDataSection(SyntaxFactory.Token(SyntaxKind.XmlCDataStartToken), cdata, SyntaxFactory.Token(SyntaxKind.XmlCDataEndToken));
                 XmlElementSyntax xmlRemarks = SyntaxFactory.XmlRemarksElement(xmlRemarksContent);
 
@@ -296,7 +301,7 @@ namespace Libraries.RoslynTripleSlash
         private SyntaxTriviaList GetException(string cref, string text, SyntaxTriviaList leadingWhitespace)
         {
             TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
-            XmlTextSyntax contents = SyntaxFactory.XmlText(GetTextAsTokens(text, leadingWhitespace));
+            XmlTextSyntax contents = SyntaxFactory.XmlText(GetTextAsTokens(text, leadingWhitespace, addInitialNewLine: false));
             XmlElementSyntax element = SyntaxFactory.XmlExceptionElement(crefSyntax, contents);
             return GetXmlTrivia(element, leadingWhitespace);
         }
@@ -323,7 +328,7 @@ namespace Libraries.RoslynTripleSlash
             return GetXmlTrivia(element, leadingWhitespace);
         }
 
-        private SyntaxTokenList GetTextAsTokens(string text, SyntaxTriviaList leadingWhitespace)
+        private SyntaxTokenList GetTextAsTokens(string text, SyntaxTriviaList leadingWhitespace, bool addInitialNewLine)
         {
             string whitespace = leadingWhitespace.ToFullString().Replace(Environment.NewLine, "");
             SyntaxToken newLineAndWhitespace = SyntaxFactory.XmlTextNewLine(Environment.NewLine + whitespace);
@@ -332,12 +337,37 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList leading = SyntaxTriviaList.Create(leadingTrivia);
 
             var tokens = new List<SyntaxToken>();
-            tokens.Add(newLineAndWhitespace);
-            foreach (string line in text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+
+            string[] splittedLines = text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            // Only add the initial new line and whitespace if the contents have more than one line. Otherwise, we want the contents to be inlined inside the tags.
+            if (splittedLines.Length > 1 && addInitialNewLine)
+            {
+                // For example, the remarks section needs a new line before the initial "## Remarks" title
+                tokens.Add(newLineAndWhitespace);
+                tokens.Add(newLineAndWhitespace);
+            }
+
+            int lineNumber = 1;
+            foreach (string line in splittedLines)
             {
                 SyntaxToken token = SyntaxFactory.XmlTextLiteral(leading, line, line, default);
                 tokens.Add(token);
-                tokens.Add(newLineAndWhitespace);
+
+                // Only add extra new lines if we expect more than one line of text in the contents. Otherwise, inline it inside the tags.
+                if (splittedLines.Length > 1)
+                {
+                    tokens.Add(newLineAndWhitespace);
+
+                    if (lineNumber < splittedLines.Length)
+                    {
+                        // New line characters between sentences need to have their own separate line
+                        // but need to avoid adding a final single separate line
+                        tokens.Add(newLineAndWhitespace);
+                    }
+                }
+
+                lineNumber++;
             }
             return SyntaxFactory.TokenList(tokens);
         }

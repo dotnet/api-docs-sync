@@ -82,10 +82,10 @@ namespace Libraries
                 Log.ErrorAndExit("Exiting due to diagnostic errors found.");
             }
 
-            PortCommentsForAPIs(compilation!);
+            PortCommentsForProject(compilation!);
         }
 
-        private void PortCommentsForAPIs(Compilation compilation)
+        private void PortCommentsForProject(Compilation compilation)
         {
             foreach (DocsType docsType in DocsComments.Types)
             {
@@ -99,11 +99,11 @@ namespace Libraries
                     continue;
                 }
 
-                PortAPI(compilation, docsType, typeSymbol);
+                PortCommentsForType(compilation, docsType, typeSymbol);
             }
         }
 
-        private void PortAPI(Compilation compilation, IDocsAPI api, ISymbol symbol)
+        private void PortCommentsForType(Compilation compilation, IDocsAPI api, ISymbol symbol)
         {
             bool useBoilerplate = false;
             foreach (Location location in symbol.Locations)

@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Libraries.Tests
 {
-    public class Tests
+    public class PortToDocsTests
     {
         [Fact]
         // Verifies the basic case of porting all regular fields.

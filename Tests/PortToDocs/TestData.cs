@@ -5,7 +5,7 @@ namespace Libraries.Tests
 {
     public class TestData
     {
-        private string TestDataRootDir => @"..\..\..\TestData";
+        private string TestDataRootDir => @"..\..\..\PortToDocs\TestData";
 
         public const string TestAssembly = "MyAssembly";
         public const string TestNamespace = "MyNamespace";

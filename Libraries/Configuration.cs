@@ -100,7 +100,7 @@ namespace Libraries
 
             if (args == null || args.Length == 0)
             {
-                Log.ErrorPrintHelpAndExit("No arguments passed to the executable.");
+                Log.PrintHelpAndError("No arguments passed to the executable.");
             }
 
             Configuration config = new Configuration();
@@ -120,18 +120,18 @@ namespace Libraries
                         {
                             if (string.IsNullOrWhiteSpace(arg))
                             {
-                                Log.ErrorAndExit("You must specify a *.csproj path.");
+                                Log.Error("You must specify a *.csproj path.");
                             }
                             else if (!File.Exists(arg))
                             {
-                                Log.ErrorAndExit($"The *.csproj file does not exist: {arg}");
+                                Log.Error($"The *.csproj file does not exist: {arg}");
                             }
                             else
                             {
                                 string ext = Path.GetExtension(arg).ToUpperInvariant();
                                 if (ext != ".CSPROJ")
                                 {
-                                    Log.ErrorAndExit($"The file does not have a *.csproj extension: {arg}");
+                                    Log.Error($"The file does not have a *.csproj extension: {arg}");
                                 }
                             }
                             config.CsProj = new FileInfo(arg);
@@ -157,7 +157,7 @@ namespace Libraries
                                     config.Direction = PortingDirection.ToTripleSlash;
                                     break;
                                 default:
-                                    Log.ErrorAndExit($"Unrecognized direction value: {arg}");
+                                    Log.Error($"Unrecognized direction value: {arg}");
                                     break;
                             }
                             mode = Mode.Initial;
@@ -174,7 +174,7 @@ namespace Libraries
                                 DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
                                 if (!dirInfo.Exists)
                                 {
-                                    Log.ErrorAndExit($"This Docs xml directory does not exist: {dirPath}");
+                                    Log.Error($"This Docs xml directory does not exist: {dirPath}");
                                 }
 
                                 config.DirsDocsXml.Add(dirInfo);
@@ -189,11 +189,11 @@ namespace Libraries
                         {
                             if (!int.TryParse(arg, out int value))
                             {
-                                Log.ErrorAndExit($"Invalid int value for 'Exception collision threshold' argument: {arg}");
+                                Log.Error($"Invalid int value for 'Exception collision threshold' argument: {arg}");
                             }
                             else if (value < 1 || value > 100)
                             {
-                                Log.ErrorAndExit($"Value needs to be between 0 and 100: {value}");
+                                Log.Error($"Value needs to be between 0 and 100: {value}");
                             }
 
                             config.ExceptionCollisionThreshold = value;
@@ -218,7 +218,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.ErrorPrintHelpAndExit("You must specify at least one assembly.");
+                                Log.PrintHelpAndError("You must specify at least one assembly.");
                             }
 
                             mode = Mode.Initial;
@@ -240,7 +240,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.ErrorPrintHelpAndExit("You must specify at least one namespace.");
+                                Log.PrintHelpAndError("You must specify at least one namespace.");
                             }
 
                             mode = Mode.Initial;
@@ -262,7 +262,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.ErrorPrintHelpAndExit("You must specify at least one type name.");
+                                Log.PrintHelpAndError("You must specify at least one type name.");
                             }
 
                             mode = Mode.Initial;
@@ -284,7 +284,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.ErrorPrintHelpAndExit("You must specify at least one assembly.");
+                                Log.PrintHelpAndError("You must specify at least one assembly.");
                             }
 
                             mode = Mode.Initial;
@@ -306,7 +306,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.ErrorPrintHelpAndExit("You must specify at least one namespace.");
+                                Log.PrintHelpAndError("You must specify at least one namespace.");
                             }
 
                             mode = Mode.Initial;
@@ -328,7 +328,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.ErrorPrintHelpAndExit("You must specify at least one type name.");
+                                Log.PrintHelpAndError("You must specify at least one type name.");
                             }
 
                             mode = Mode.Initial;
@@ -462,7 +462,7 @@ namespace Libraries
                                     break;
 
                                 default:
-                                    Log.ErrorPrintHelpAndExit($"Unrecognized argument: {arg}");
+                                    Log.PrintHelpAndError($"Unrecognized argument: {arg}");
                                     break;
                             }
                             break;
@@ -478,7 +478,7 @@ namespace Libraries
                                 DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
                                 if (!dirInfo.Exists)
                                 {
-                                    Log.ErrorAndExit($"This IntelliSense directory does not exist: {dirPath}");
+                                    Log.Error($"This IntelliSense directory does not exist: {dirPath}");
                                 }
 
                                 config.DirsIntelliSense.Add(dirInfo);
@@ -603,7 +603,7 @@ namespace Libraries
 
                     default:
                         {
-                            Log.ErrorPrintHelpAndExit("Unexpected mode.");
+                            Log.PrintHelpAndError("Unexpected mode.");
                             break;
                         }
                 }
@@ -611,19 +611,19 @@ namespace Libraries
 
             if (mode != Mode.Initial)
             {
-                Log.ErrorPrintHelpAndExit("You missed an argument value.");
+                Log.PrintHelpAndError("You missed an argument value.");
             }
 
             if (config.DirsDocsXml == null)
             {
-                Log.ErrorPrintHelpAndExit($"You must specify a path to the dotnet-api-docs xml folder using '-{nameof(Mode.Docs)}'.");
+                Log.PrintHelpAndError($"You must specify a path to the dotnet-api-docs xml folder using '-{nameof(Mode.Docs)}'.");
             }
 
             if (config.Direction == PortingDirection.ToDocs)
             {
                 if (config.DirsIntelliSense.Count == 0)
                 {
-                    Log.ErrorPrintHelpAndExit($"You must specify at least one IntelliSense & DLL folder using '-{nameof(Mode.IntelliSense)}'.");
+                    Log.PrintHelpAndError($"You must specify at least one IntelliSense & DLL folder using '-{nameof(Mode.IntelliSense)}'.");
                 }
             }
 
@@ -631,13 +631,13 @@ namespace Libraries
             {
                 if (config.CsProj == null)
                 {
-                    Log.ErrorPrintHelpAndExit($"You must specify a *.csproj file using '-{nameof(Mode.CsProj)}'.");
+                    Log.PrintHelpAndError($"You must specify a *.csproj file using '-{nameof(Mode.CsProj)}'.");
                 }
             }
 
             if (config.IncludedAssemblies.Count == 0)
             {
-                Log.ErrorPrintHelpAndExit($"You must specify at least one assembly with {nameof(IncludedAssemblies)}.");
+                Log.PrintHelpAndError($"You must specify at least one assembly with {nameof(IncludedAssemblies)}.");
             }
 
             return config;
@@ -648,7 +648,7 @@ namespace Libraries
         {
             if (!bool.TryParse(arg, out bool value))
             {
-                Log.ErrorAndExit($"Invalid boolean value for '{paramFriendlyName}' argument: {arg}");
+                Log.Error($"Invalid boolean value for '{paramFriendlyName}' argument: {arg}");
             }
 
             Log.Cyan($"{paramFriendlyName}:");

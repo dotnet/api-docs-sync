@@ -102,6 +102,11 @@ namespace Libraries
         public static void Error(bool endline, string format, params object[]? args)
         {
             Print(endline, ConsoleColor.Red, format, args);
+
+            if (args == null)
+                throw new Exception(format);
+            else
+                throw new Exception(string.Format(format, args));
         }
 
         public static void Cyan(string format)
@@ -158,17 +163,10 @@ namespace Libraries
 
         public delegate void PrintHelpFunction();
 
-        public static void ErrorAndExit(string format, params object[]? args)
-        {
-            Error(format, args);
-            Environment.Exit(0);
-        }
-
-        public static void ErrorPrintHelpAndExit(string format, params object[]? args)
+        public static void PrintHelpAndError(string format, params object[]? args)
         {
             PrintHelp();
             Error(format, args);
-            Environment.Exit(0);
         }
 
         public static void PrintHelp()

@@ -42,7 +42,7 @@ namespace Libraries
             DocsComments.CollectFiles();
             if (!DocsComments.Types.Any())
             {
-                throw new Exception("No Docs Type APIs found.");
+                Log.Error("No Docs Type APIs found.");
             }
 
             Log.Info("Porting from Docs to triple slash...");

@@ -23,12 +23,16 @@ namespace MyNamespace
 
         public int MyField = 1;
 
-        public int MyIntMethod(int param1)
+        public int MyIntMethod(int param1, int param2)
         {
-            return MyField + param1;
+            return MyField + param1 + param2;
         }
 
         public void MyVoidMethod()
+        {
+        }
+
+        public void MyTypeParamMethod<T>()
         {
         }
     }

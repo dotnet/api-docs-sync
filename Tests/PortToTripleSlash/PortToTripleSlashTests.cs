@@ -15,7 +15,7 @@ namespace Libraries.Tests
             string testDataDir,
             bool save = true,
             string assemblyName = TestData.TestAssembly,
-            string namespaceName = null, // Most namespaces have the same assembly name
+            string namespaceName = TestData.TestNamespace,
             string typeName = TestData.TestType)
         {
             using TestDirectory tempDir = new TestDirectory();
@@ -58,6 +58,13 @@ namespace Libraries.Tests
             {
                 string expectedLine = expectedLines[i];
                 string actualLine = actualLines[i];
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    if (expectedLine != actualLine)
+                    {
+                        System.Diagnostics.Debugger.Break();
+                    }
+                }
                 Assert.Equal(expectedLine, actualLine);
             }
 

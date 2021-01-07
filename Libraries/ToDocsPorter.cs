@@ -40,13 +40,13 @@ namespace Libraries
 
             if (!IntelliSenseXmlComments.Members.Any())
             {
-                Log.ErrorAndExit("No IntelliSense xml comments found.");
+                Log.Error("No IntelliSense xml comments found.");
             }
 
             DocsComments.CollectFiles();
             if (!DocsComments.Types.Any())
             {
-                Log.ErrorAndExit("No Docs Type APIs found.");
+                Log.Error("No Docs Type APIs found.");
             }
 
             PortMissingComments();

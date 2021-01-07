@@ -120,18 +120,18 @@ namespace Libraries
                         {
                             if (string.IsNullOrWhiteSpace(arg))
                             {
-                                Log.Error("You must specify a *.csproj path.");
+                                throw new Exception("You must specify a *.csproj path.");
                             }
                             else if (!File.Exists(arg))
                             {
-                                Log.Error($"The *.csproj file does not exist: {arg}");
+                                throw new Exception($"The *.csproj file does not exist: {arg}");
                             }
                             else
                             {
                                 string ext = Path.GetExtension(arg).ToUpperInvariant();
                                 if (ext != ".CSPROJ")
                                 {
-                                    Log.Error($"The file does not have a *.csproj extension: {arg}");
+                                    throw new Exception($"The file does not have a *.csproj extension: {arg}");
                                 }
                             }
                             config.CsProj = new FileInfo(arg);
@@ -155,9 +155,11 @@ namespace Libraries
                                     break;
                                 case "TOTRIPLESLASH":
                                     config.Direction = PortingDirection.ToTripleSlash;
+                                    // Must always skip to avoid loading interface docs files to memory
+                                    config.SkipInterfaceImplementations = true;
                                     break;
                                 default:
-                                    Log.Error($"Unrecognized direction value: {arg}");
+                                    throw new Exception($"Unrecognized direction value: {arg}");
                                     break;
                             }
                             mode = Mode.Initial;
@@ -174,7 +176,7 @@ namespace Libraries
                                 DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
                                 if (!dirInfo.Exists)
                                 {
-                                    Log.Error($"This Docs xml directory does not exist: {dirPath}");
+                                    throw new Exception($"This Docs xml directory does not exist: {dirPath}");
                                 }
 
                                 config.DirsDocsXml.Add(dirInfo);
@@ -189,11 +191,11 @@ namespace Libraries
                         {
                             if (!int.TryParse(arg, out int value))
                             {
-                                Log.Error($"Invalid int value for 'Exception collision threshold' argument: {arg}");
+                                throw new Exception($"Invalid int value for 'Exception collision threshold' argument: {arg}");
                             }
                             else if (value < 1 || value > 100)
                             {
-                                Log.Error($"Value needs to be between 0 and 100: {value}");
+                                throw new Exception($"Value needs to be between 0 and 100: {value}");
                             }
 
                             config.ExceptionCollisionThreshold = value;
@@ -478,7 +480,7 @@ namespace Libraries
                                 DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
                                 if (!dirInfo.Exists)
                                 {
-                                    Log.Error($"This IntelliSense directory does not exist: {dirPath}");
+                                    throw new Exception($"This IntelliSense directory does not exist: {dirPath}");
                                 }
 
                                 config.DirsIntelliSense.Add(dirInfo);
@@ -648,7 +650,7 @@ namespace Libraries
         {
             if (!bool.TryParse(arg, out bool value))
             {
-                Log.Error($"Invalid boolean value for '{paramFriendlyName}' argument: {arg}");
+                throw new Exception($"Invalid boolean value for '{paramFriendlyName}' argument: {arg}");
             }
 
             Log.Cyan($"{paramFriendlyName}:");

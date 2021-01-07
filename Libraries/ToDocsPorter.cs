@@ -313,7 +313,7 @@ namespace Libraries
                                 created = TryPromptParam(dParam, tsMemberToPort, out IntelliSenseXmlParam? newTsParam);
                                 if (newTsParam == null)
                                 {
-                                    Log.Error($"  There param '{dParam.Name}' was not found in IntelliSense xml for {dApiToUpdate.DocId}");
+                                    Log.Error($"  The param '{dParam.Name}' was not found in IntelliSense xml for {dApiToUpdate.DocId}.");
                                 }
                                 else
                                 {

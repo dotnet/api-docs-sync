@@ -5,8 +5,6 @@ namespace MyNamespace
     /// <summary>This is the MyType class summary.</summary>
     /// <remarks><![CDATA[
     /// 
-    /// ## Remarks
-    /// 
     /// These are the MyType class remarks.
     /// 
     /// Multiple lines.
@@ -30,8 +28,6 @@ namespace MyNamespace
         /// <value>This is the MyProperty value.</value>
         /// <remarks><![CDATA[
         /// 
-        /// ## Remarks
-        /// 
         /// These are the MyProperty remarks.
         /// 
         /// Multiple lines.
@@ -46,8 +42,6 @@ namespace MyNamespace
         /// <summary>This is the MyField summary.</summary>
         /// <remarks><![CDATA[
         /// 
-        /// ## Remarks
-        /// 
         /// These are the MyField remarks.
         /// 
         /// Multiple lines.
@@ -60,8 +54,6 @@ namespace MyNamespace
         /// <param name="param2">This is the MyIntMethod param2 summary.</param>
         /// <returns>This is the MyIntMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
         /// <remarks><![CDATA[
-        /// 
-        /// ## Remarks
         /// 
         /// These are the MyIntMethod remarks.
         /// 
@@ -79,8 +71,6 @@ namespace MyNamespace
 
         /// <summary>This is the MyVoidMethod summary.</summary>
         /// <remarks><![CDATA[
-        /// 
-        /// ## Remarks
         /// 
         /// These are the MyVoidMethod remarks.
         /// 

@@ -102,11 +102,6 @@ namespace Libraries
         public static void Error(bool endline, string format, params object[]? args)
         {
             Print(endline, ConsoleColor.Red, format, args);
-
-            if (args == null)
-                throw new Exception(format);
-            else
-                throw new Exception(string.Format(format, args));
         }
 
         public static void Cyan(string format)
@@ -139,6 +134,11 @@ namespace Libraries
             Print(endline, ConsoleColor.Cyan, format, args);
         }
 
+        public static void Assert(bool condition, string format)
+        {
+            Assert(true, condition, format, null);
+        }
+
         public static void Assert(bool condition, string format, params object[]? args)
         {
             Assert(true, condition, format, args);
@@ -152,7 +152,8 @@ namespace Libraries
             }
             else
             {
-                Error(endline, format, args);
+                string msg = args != null ? string.Format(format, args) : format;
+                throw new Exception(msg);
             }
         }
 
@@ -167,6 +168,11 @@ namespace Libraries
         {
             PrintHelp();
             Error(format, args);
+
+            if (args == null)
+                throw new Exception(format);
+            else
+                throw new Exception(string.Format(format, args));
         }
 
         public static void PrintHelp()
@@ -247,6 +253,8 @@ Options:
                                                               to the specified Docs repo containing ECMA xml files.
                                                     > ToTripleSlash: Comments are ported from the specified Docs repo containint ECMA xml files,
                                                               to the triple slash comments on top of each API in the specified source code repo.
+                                                              Using this option automatically sets `SkipInterfaceImplementations` to `true`, to avoid loading
+                                                              unnecessary interface docs xml files into memory.
                                                 Usage example:
                                                     -Direction ToTripleSlash
 

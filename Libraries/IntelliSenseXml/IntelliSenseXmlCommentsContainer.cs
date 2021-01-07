@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -86,7 +87,7 @@ namespace Libraries.IntelliSenseXml
         {
             if (!fileInfo.Exists)
             {
-                Log.Error($"The IntelliSense xml file does not exist: {fileInfo.FullName}");
+                throw new Exception($"The IntelliSense xml file does not exist: {fileInfo.FullName}");
                 return;
             }
 

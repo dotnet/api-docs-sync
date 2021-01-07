@@ -87,8 +87,7 @@ namespace Libraries
         {
             if (parent == null)
             {
-                Log.Error("A null parent was passed when attempting to get attribute '{0}'", name);
-                throw new ArgumentNullException(nameof(parent));
+                throw new Exception($"A null parent was passed when attempting to get attribute '{name}'");
             }
             else
             {
@@ -129,8 +128,7 @@ namespace Libraries
         {
             if (element == null)
             {
-                Log.Error("A null element was passed when attempting to retrieve the nodes in plain text.");
-                throw new ArgumentNullException(nameof(element));
+                throw new Exception("A null element was passed when attempting to retrieve the nodes in plain text.");
             }
             return string.Join("", element.Nodes()).Trim();
         }
@@ -139,8 +137,7 @@ namespace Libraries
         {
             if (element == null)
             {
-                Log.Error("A null element was passed when attempting to save formatted as markdown");
-                throw new ArgumentNullException(nameof(element));
+                throw new Exception("A null element was passed when attempting to save formatted as markdown");
             }
 
             // Empty value because SaveChildElement will add a child to the parent, not replace it
@@ -172,14 +169,12 @@ namespace Libraries
         {
             if (parent == null)
             {
-                Log.Error("A null parent was passed when attempting to add child formatted as markdown");
-                throw new ArgumentNullException(nameof(parent));
+                throw new Exception("A null parent was passed when attempting to add child formatted as markdown.");
             }
 
             if (child == null)
             {
-                Log.Error("A null child was passed when attempting to add child formatted as markdown");
-                throw new ArgumentNullException(nameof(child));
+                throw new Exception("A null child was passed when attempting to add child formatted as markdown.");
             }
 
             SaveFormattedAsMarkdown(child, childValue, isMember);
@@ -190,8 +185,7 @@ namespace Libraries
         {
             if (element == null)
             {
-                Log.Error("A null element was passed when attempting to save formatted as xml");
-                throw new ArgumentNullException(nameof(element));
+                throw new Exception("A null element was passed when attempting to save formatted as xml");
             }
 
             element.Value = string.Empty;
@@ -222,8 +216,7 @@ namespace Libraries
         {
             if (element == null)
             {
-                Log.Error("A null element was passed when attempting to append formatted as xml");
-                throw new ArgumentNullException(nameof(element));
+                throw new Exception("A null element was passed when attempting to append formatted as xml");
             }
 
             SaveFormattedAsXml(element, GetNodesInPlainText(element) + valueToAppend, removeUndesiredEndlines);
@@ -233,14 +226,12 @@ namespace Libraries
         {
             if (parent == null)
             {
-                Log.Error("A null parent was passed when attempting to add child formatted as xml");
-                throw new ArgumentNullException(nameof(parent));
+                throw new Exception("A null parent was passed when attempting to add child formatted as xml");
             }
 
             if (child == null)
             {
-                Log.Error("A null child was passed when attempting to add child formatted as xml");
-                throw new ArgumentNullException(nameof(child));
+                throw new Exception("A null child was passed when attempting to add child formatted as xml");
             }
 
             SaveFormattedAsXml(child, childValue);

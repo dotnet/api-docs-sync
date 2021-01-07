@@ -57,8 +57,8 @@ namespace Libraries
 
         public readonly string BinLogPath = "output.binlog";
         public bool BinLogger { get; private set; } = false;
-        public FileInfo? CsProj { get; private set; }
-        public PortingDirection Direction { get; private set; } = PortingDirection.ToDocs;
+        public FileInfo? CsProj { get; set; }
+        public PortingDirection Direction { get; set; } = PortingDirection.ToDocs;
         public List<DirectoryInfo> DirsIntelliSense { get; } = new List<DirectoryInfo>();
         public List<DirectoryInfo> DirsDocsXml { get; } = new List<DirectoryInfo>();
         public bool DisablePrompts { get; set; } = false;

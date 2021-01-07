@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Libraries.Tests
@@ -12,9 +9,7 @@ namespace Libraries.Tests
     {
         private string TestDataRootDirPath => @"../../../PortToTripleSlash/TestData";
         private const string ProjectDirName = "Project";
-        private const string ProjectFileName = "Project.csproj";
         private DirectoryInfo ProjectDir { get; set; }
-
         internal string ProjectFilePath { get; set; }
 
         internal PortToTripleSlashTestData(
@@ -51,7 +46,7 @@ namespace Libraries.Tests
             OriginalFilePath = Path.Combine(docsAssemblyDir.FullName, $"{Type}.xml");
             ActualFilePath = Path.Combine(ProjectDir.FullName, $"{Type}.cs");
             ExpectedFilePath = Path.Combine(tempDir.FullPath, "SourceExpected.cs");
-            ProjectFilePath = Path.Combine(ProjectDir.FullName, ProjectFileName);
+            ProjectFilePath = Path.Combine(ProjectDir.FullName, $"{Assembly}.csproj");
 
             File.Copy(docsOriginalFilePath, OriginalFilePath);
             File.Copy(csOriginalFilePath, ActualFilePath);

@@ -14,6 +14,7 @@ namespace Libraries.Tests
         private void PortToTripleSlash(
             string testDataDir,
             bool save = true,
+            bool skipInterfaceImplementations = true,
             string assemblyName = TestData.TestAssembly,
             string namespaceName = TestData.TestNamespace,
             string typeName = TestData.TestType)
@@ -31,7 +32,8 @@ namespace Libraries.Tests
             {
                 Direction = Configuration.PortingDirection.ToTripleSlash,
                 CsProj = new FileInfo(testData.ProjectFilePath),
-                Save = save
+                Save = save,
+                SkipInterfaceImplementations = skipInterfaceImplementations
             };
 
             c.IncludedAssemblies.Add(assemblyName);

@@ -63,8 +63,7 @@ namespace Libraries.Docs
                     if (ms == null)
                     {
                         string message = string.Format("Could not find a DocId MemberSignature for '{0}'", MemberName);
-                        Log.Error(message);
-                        throw new MissingMemberException(message);
+                        throw new Exception(message);
                     }
                      _docId = ms.Value;
                 }

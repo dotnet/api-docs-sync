@@ -1,17 +1,16 @@
 ﻿#nullable enable
 using Libraries.Docs;
 using Libraries.RoslynTripleSlash;
+using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Linq;
-using Microsoft.Build.Locator;
-using System.Collections.Generic;
 using System.Runtime.Loader;
 
 namespace Libraries
@@ -57,6 +56,8 @@ namespace Libraries
                 throw new Exception("The MSBuild directory was not found in PATH. Use '-MSBuild <directory>' to specify it.");
             }
 
+            CheckDiagnostics(workspace, "MSBuildWorkspace.Create");
+
             BinaryLogger? binLogger = null;
             if (Config.BinLogger)
             {
@@ -74,26 +75,45 @@ namespace Libraries
                 throw new Exception("Could not find a project.");
             }
 
+            CheckDiagnostics(workspace, "workspace.OpenProjectAsync");
+
             Compilation? compilation = project.GetCompilationAsync().Result;
             if (compilation == null)
             {
                 throw new NullReferenceException("The project's compilation was null.");
             }
 
+            CheckDiagnostics(workspace, "project.GetCompilationAsync");
+
+            PortCommentsForProject(compilation!);
+        }
+
+        private void CheckDiagnostics(MSBuildWorkspace workspace, string stepName)
+        {
             ImmutableList<WorkspaceDiagnostic> diagnostics = workspace.Diagnostics;
             if (diagnostics.Any())
             {
-                string allMsgs = Environment.NewLine;
+                string initialMsg = $"Diagnostic messages found in {stepName}:";
+                Log.Error(initialMsg);
+
+                List<string> allMsgs = new() { initialMsg };
+
                 foreach (var diagnostic in diagnostics)
                 {
                     string msg = $"{diagnostic.Kind} - {diagnostic.Message}";
                     Log.Error(msg);
-                    allMsgs += msg + Environment.NewLine;
-                }
-                throw new Exception("Exiting due to diagnostic errors found: " + allMsgs);
-            }
 
-            PortCommentsForProject(compilation!);
+                    if (!msg.Contains("Warning - Found project reference without a matching metadata reference"))
+                    {
+                        allMsgs.Add(msg);
+                    }
+                }
+
+                if (allMsgs.Count > 1)
+                {
+                    throw new Exception("Exiting due to diagnostic errors found: " + Environment.NewLine + string.Join(Environment.NewLine, allMsgs));
+                }
+            }
         }
 
         private void PortCommentsForProject(Compilation compilation)
@@ -116,7 +136,6 @@ namespace Libraries
 
         private void PortCommentsForType(Compilation compilation, IDocsAPI api, ISymbol symbol)
         {
-            bool useBoilerplate = false;
             foreach (Location location in symbol.Locations)
             {
                 SyntaxTree? tree = location.SourceTree;
@@ -127,7 +146,7 @@ namespace Libraries
                 }
 
                 SemanticModel model = compilation.GetSemanticModel(tree);
-                var rewriter = new TripleSlashSyntaxRewriter(DocsComments, model, location, tree, useBoilerplate);
+                var rewriter = new TripleSlashSyntaxRewriter(DocsComments, model, location, tree);
                 SyntaxNode? newRoot = rewriter.Visit(tree.GetRoot());
                 if (newRoot == null)
                 {
@@ -136,7 +155,6 @@ namespace Libraries
                 }
 
                 File.WriteAllText(tree.FilePath, newRoot.ToFullString());
-                useBoilerplate = true;
             }
         }
 

@@ -175,8 +175,7 @@ namespace Libraries.Docs
         {
             if (!fileInfo.Exists)
             {
-                Log.Error($"Docs xml file does not exist: {fileInfo.FullName}");
-                return;
+                throw new Exception($"Docs xml file does not exist: {fileInfo.FullName}");
             }
 
             xDoc = XDocument.Load(fileInfo.FullName);

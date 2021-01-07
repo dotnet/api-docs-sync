@@ -90,8 +90,7 @@ namespace Libraries.Docs
                     if (dts == null)
                     {
                         string message = $"DocId TypeSignature not found for FullName";
-                        Log.Error($"DocId TypeSignature not found for FullName");
-                        throw new MissingMemberException(message);
+                        throw new Exception($"DocId TypeSignature not found for FullName");
                     }
                     _docId = dts.Value;
                 }

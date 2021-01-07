@@ -1,5 +1,5 @@
-﻿<Type Name="MyClass" FullName="MyNamespace.MyClass">
-  <TypeSignature Language="DocId" Value="T:MyNamespace.MyClass" />
+﻿<Type Name="MyType" FullName="MyNamespace.MyType">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
     <AssemblyVersion>4.0.0.0</AssemblyVersion>
@@ -9,22 +9,35 @@
   </Base>
   <Interfaces />
   <Docs>
-    <summary>This is MyClass summary.</summary>
+    <summary>This is MyType class summary.</summary>
     <remarks>
       <format type="text/markdown"><![CDATA[
 
 ## Remarks
 
-These are the MyClass remarks.
+These are the MyType class remarks.
 
 Multiple lines.
 
-          ]]></format>
+      ]]></format>
     </remarks>
   </Docs>
   <Members>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.#ctor()" />
+      <MemberType>Constructor</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <Parameters />
+      <Docs>
+        <summary>This is the MyType constructor summary.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
     <Member MemberName="MyProperty">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyClass.MyProperty" />
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyProperty" />
       <MemberType>Property</MemberType>
       <Implements />
       <AssemblyInfo>
@@ -38,7 +51,7 @@ Multiple lines.
         <summary>This is the MyProperty summary.</summary>
         <value>This is the MyProperty value.</value>
         <remarks>
-      <format type="text/markdown"><![CDATA[
+          <format type="text/markdown"><![CDATA[
 
 ## Remarks
 
@@ -47,11 +60,11 @@ These are the MyProperty remarks.
 Multiple lines.
 
           ]]></format>
-    </remarks>
+        </remarks>
       </Docs>
     </Member>
     <Member MemberName="MyField">
-      <MemberSignature Language="DocId" Value="F:MyNamespace.MyClass.MyField" />
+      <MemberSignature Language="DocId" Value="F:MyNamespace.MyType.MyField" />
       <MemberType>Field</MemberType>
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
@@ -77,7 +90,7 @@ Multiple lines.
       </Docs>
     </Member>
     <Member MemberName="MyIntMethod">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyClass.MyIntMethod" />
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyIntMethod" />
       <MemberType>Method</MemberType>
       <Implements />
       <AssemblyInfo>
@@ -90,8 +103,8 @@ Multiple lines.
       <Parameters />
       <Docs>
         <param name="param1">This is the MyIntMethod param1 summary.</param>
-        <summary>This is MyIntMethod summary.</summary>
-        <returns>This is MyIntMethod return value. It mentions the <see cref="T:System.ArgumentNullException" />.</returns>
+        <summary>This is the MyIntMethod summary.</summary>
+        <returns>This is the MyIntMethod return value. It mentions the <see cref="T:System.ArgumentNullException" />.</returns>
         <remarks>
           <format type="text/markdown"><![CDATA[
 
@@ -110,7 +123,7 @@ Mentions the `param1` and the <xref:System.ArgumentNullException>.
       </Docs>
     </Member>
     <Member MemberName="MyVoidMethod">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyClass.MyVoidMethod" />
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyVoidMethod" />
       <MemberType>Method</MemberType>
       <Implements />
       <AssemblyInfo>
@@ -122,13 +135,10 @@ Mentions the `param1` and the <xref:System.ArgumentNullException>.
       </ReturnValue>
       <Parameters />
       <Docs>
-        <summary>This is MyVoidMethod summary.</summary>
-        <returns>
-          This is MyVoidMethod return value. It mentions the <see cref="T:System.ArgumentNullException" />.
-        </returns>
+        <summary>This is the MyVoidMethod summary.</summary>
+        <returns>This is the MyVoidMethod return value. It mentions the <see cref="T:System.ArgumentNullException" />.</returns>
         <remarks>
-          <format type="text/markdown">
-            <![CDATA[
+          <format type="text/markdown"><![CDATA[
 
 ## Remarks
 
@@ -138,12 +148,9 @@ Multiple lines.
 
 Mentions the <xref:System.ArgumentNullException>.
 
-          ]]>
-          </format>
+          ]]></format>
         </remarks>
-        <exception cref="T:System.ArgumentNullException">
-          This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.
-        </exception>
+        <exception cref="T:System.ArgumentNullException">This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.</exception>
         <exception cref="T:System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyVoidMethod.</exception>
       </Docs>
     </Member>

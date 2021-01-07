@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using Xunit;
 
 namespace Libraries.Tests
@@ -22,41 +20,33 @@ namespace Libraries.Tests
             Assert.False(string.IsNullOrWhiteSpace(assemblyName));
             Assert.False(string.IsNullOrWhiteSpace(typeName));
 
-            Assembly = assemblyName;
-            Namespace = string.IsNullOrEmpty(namespaceName) ? assemblyName : namespaceName;
-            Type = typeName;
+            namespaceName = string.IsNullOrEmpty(namespaceName) ? assemblyName : namespaceName;
 
             ProjectDir = tempDir.CreateSubdirectory(ProjectDirName);
 
             DocsDir = tempDir.CreateSubdirectory(DocsDirName);
-            DirectoryInfo docsAssemblyDir = DocsDir.CreateSubdirectory(Namespace);
+            DirectoryInfo docsAssemblyDir = DocsDir.CreateSubdirectory(namespaceName);
 
             string testDataPath = Path.Combine(TestDataRootDirPath, testDataDir);
 
-            string docsOriginalFilePath = Path.Combine(testDataPath, "DocsOriginal.xml");
-            string csOriginalFilePath = Path.Combine(testDataPath, "SourceOriginal.cs");
-            string csExpectedFilePath = Path.Combine(testDataPath, "SourceExpected.cs");
-            string csprojOriginalFilePath = Path.Combine(testDataPath, "Project.csproj");
+            foreach (string origin in Directory.EnumerateFiles(testDataPath, "*.xml"))
+            {
+                string fileName = Path.GetFileName(origin);
+                string destination = Path.Combine(docsAssemblyDir.FullName, fileName);
+                File.Copy(origin, destination);
+            }
 
-            Assert.True(File.Exists(docsOriginalFilePath));
-            Assert.True(File.Exists(csOriginalFilePath));
-            Assert.True(File.Exists(csExpectedFilePath));
-            Assert.True(File.Exists(csprojOriginalFilePath));
+            string originCsOriginal = Path.Combine(testDataPath, $"SourceOriginal.cs");
+            ActualFilePath = Path.Combine(ProjectDir.FullName, $"{typeName}.cs");
+            File.Copy(originCsOriginal, ActualFilePath);
 
-            OriginalFilePath = Path.Combine(docsAssemblyDir.FullName, $"{Type}.xml");
-            ActualFilePath = Path.Combine(ProjectDir.FullName, $"{Type}.cs");
-            ExpectedFilePath = Path.Combine(tempDir.FullPath, "SourceExpected.cs");
-            ProjectFilePath = Path.Combine(ProjectDir.FullName, $"{Assembly}.csproj");
+            string originCsExpected = Path.Combine(testDataPath, $"SourceExpected.cs");
+            ExpectedFilePath = Path.Combine(tempDir.FullPath, $"SourceExpected.cs");
+            File.Copy(originCsExpected, ExpectedFilePath);
 
-            File.Copy(docsOriginalFilePath, OriginalFilePath);
-            File.Copy(csOriginalFilePath, ActualFilePath);
-            File.Copy(csExpectedFilePath, ExpectedFilePath);
-            File.Copy(csprojOriginalFilePath, ProjectFilePath);
-
-            Assert.True(File.Exists(OriginalFilePath));
-            Assert.True(File.Exists(ActualFilePath));
-            Assert.True(File.Exists(ExpectedFilePath));
-            Assert.True(File.Exists(ProjectFilePath));
+            string originCsproj = Path.Combine(testDataPath, $"{assemblyName}.csproj");
+            ProjectFilePath = Path.Combine(ProjectDir.FullName, $"{assemblyName}.csproj");
+            File.Copy(originCsproj, ProjectFilePath);
         }
     }
 }

@@ -34,7 +34,7 @@
   <ItemGroup>
     <None Include="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
-    <None Include="PortToTripleSlash\TestData\Basic\Project.csproj" />
+    <None Include="PortToTripleSlash\TestData\Basic\MyAssembly.csproj" />
   </ItemGroup>
 
 </Project>

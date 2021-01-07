@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using Xunit;
-using Microsoft.Build.Locator;
 
 namespace Libraries.Tests
 {

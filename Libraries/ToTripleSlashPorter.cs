@@ -42,7 +42,7 @@ namespace Libraries
             DocsComments.CollectFiles();
             if (!DocsComments.Types.Any())
             {
-                Log.ErrorAndExit("No Docs Type APIs found.");
+                throw new Exception("No Docs Type APIs found.");
             }
 
             Log.Info("Porting from Docs to triple slash...");
@@ -54,8 +54,7 @@ namespace Libraries
             }
             catch (ReflectionTypeLoadException)
             {
-                Log.ErrorAndExit("The MSBuild directory was not found in PATH. Use '-MSBuild <directory>' to specify it.");
-                return;
+                throw new Exception("The MSBuild directory was not found in PATH. Use '-MSBuild <directory>' to specify it.");
             }
 
             BinaryLogger? binLogger = null;
@@ -72,8 +71,7 @@ namespace Libraries
             Project? project = workspace.OpenProjectAsync(Config.CsProj!.FullName, msbuildLogger: binLogger).Result;
             if (project == null)
             {
-                Log.ErrorAndExit("Could not find a project.");
-                return;
+                throw new Exception("Could not find a project.");
             }
 
             Compilation? compilation = project.GetCompilationAsync().Result;
@@ -85,11 +83,14 @@ namespace Libraries
             ImmutableList<WorkspaceDiagnostic> diagnostics = workspace.Diagnostics;
             if (diagnostics.Any())
             {
+                string allMsgs = Environment.NewLine;
                 foreach (var diagnostic in diagnostics)
                 {
-                    Log.Error($"{diagnostic.Kind} - {diagnostic.Message}");
+                    string msg = $"{diagnostic.Kind} - {diagnostic.Message}";
+                    Log.Error(msg);
+                    allMsgs += msg + Environment.NewLine;
                 }
-                Log.ErrorAndExit("Exiting due to diagnostic errors found.");
+                throw new Exception("Exiting due to diagnostic errors found: " + allMsgs);
             }
 
             PortCommentsForProject(compilation!);
@@ -179,6 +180,7 @@ namespace Libraries
                 }
             };
         }
+
         private static Assembly? TryResolveAssemblyFromPaths(AssemblyLoadContext context, AssemblyName assemblyName, string searchPath, Dictionary<string, Assembly>? knownAssemblyPaths = null)
         {
             foreach (var cultureSubfolder in string.IsNullOrEmpty(assemblyName.CultureName)
@@ -192,8 +194,7 @@ namespace Libraries
             {
                 foreach (var extension in new[] { "ni.dll", "ni.exe", "dll", "exe" })
                 {
-                    var candidatePath = Path.Combine(
-                        searchPath, cultureSubfolder, $"{assemblyName.Name}.{extension}");
+                    var candidatePath = Path.Combine(searchPath, cultureSubfolder, $"{assemblyName.Name}.{extension}");
 
                     var isAssemblyLoaded = knownAssemblyPaths?.ContainsKey(candidatePath) == true;
                     if (isAssemblyLoaded || !File.Exists(candidatePath))

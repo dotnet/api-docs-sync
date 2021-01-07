@@ -2,14 +2,24 @@
 
 namespace MyNamespace
 {
-    public class MyClass
+    /// <summary>This is MyType class summary.</summary>
+    /// <remarks><![CDATA[
+    ///
+    /// ## Remarks
+    ///
+    /// These are the MyType class remarks.
+    ///
+    /// Multiple lines.
+    ///
+    /// ]]></remarks>
+    public class MyType
     {
-        /// <summary>This is MyClass summary.</summary>
-        public MyClass()
+        /// <summary>This is the MyType constructor summary.</summary>
+        public MyType()
         {
         }
 
-        internal MyClass(int myProperty)
+        internal MyType(int myProperty)
         {
             _myProperty = myProperty;
         }
@@ -20,11 +30,11 @@ namespace MyNamespace
         /// <value>This is the MyProperty value.</value>
         /// <remarks><![CDATA[
         ///
-        ///## Remarks
+        /// ## Remarks
         ///
-        ///These are the MyProperty remarks.
+        /// These are the MyProperty remarks.
         ///
-        ///Multiple lines.
+        /// Multiple lines.
         ///
         /// ]]></remarks>
         public int MyProperty
@@ -45,8 +55,8 @@ namespace MyNamespace
         /// ]]></remarks>
         public int MyField = 1;
 
-        /// <summary>This is MyIntMethod summary.</summary>
-        /// <returns>This is MyIntMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
+        /// <summary>This is the MyIntMethod summary.</summary>
+        /// <returns>This is the MyIntMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
         /// <remarks><![CDATA[
         ///
         /// ## Remarks
@@ -59,14 +69,14 @@ namespace MyNamespace
         ///
         /// ]]></remarks>
         /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyIntMethod. It mentions the <paramref name="param1" />.</exception>
-        /// <exception cref = "System.IndexOutOfRangeException" > This is the IndexOutOfRangeException thrown by MyIntMethod.</exception>
+        /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyIntMethod.</exception>
         public int MyIntMethod(int param1)
         {
             return MyField + param1;
         }
 
-        /// <summary>This is MyVoidMethod summary.</summary>
-        /// <returns>This is MyVoidMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
+        /// <summary>This is the MyVoidMethod summary.</summary>
+        /// <returns>This is the MyVoidMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
         /// <remarks><![CDATA[
         ///
         /// ## Remarks
@@ -78,8 +88,8 @@ namespace MyNamespace
         /// Mentions the `param1` and the <xref:System.ArgumentNullException>.
         ///
         /// ]]></remarks>
-        /// /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.</exception>
-        /// <exception cref = "System.IndexOutOfRangeException" > This is the IndexOutOfRangeException thrown by MyVoidMethod.</exception>
+        /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.</exception>
+        /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyVoidMethod.</exception>
         public void MyVoidMethod()
         {
         }

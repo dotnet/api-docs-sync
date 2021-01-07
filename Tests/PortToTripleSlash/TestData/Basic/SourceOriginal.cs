@@ -2,18 +2,19 @@
 
 namespace MyNamespace
 {
-    public class MyClass
+    public class MyType
     {
-        public MyClass()
+        public MyType()
         {
         }
 
-        internal MyClass(int myProperty)
+        internal MyType(int myProperty)
         {
             _myProperty = myProperty;
         }
 
         private int _myProperty;
+
         public int MyProperty
         {
             get { return _myProperty; }

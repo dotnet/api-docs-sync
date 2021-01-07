@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Libraries
 {
@@ -37,6 +38,14 @@ namespace Libraries
         // Checks if the passed string is considered "empty" according to the Docs repo rules.
         public static bool IsDocsEmpty(this string? s) =>
             string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
+
+        public static string WithoutPrefixes(this string text)
+        {
+            return Regex.Replace(
+                input: text,
+                pattern: @"(?<left>.*)(?<cref>cref=""[A-Z]\:)(?<right>.*)",
+                replacement: "${left}cref=\"${right}");
+        }
     }
 
 }

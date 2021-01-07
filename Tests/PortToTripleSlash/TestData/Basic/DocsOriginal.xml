@@ -2,14 +2,9 @@
   <TypeSignature Language="DocId" Value="T:MyNamespace.MyType" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
-    <AssemblyVersion>4.0.0.0</AssemblyVersion>
   </AssemblyInfo>
-  <Base>
-    <BaseTypeName>System.Object</BaseTypeName>
-  </Base>
-  <Interfaces />
   <Docs>
-    <summary>This is MyType class summary.</summary>
+    <summary>This is the MyType class summary.</summary>
     <remarks>
       <format type="text/markdown"><![CDATA[
 
@@ -24,25 +19,22 @@ Multiple lines.
   </Docs>
   <Members>
     <Member MemberName=".ctor">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.#ctor()" />
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.#ctor" />
       <MemberType>Constructor</MemberType>
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
-        <AssemblyVersion>4.0.0.0</AssemblyVersion>
       </AssemblyInfo>
-      <Parameters />
       <Docs>
         <summary>This is the MyType constructor summary.</summary>
         <remarks>To be added.</remarks>
       </Docs>
     </Member>
     <Member MemberName="MyProperty">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyProperty" />
+      <MemberSignature Language="DocId" Value="P:MyNamespace.MyType.MyProperty" />
       <MemberType>Property</MemberType>
       <Implements />
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
-        <AssemblyVersion>4.0.0.0</AssemblyVersion>
       </AssemblyInfo>
       <ReturnValue>
         <ReturnType>System.Int32</ReturnType>
@@ -68,7 +60,6 @@ Multiple lines.
       <MemberType>Field</MemberType>
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
-        <AssemblyVersion>4.0.0.0</AssemblyVersion>
       </AssemblyInfo>
       <ReturnValue>
         <ReturnType>System.Int32</ReturnType>
@@ -90,19 +81,18 @@ Multiple lines.
       </Docs>
     </Member>
     <Member MemberName="MyIntMethod">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyIntMethod" />
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyIntMethod(System.Int32,System.Int32)" />
       <MemberType>Method</MemberType>
       <Implements />
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
-        <AssemblyVersion>4.0.0.0</AssemblyVersion>
       </AssemblyInfo>
       <ReturnValue>
         <ReturnType>System.Int32</ReturnType>
       </ReturnValue>
-      <Parameters />
       <Docs>
         <param name="param1">This is the MyIntMethod param1 summary.</param>
+        <param name="param2">This is the MyIntMethod param2 summary.</param>
         <summary>This is the MyIntMethod summary.</summary>
         <returns>This is the MyIntMethod return value. It mentions the <see cref="T:System.ArgumentNullException" />.</returns>
         <remarks>
@@ -133,10 +123,8 @@ Mentions the `param1` and the <xref:System.ArgumentNullException>.
       <ReturnValue>
         <ReturnType>System.Void</ReturnType>
       </ReturnValue>
-      <Parameters />
       <Docs>
         <summary>This is the MyVoidMethod summary.</summary>
-        <returns>This is the MyVoidMethod return value. It mentions the <see cref="T:System.ArgumentNullException" />.</returns>
         <remarks>
           <format type="text/markdown"><![CDATA[
 
@@ -152,6 +140,22 @@ Mentions the <xref:System.ArgumentNullException>.
         </remarks>
         <exception cref="T:System.ArgumentNullException">This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.</exception>
         <exception cref="T:System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyVoidMethod.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName="MyTypeParamMethod">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyTypeParamMethod``1" />
+      <MemberType>Method</MemberType>
+      <Implements />
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <typeparam name="T">This is the MyTypeParamMethod typeparam T.</typeparam>
+        <summary>This is the MyTypeParamMethod summary.</summary>
+        <remarks>To be added.</remarks>
       </Docs>
     </Member>
   </Members>

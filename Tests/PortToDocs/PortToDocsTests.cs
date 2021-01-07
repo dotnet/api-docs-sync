@@ -101,7 +101,7 @@ namespace Libraries.Tests
         {
             using TestDirectory tempDir = new TestDirectory();
 
-            TestData testData = new TestData(
+            PortToDocsTestData testData = new PortToDocsTestData(
                 tempDir,
                 testDataDir,
                 skipInterfaceImplementations: skipInterfaceImplementations,
@@ -110,17 +110,18 @@ namespace Libraries.Tests
                 typeName: typeName
             );
 
-            Configuration c = new Configuration
+            Configuration c = new()
             {
+                Direction = Configuration.PortingDirection.ToDocs,
                 DisablePrompts = disablePrompts,
+                ExceptionCollisionThreshold = exceptionCollisionThreshold,
+                PortExceptionsExisting = portExceptionsExisting,
+                PortMemberRemarks = portMemberRemarks,
+                PortTypeRemarks = portTypeRemarks,
                 PrintUndoc = printUndoc,
                 Save = save,
                 SkipInterfaceImplementations = skipInterfaceImplementations,
-                SkipInterfaceRemarks = skipInterfaceRemarks,
-                PortTypeRemarks = portTypeRemarks,
-                PortMemberRemarks = portMemberRemarks,
-                PortExceptionsExisting = portExceptionsExisting,
-                ExceptionCollisionThreshold = exceptionCollisionThreshold
+                SkipInterfaceRemarks = skipInterfaceRemarks
             };
 
             c.IncludedAssemblies.Add(assemblyName);
@@ -130,8 +131,8 @@ namespace Libraries.Tests
                 c.IncludedNamespaces.Add(namespaceName);
             }
 
-            c.DirsDocsXml.Add(testData.Docs);
-            c.DirsIntelliSense.Add(testData.IntelliSenseAndDLL);
+            c.DirsDocsXml.Add(testData.DocsDir);
+            c.DirsIntelliSense.Add(testData.IntelliSenseAndDLLDir);
 
             var porter = new ToDocsPorter(c);
             porter.Start();
@@ -139,7 +140,7 @@ namespace Libraries.Tests
             Verify(testData);
         }
 
-        private void Verify(TestData testData)
+        private void Verify(PortToDocsTestData testData)
         {
             string[] expectedLines = File.ReadAllLines(testData.ExpectedFilePath);
             string[] actualLines = File.ReadAllLines(testData.ActualFilePath);

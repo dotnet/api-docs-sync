@@ -2,9 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-
+    <Company>Microsoft</Company>
+    <Authors>carlossanlop</Authors>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="16.8.0" ExcludeAssets="Runtime" />
@@ -22,6 +28,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Libraries\Libraries.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
+    <None Include="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
+    <None Include="PortToTripleSlash\TestData\Basic\Project.csproj" />
   </ItemGroup>
 
 </Project>

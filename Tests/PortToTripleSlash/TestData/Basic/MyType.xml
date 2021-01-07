@@ -158,5 +158,18 @@ Mentions the <xref:System.ArgumentNullException>.
         <remarks>To be added.</remarks>
       </Docs>
     </Member>
+    <Member MemberName="MyEvent">
+      <MemberSignature Language="DocId" Value="E:MyNamespace.MyType.MyEvent" />
+      <MemberType>Event</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>MyNamespace.MyDelegate</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>This is the MyEvent summary.</summary>
+      </Docs>
+    </Member>
   </Members>
 </Type>

@@ -14,7 +14,9 @@ namespace Libraries.Docs
         private List<DocsTypeParameter>? _typeParameters;
         private List<DocsTypeParam>? _typeParams;
         private List<DocsAssemblyInfo>? _assemblyInfos;
-        private List<DocsSeeAlso>? _seeAlsos;
+        private List<string>? _seeAlsoCrefs;
+        private List<string>? _altMemberCrefs;
+        private List<DocsRelated>? _relateds;
 
         protected readonly XElement XERoot;
 
@@ -122,22 +124,60 @@ namespace Libraries.Docs
             }
         }
 
-        public List<DocsSeeAlso> SeeAlsos
+        public List<string> SeeAlsoCrefs
         {
             get
             {
-                if (_seeAlsos == null)
+                if (_seeAlsoCrefs == null)
                 {
                     if (Docs != null)
                     {
-                        _seeAlsos = Docs.Elements("seealso").Select(x => new DocsSeeAlso(this, x)).ToList();
+                        _seeAlsoCrefs = Docs.Elements("seealso").Select(x => XmlHelper.GetAttributeValue(x, "cref")).ToList();
                     }
                     else
                     {
-                        _seeAlsos = new();
+                        _seeAlsoCrefs = new();
                     }
                 }
-                return _seeAlsos;
+                return _seeAlsoCrefs;
+            }
+        }
+
+        public List<string> AltMembers
+        {
+            get
+            {
+                if (_altMemberCrefs == null)
+                {
+                    if (Docs != null)
+                    {
+                        _altMemberCrefs = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref")).ToList();
+                    }
+                    else
+                    {
+                        _altMemberCrefs = new();
+                    }
+                }
+                return _altMemberCrefs;
+            }
+        }
+
+        public List<DocsRelated> Relateds
+        {
+            get
+            {
+                if (_relateds == null)
+                {
+                    if (Docs != null)
+                    {
+                        _relateds = Docs.Elements("related").Select(x => new DocsRelated(this, x)).ToList();
+                    }
+                    else
+                    {
+                        _relateds = new();
+                    }
+                }
+                return _relateds;
             }
         }
 

@@ -100,5 +100,16 @@ namespace MyNamespace
         public void MyTypeParamMethod<T>()
         {
         }
+
+        /// <summary>This is the MyDelegate summary.</summary>
+        /// <param name="sender">This is the sender parameter.</param>
+        /// <param name="e">This is the e parameter.</param>
+        /// <seealso cref="System.Delegate"/>
+        /// <altmember cref="System.Delegate"/>
+        /// <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>
+        public delegate void MyDelegate(object sender, object e);
+
+        /// <summary>This is the MyEvent summary.</summary>
+        public event MyDelegate MyEvent;
     }
 }

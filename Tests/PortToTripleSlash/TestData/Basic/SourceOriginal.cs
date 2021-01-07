@@ -35,5 +35,9 @@ namespace MyNamespace
         public void MyTypeParamMethod<T>()
         {
         }
+
+        public delegate void MyDelegate(object sender, object e);
+
+        public event MyDelegate MyEvent;
     }
 }

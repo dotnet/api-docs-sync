@@ -25,6 +25,8 @@ namespace Libraries.RoslynTripleSlash
             UseBoilerplate = useBoilerplate;
         }
 
+        #region Visitor overrides
+
         public override SyntaxNode? VisitClassDeclaration(ClassDeclarationSyntax node)
         {
             SyntaxNode? baseNode = base.VisitClassDeclaration(node);
@@ -42,38 +44,31 @@ namespace Libraries.RoslynTripleSlash
         public override SyntaxNode? VisitConstructorDeclaration(ConstructorDeclarationSyntax node) =>
             VisitBaseMethodDeclaration(node);
 
+        public override SyntaxNode? VisitDelegateDeclaration(DelegateDeclarationSyntax node)
+        {
+            SyntaxNode? baseNode = base.VisitDelegateDeclaration(node);
+
+            ISymbol? symbol = Model.GetDeclaredSymbol(node);
+            if (symbol == null)
+            {
+                Log.Warning($"Symbol is null.");
+                return baseNode;
+            }
+
+            return VisitType(baseNode, symbol);
+        }
+
         public override SyntaxNode? VisitEnumDeclaration(EnumDeclarationSyntax node) =>
             VisitMemberDeclaration(node);
 
         public override SyntaxNode? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) =>
             VisitMemberDeclaration(node);
 
-        public override SyntaxNode? VisitEventDeclaration(EventDeclarationSyntax node) =>
-            VisitMemberDeclaration(node);
+        public override SyntaxNode? VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) =>
+            VisitVariableDeclaration(node);
 
-        public override SyntaxNode? VisitFieldDeclaration(FieldDeclarationSyntax node)
-        {
-            // The comments need to be extracted from the underlying variable declarator inside the declaration
-            VariableDeclarationSyntax declaration = node.Declaration;
-
-            // Only port docs if there is only one variable in the declaration
-            if (declaration.Variables.Count == 1)
-            {
-                if (!TryGetMember(declaration.Variables.First(), out DocsMember? member))
-                {
-                    return node;
-                }
-
-                SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
-
-                SyntaxTriviaList summary = GetSummary(UseBoilerplate ? BoilerplateText : member.Summary, leadingWhitespace);
-                SyntaxTriviaList remarks = GetRemarks(member.Remarks, leadingWhitespace);
-
-                return GetNodeWithTrivia(leadingWhitespace, node, summary, remarks);
-            }
-
-            return node;
-        }
+        public override SyntaxNode? VisitFieldDeclaration(FieldDeclarationSyntax node) =>
+            VisitVariableDeclaration(node);
 
         public override SyntaxNode? VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
         {
@@ -115,8 +110,10 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList remarks = GetRemarks(member.Remarks, leadingWhitespace);
             SyntaxTriviaList exceptions = GetExceptions(member, leadingWhitespace);
             SyntaxTriviaList seealsos = GetSeeAlsos(member, leadingWhitespace);
+            SyntaxTriviaList altmembers = GetAltMembers(member, leadingWhitespace);
+            SyntaxTriviaList relateds = GetRelateds(member, leadingWhitespace);
 
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, value, remarks, exceptions, seealsos);
+            return GetNodeWithTrivia(leadingWhitespace, node, summary, value, remarks, exceptions, seealsos, altmembers, relateds);
         }
 
         public override SyntaxNode? VisitStructDeclaration(StructDeclarationSyntax node)
@@ -132,6 +129,8 @@ namespace Libraries.RoslynTripleSlash
 
             return VisitType(baseNode, symbol);
         }
+
+        #endregion
 
         private SyntaxNode? VisitType(SyntaxNode? node, ISymbol? symbol)
         {
@@ -150,6 +149,14 @@ namespace Libraries.RoslynTripleSlash
             string summaryText = BoilerplateText;
             string remarksText = string.Empty;
 
+            SyntaxTriviaList parameters = new();
+            SyntaxTriviaList typeParameters = new();
+            SyntaxTriviaList seealsos = new();
+            SyntaxTriviaList altmembers = new();
+            SyntaxTriviaList relateds = new();
+
+            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+
             if (!UseBoilerplate)
             {
                 if (!TryGetType(symbol, out DocsType? type))
@@ -159,14 +166,88 @@ namespace Libraries.RoslynTripleSlash
 
                 summaryText = type.Summary;
                 remarksText = type.Remarks;
-            }
 
-            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+                parameters = GetParameters(type, leadingWhitespace);
+                typeParameters = GetTypeParameters(type, leadingWhitespace);
+                seealsos = GetSeeAlsos(type, leadingWhitespace);
+                altmembers = GetAltMembers(type, leadingWhitespace);
+                relateds = GetRelateds(type, leadingWhitespace);
+            }
 
             SyntaxTriviaList summary = GetSummary(summaryText, leadingWhitespace);
             SyntaxTriviaList remarks = GetRemarks(remarksText, leadingWhitespace);
 
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, remarks);
+            return GetNodeWithTrivia(leadingWhitespace, node, summary, parameters, typeParameters, remarks, seealsos, altmembers, relateds);
+        }
+
+        private SyntaxNode? VisitBaseMethodDeclaration(BaseMethodDeclarationSyntax node)
+        {
+            // The Docs files only contain docs for public elements,
+            // so if no comments are found, we return the node unmodified
+            if (!TryGetMember(node, out DocsMember? member))
+            {
+                return node;
+            }
+
+            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+
+            SyntaxTriviaList summary = GetSummary(UseBoilerplate ? BoilerplateText : member.Summary, leadingWhitespace);
+            SyntaxTriviaList parameters = GetParameters(member, leadingWhitespace);
+            SyntaxTriviaList typeParameters = GetTypeParameters(member, leadingWhitespace);
+            SyntaxTriviaList returns = GetReturns(UseBoilerplate ? BoilerplateText : member.Returns, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(member.Remarks, leadingWhitespace);
+            SyntaxTriviaList exceptions = GetExceptions(member, leadingWhitespace);
+            SyntaxTriviaList seealsos = GetSeeAlsos(member, leadingWhitespace);
+            SyntaxTriviaList altmembers = GetAltMembers(member, leadingWhitespace);
+            SyntaxTriviaList relateds = GetRelateds(member, leadingWhitespace);
+
+            return GetNodeWithTrivia(leadingWhitespace, node, summary, parameters, typeParameters, returns, remarks, exceptions, seealsos, altmembers, relateds);
+        }
+
+        private SyntaxNode? VisitMemberDeclaration(MemberDeclarationSyntax node)
+        {
+            if (!TryGetMember(node, out DocsMember? member))
+            {
+                return node;
+            }
+
+            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+
+            SyntaxTriviaList summary = GetSummary(UseBoilerplate ? BoilerplateText : member.Summary, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(member.Remarks, leadingWhitespace);
+            SyntaxTriviaList exceptions = GetExceptions(member, leadingWhitespace);
+            SyntaxTriviaList seealsos = GetSeeAlsos(member, leadingWhitespace);
+            SyntaxTriviaList altmembers = GetAltMembers(member, leadingWhitespace);
+            SyntaxTriviaList relateds = GetRelateds(member, leadingWhitespace);
+
+            return GetNodeWithTrivia(leadingWhitespace, node, summary, remarks, exceptions, seealsos, altmembers, relateds);
+        }
+
+        private SyntaxNode? VisitVariableDeclaration(BaseFieldDeclarationSyntax node)
+        {
+            // The comments need to be extracted from the underlying variable declarator inside the declaration
+            VariableDeclarationSyntax declaration = node.Declaration;
+
+            // Only port docs if there is only one variable in the declaration
+            if (declaration.Variables.Count == 1)
+            {
+                if (!TryGetMember(declaration.Variables.First(), out DocsMember? member))
+                {
+                    return node;
+                }
+
+                SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+
+                SyntaxTriviaList summary = GetSummary(UseBoilerplate ? BoilerplateText : member.Summary, leadingWhitespace);
+                SyntaxTriviaList remarks = GetRemarks(member.Remarks, leadingWhitespace);
+                SyntaxTriviaList seealsos = GetSeeAlsos(member, leadingWhitespace);
+                SyntaxTriviaList altmembers = GetAltMembers(member, leadingWhitespace);
+                SyntaxTriviaList relateds = GetRelateds(member, leadingWhitespace);
+
+                return GetNodeWithTrivia(leadingWhitespace, node, summary, remarks, seealsos, altmembers, relateds);
+            }
+
+            return node;
         }
 
         private SyntaxNode GetNodeWithTrivia(SyntaxTriviaList leadingWhitespace, SyntaxNode node, params SyntaxTriviaList[] trivias)
@@ -191,50 +272,12 @@ namespace Libraries.RoslynTripleSlash
             return node.WithLeadingTrivia(finalTrivia);
         }
 
-        private SyntaxNode? VisitBaseMethodDeclaration(BaseMethodDeclarationSyntax node)
-        {
-            // The Docs files only contain docs for public elements,
-            // so if no comments are found, we return the node unmodified
-            if (!TryGetMember(node, out DocsMember? member))
-            {
-                return node;
-            }
-
-            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
-
-            SyntaxTriviaList summary = GetSummary(UseBoilerplate ? BoilerplateText : member.Summary, leadingWhitespace);
-            SyntaxTriviaList parameters = GetParameters(member, leadingWhitespace);
-            SyntaxTriviaList typeParameters = GetTypeParameters(member, leadingWhitespace);
-            SyntaxTriviaList returns = GetReturns(UseBoilerplate ? BoilerplateText : member.Returns, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member.Remarks, leadingWhitespace);
-            SyntaxTriviaList exceptions = GetExceptions(member, leadingWhitespace);
-            SyntaxTriviaList seealsos = GetSeeAlsos(member, leadingWhitespace);
-
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, parameters, typeParameters, returns, remarks, exceptions, seealsos);
-        }
-
-        private SyntaxNode? VisitMemberDeclaration(MemberDeclarationSyntax node)
-        {
-            if (!TryGetMember(node, out DocsMember? member))
-            {
-                return node;
-            }
-
-            SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
-
-            SyntaxTriviaList summary = GetSummary(UseBoilerplate ? BoilerplateText : member.Summary, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member.Remarks, leadingWhitespace);
-            SyntaxTriviaList exceptions = GetExceptions(member, leadingWhitespace);
-
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, remarks, exceptions);
-        }
-
         private SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node) =>
             node.GetLeadingTrivia().Where(t => t.IsKind(SyntaxKind.WhitespaceTrivia)).ToSyntaxTriviaList();
 
         private SyntaxTriviaList GetSummary(string text, SyntaxTriviaList leadingWhitespace)
         {
-            SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(text.WithoutPrefixes());
+            SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(text.WithoutPrefix());
             XmlElementSyntax element = SyntaxFactory.XmlSummaryElement(contents);
             return GetXmlTrivia(element, leadingWhitespace);
         }
@@ -256,16 +299,27 @@ namespace Libraries.RoslynTripleSlash
 
         private SyntaxTriviaList GetValue(string text, SyntaxTriviaList leadingWhitespace)
         {
-            SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(text.WithoutPrefixes());
+            SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(text.WithoutPrefix());
             XmlElementSyntax element = SyntaxFactory.XmlValueElement(contents);
             return GetXmlTrivia(element, leadingWhitespace);
         }
 
-        private SyntaxTriviaList GetParam(string name, string text, SyntaxTriviaList leadingWhitespace)
+        private SyntaxTriviaList GetParameter(string name, string text, SyntaxTriviaList leadingWhitespace)
         {
-            SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(text.WithoutPrefixes());
+            SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(text.WithoutPrefix());
             XmlElementSyntax element = SyntaxFactory.XmlParamElement(name, contents);
             return GetXmlTrivia(element, leadingWhitespace);
+        }
+
+        private SyntaxTriviaList GetParameters(DocsAPI api, SyntaxTriviaList leadingWhitespace)
+        {
+            SyntaxTriviaList parameters = new();
+            foreach (SyntaxTriviaList parameterTrivia in api.Params.Select(
+                param => GetParameter(param.Name, UseBoilerplate ? BoilerplateText : param.Value, leadingWhitespace)))
+            {
+                parameters = parameters.AddRange(parameterTrivia);
+            }
+            return parameters;
         }
 
         private SyntaxTriviaList GetTypeParam(string name, string text, SyntaxTriviaList leadingWhitespace)
@@ -275,21 +329,10 @@ namespace Libraries.RoslynTripleSlash
             return GetXmlTrivia("typeparam", attribute, contents, leadingWhitespace);
         }
 
-        private SyntaxTriviaList GetParameters(DocsMember member, SyntaxTriviaList leadingWhitespace)
-        {
-            SyntaxTriviaList parameters = new();
-            foreach (SyntaxTriviaList parameterTrivia in member.Params.Select(
-                param => GetParam(param.Name, UseBoilerplate ? BoilerplateText : param.Value, leadingWhitespace)))
-            {
-                parameters = parameters.AddRange(parameterTrivia);
-            }
-            return parameters;
-        }
-
-        private SyntaxTriviaList GetTypeParameters(DocsMember member, SyntaxTriviaList leadingWhitespace)
+        private SyntaxTriviaList GetTypeParameters(DocsAPI api, SyntaxTriviaList leadingWhitespace)
         {
             SyntaxTriviaList typeParameters = new();
-            foreach (SyntaxTriviaList typeParameterTrivia in member.TypeParams.Select(
+            foreach (SyntaxTriviaList typeParameterTrivia in api.TypeParams.Select(
                 typeParam => GetTypeParam(typeParam.Name, UseBoilerplate ? BoilerplateText : typeParam.Value, leadingWhitespace)))
             {
                 typeParameters = typeParameters.AddRange(typeParameterTrivia);
@@ -305,20 +348,15 @@ namespace Libraries.RoslynTripleSlash
                 return new();
             }
 
-            SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(text.WithoutPrefixes());
+            SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(text.WithoutPrefix());
             XmlElementSyntax element = SyntaxFactory.XmlReturnsElement(contents);
             return GetXmlTrivia(element, leadingWhitespace);
         }
 
         private SyntaxTriviaList GetException(string cref, string text, SyntaxTriviaList leadingWhitespace)
         {
-            if (cref.Length > 2 && cref[1] == ':')
-            {
-                cref = cref[2..];
-            }
-
-            TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
-            XmlTextSyntax contents = SyntaxFactory.XmlText(GetTextAsTokens(text.WithoutPrefixes(), leadingWhitespace, addInitialNewLine: false));
+            TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref.WithoutPrefix()));
+            XmlTextSyntax contents = SyntaxFactory.XmlText(GetTextAsTokens(text.WithoutPrefix(), leadingWhitespace, addInitialNewLine: false));
             XmlElementSyntax element = SyntaxFactory.XmlExceptionElement(crefSyntax, contents);
             return GetXmlTrivia(element, leadingWhitespace);
         }
@@ -338,14 +376,20 @@ namespace Libraries.RoslynTripleSlash
             return exceptions;
         }
 
-        private SyntaxTriviaList GetSeeAlsos(DocsMember member, SyntaxTriviaList leadingWhitespace)
+        private SyntaxTriviaList GetSeeAlso(string cref, SyntaxTriviaList leadingWhitespace)
+        {
+            TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref.WithoutPrefix()));
+            XmlEmptyElementSyntax element = SyntaxFactory.XmlSeeAlsoElement(crefSyntax);
+            return GetXmlTrivia(element, leadingWhitespace);
+        }
+
+        private SyntaxTriviaList GetSeeAlsos(DocsAPI api, SyntaxTriviaList leadingWhitespace)
         {
             SyntaxTriviaList seealsos = new();
-            // No need to add exceptions in secondary files
-            if (!UseBoilerplate && member.SeeAlsos.Any())
+            if (!UseBoilerplate && api.SeeAlsoCrefs.Any())
             {
-                foreach (SyntaxTriviaList seealsoTrivia in member.SeeAlsos.Select(
-                    s => GetSeeAlso(s.Cref, leadingWhitespace)))
+                foreach (SyntaxTriviaList seealsoTrivia in api.SeeAlsoCrefs.Select(
+                    s => GetSeeAlso(s, leadingWhitespace)))
                 {
                     seealsos = seealsos.AddRange(seealsoTrivia);
                 }
@@ -353,16 +397,50 @@ namespace Libraries.RoslynTripleSlash
             return seealsos;
         }
 
-        private SyntaxTriviaList GetSeeAlso(string cref, SyntaxTriviaList leadingWhitespace)
+        private SyntaxTriviaList GetAltMember(string cref, SyntaxTriviaList leadingWhitespace)
         {
-            if (cref.Length > 2 && cref[1] == ':')
-            {
-                cref = cref[2..];
-            }
+            XmlAttributeSyntax attribute = SyntaxFactory.XmlTextAttribute("cref", cref.WithoutPrefix());
+            XmlEmptyElementSyntax emptyElement = SyntaxFactory.XmlEmptyElement(SyntaxFactory.XmlName(SyntaxFactory.Identifier("altmember")), new SyntaxList<XmlAttributeSyntax>(attribute));
+            return GetXmlTrivia(emptyElement, leadingWhitespace);
+        }
 
-            TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
-            XmlEmptyElementSyntax element = SyntaxFactory.XmlSeeAlsoElement(crefSyntax);
-            return GetXmlTrivia(element, leadingWhitespace);
+        private SyntaxTriviaList GetAltMembers(DocsAPI api, SyntaxTriviaList leadingWhitespace)
+        {
+            SyntaxTriviaList altMembers = new();
+            if (!UseBoilerplate && api.AltMembers.Any())
+            {
+                foreach (SyntaxTriviaList altMemberTrivia in api.AltMembers.Select(
+                    s => GetAltMember(s, leadingWhitespace)))
+                {
+                    altMembers = altMembers.AddRange(altMemberTrivia);
+                }
+            }
+            return altMembers;
+        }
+
+        private SyntaxTriviaList GetRelated(string articleType, string href, string value, SyntaxTriviaList leadingWhitespace)
+        {
+            SyntaxList<XmlAttributeSyntax> attributes = new();
+
+            attributes = attributes.Add(SyntaxFactory.XmlTextAttribute("type", articleType));
+            attributes = attributes.Add(SyntaxFactory.XmlTextAttribute("href", href));
+
+            SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(value);
+            return GetXmlTrivia("related", attributes, contents, leadingWhitespace);
+        }
+
+        private SyntaxTriviaList GetRelateds(DocsAPI api, SyntaxTriviaList leadingWhitespace)
+        {
+            SyntaxTriviaList relateds = new();
+            if (!UseBoilerplate && api.Relateds.Any())
+            {
+                foreach (SyntaxTriviaList relatedsTrivia in api.Relateds.Select(
+                    s => GetRelated(s.ArticleType, s.Href, s.Value, leadingWhitespace)))
+                {
+                    relateds = relateds.AddRange(relatedsTrivia);
+                }
+            }
+            return relateds;
         }
 
         private SyntaxTokenList GetTextAsTokens(string text, SyntaxTriviaList leadingWhitespace, bool addInitialNewLine)

@@ -10,7 +10,6 @@ namespace Libraries.Docs
         private string? _memberName;
         private List<DocsMemberSignature>? _memberSignatures;
         private string? _docId;
-        private List<string>? _altMemberCref;
         private List<DocsException>? _exceptions;
 
         public DocsMember(string filePath, DocsType parentType, XElement xeMember)
@@ -166,25 +165,6 @@ namespace Libraries.Docs
                 {
                     Log.Warning($"Attempted to save a value element for an API that is not a property: {DocIdEscaped}");
                 }
-            }
-        }
-
-        public List<string> AltMemberCref
-        {
-            get
-            {
-                if (_altMemberCref == null)
-                {
-                    if (Docs != null)
-                    {
-                        _altMemberCref = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref")).ToList();
-                    }
-                    else
-                    {
-                        _altMemberCref = new List<string>();
-                    }
-                }
-                return _altMemberCref;
             }
         }
 

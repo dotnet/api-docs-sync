@@ -39,8 +39,13 @@ namespace Libraries
         public static bool IsDocsEmpty(this string? s) =>
             string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
 
-        public static string WithoutPrefixes(this string text)
+        public static string WithoutPrefix(this string text)
         {
+            if (text.Length > 2 && text[1] == ':')
+            {
+                return text[2..];
+            }
+
             return Regex.Replace(
                 input: text,
                 pattern: @"(?<left>.*)(?<cref>cref=""[A-Z]\:)(?<right>.*)",

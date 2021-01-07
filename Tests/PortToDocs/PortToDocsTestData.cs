@@ -7,11 +7,12 @@ namespace Libraries.Tests
     {
         private const string TestDataRootDirPath = @"../../../PortToDocs/TestData";
         private const string IntellisenseAndDllDirName = "IntelliSenseAndDLL";
-
         internal DirectoryInfo IntelliSenseAndDLLDir { get; set; }
 
         // Docs file with the interface from which the type inherits.
         internal string InterfaceFilePath { get; set; }
+
+        internal string DocsOriginFilePath { get; set; }
 
         internal PortToDocsTestData(
             TestDirectory tempDir,
@@ -24,15 +25,13 @@ namespace Libraries.Tests
             Assert.False(string.IsNullOrWhiteSpace(assemblyName));
             Assert.False(string.IsNullOrWhiteSpace(typeName));
 
-            Assembly = assemblyName;
-            Namespace = string.IsNullOrEmpty(namespaceName) ? assemblyName : namespaceName;
-            Type = typeName;
+            namespaceName = string.IsNullOrEmpty(namespaceName) ? assemblyName : namespaceName;
 
             IntelliSenseAndDLLDir = tempDir.CreateSubdirectory(IntellisenseAndDllDirName);
-            DirectoryInfo tripleSlashAssemblyDir = IntelliSenseAndDLLDir.CreateSubdirectory(Assembly);
+            DirectoryInfo tripleSlashAssemblyDir = IntelliSenseAndDLLDir.CreateSubdirectory(assemblyName);
 
             DocsDir = tempDir.CreateSubdirectory(DocsDirName);
-            DirectoryInfo docsAssemblyDir = DocsDir.CreateSubdirectory(Namespace);
+            DirectoryInfo docsAssemblyDir = DocsDir.CreateSubdirectory(namespaceName);
 
             string testDataPath = Path.Combine(TestDataRootDirPath, testDataDir);
 
@@ -44,15 +43,15 @@ namespace Libraries.Tests
             Assert.True(File.Exists(docsOriginalFilePath));
             Assert.True(File.Exists(docsExpectedFilePath));
 
-            OriginalFilePath = Path.Combine(tripleSlashAssemblyDir.FullName, $"{Type}.xml");
-            ActualFilePath = Path.Combine(docsAssemblyDir.FullName, $"{Type}.xml");
+            DocsOriginFilePath = Path.Combine(tripleSlashAssemblyDir.FullName, $"{typeName}.xml");
+            ActualFilePath = Path.Combine(docsAssemblyDir.FullName, $"{typeName}.xml");
             ExpectedFilePath = Path.Combine(tempDir.FullPath, "DocsExpected.xml");
 
-            File.Copy(tripleSlashOriginalFilePath, OriginalFilePath);
+            File.Copy(tripleSlashOriginalFilePath, DocsOriginFilePath);
             File.Copy(docsOriginalFilePath, ActualFilePath);
             File.Copy(docsExpectedFilePath, ExpectedFilePath);
 
-            Assert.True(File.Exists(OriginalFilePath));
+            Assert.True(File.Exists(DocsOriginFilePath));
             Assert.True(File.Exists(ActualFilePath));
             Assert.True(File.Exists(ExpectedFilePath));
 

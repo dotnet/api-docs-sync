@@ -260,7 +260,7 @@ namespace Libraries.RoslynTripleSlash
             if (!text.IsDocsEmpty())
             {
                 string trimmedRemarks = text.RemoveSubstrings("<![CDATA[", "]]>").Trim(); // The SyntaxFactory needs to be the one to add these
-                SyntaxTokenList cdata = GetTextAsTokens(trimmedRemarks, leadingWhitespace.Add(SyntaxFactory.CarriageReturnLineFeed), addInitialNewLine: true, removeRemarksHeader: true);
+                SyntaxTokenList cdata = GetTextAsTokens(trimmedRemarks, leadingWhitespace.Add(SyntaxFactory.CarriageReturnLineFeed), addInitialNewLine: true, remarks: true);
                 XmlNodeSyntax xmlRemarksContent = SyntaxFactory.XmlCDataSection(SyntaxFactory.Token(SyntaxKind.XmlCDataStartToken), cdata, SyntaxFactory.Token(SyntaxKind.XmlCDataEndToken));
                 XmlElementSyntax xmlRemarks = SyntaxFactory.XmlRemarksElement(xmlRemarksContent);
 
@@ -416,7 +416,7 @@ namespace Libraries.RoslynTripleSlash
             return relateds;
         }
 
-        private SyntaxTokenList GetTextAsTokens(string text, SyntaxTriviaList leadingWhitespace, bool addInitialNewLine, bool removeRemarksHeader = false)
+        private SyntaxTokenList GetTextAsTokens(string text, SyntaxTriviaList leadingWhitespace, bool addInitialNewLine, bool remarks = false)
         {
             string whitespace = leadingWhitespace.ToFullString().Replace(Environment.NewLine, "");
             SyntaxToken newLineAndWhitespace = SyntaxFactory.XmlTextNewLine(Environment.NewLine + whitespace);
@@ -431,8 +431,6 @@ namespace Libraries.RoslynTripleSlash
             // Only add the initial new line and whitespace if the contents have more than one line. Otherwise, we want the contents to be inlined inside the tags.
             if (splittedLines.Length > 1 && addInitialNewLine)
             {
-                // For example, the remarks section needs a new line before the initial "## Remarks" title
-                tokens.Add(newLineAndWhitespace);
                 tokens.Add(newLineAndWhitespace);
             }
 
@@ -440,11 +438,11 @@ namespace Libraries.RoslynTripleSlash
             {
                 string line = splittedLines[lineNumber];
 
-                if (removeRemarksHeader &&
-                    (line.Contains("## Remarks") || line.Contains("##Remarks")))
+                // Avoid adding the '## Remarks' header, it's unnecessary
+                if (remarks && (line.Contains("## Remarks") || line.Contains("##Remarks")))
                 {
-                    // Avoid adding the '## Remarks' header, it's unnecessary
-                    removeRemarksHeader = false;
+                    // Reduces the number of Contains calls
+                    remarks = false;
                     continue;
                 }
 
@@ -454,7 +452,6 @@ namespace Libraries.RoslynTripleSlash
                 // Only add extra new lines if we expect more than one line of text in the contents. Otherwise, inline it inside the tags.
                 if (splittedLines.Length > 1)
                 {
-                    tokens.Add(newLineAndWhitespace);
                     tokens.Add(newLineAndWhitespace);
                 }
             }

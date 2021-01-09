@@ -13,13 +13,13 @@ namespace DocsPortingTool
             {
                 case Configuration.PortingDirection.ToDocs:
                     {
-                        var porter = new ToDocsPorter(config);
+                        ToDocsPorter porter = new(config);
                         porter.Start();
                         break;
                     }
                 case Configuration.PortingDirection.ToTripleSlash:
                     {
-                        var porter = new ToTripleSlashPorter(config);
+                        ToTripleSlashPorter porter = new(config);
                         porter.Start();
                         break;
                     }

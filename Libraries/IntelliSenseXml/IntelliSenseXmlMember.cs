@@ -92,7 +92,7 @@ namespace Libraries.IntelliSenseXml
             {
                 if (_summary == null)
                 {
-                    XElement xElement = XEMember.Element("summary");
+                    XElement? xElement = XEMember.Element("summary");
                     _summary = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _summary;
@@ -106,7 +106,7 @@ namespace Libraries.IntelliSenseXml
             {
                 if (_value == null)
                 {
-                    XElement xElement = XEMember.Element("value");
+                    XElement? xElement = XEMember.Element("value");
                     _value = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _value;
@@ -120,7 +120,7 @@ namespace Libraries.IntelliSenseXml
             {
                 if (_returns == null)
                 {
-                        XElement xElement = XEMember.Element("returns");
+                        XElement? xElement = XEMember.Element("returns");
                         _returns = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _returns;
@@ -134,7 +134,7 @@ namespace Libraries.IntelliSenseXml
             {
                 if (_remarks == null)
                 {
-                        XElement xElement = XEMember.Element("remarks");
+                        XElement? xElement = XEMember.Element("remarks");
                         _remarks = (xElement !=  null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _remarks;

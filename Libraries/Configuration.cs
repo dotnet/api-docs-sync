@@ -160,7 +160,6 @@ namespace Libraries
                                     break;
                                 default:
                                     throw new Exception($"Unrecognized direction value: {arg}");
-                                    break;
                             }
                             mode = Mode.Initial;
                             break;

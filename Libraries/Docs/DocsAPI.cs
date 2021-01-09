@@ -76,7 +76,7 @@ namespace Libraries.Docs
         {
             get
             {
-                return XERoot.Element("Docs");
+                return XERoot.Element("Docs") ?? throw new NullReferenceException($"Docs section was null in {FilePath}");
             }
         }
 

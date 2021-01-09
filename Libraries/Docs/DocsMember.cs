@@ -83,12 +83,8 @@ namespace Libraries.Docs
         {
             get
             {
-                XElement xeImplements = XERoot.Element("Implements");
-                if (xeImplements != null)
-                {
-                    return XmlHelper.GetChildElementValue(xeImplements, "InterfaceMember");
-                }
-                return string.Empty;
+                XElement? xeImplements = XERoot.Element("Implements");
+                return (xeImplements != null) ? XmlHelper.GetChildElementValue(xeImplements, "InterfaceMember") : string.Empty;
             }
         }
 
@@ -96,7 +92,7 @@ namespace Libraries.Docs
         {
             get
             {
-                XElement xeReturnValue = XERoot.Element("ReturnValue");
+                XElement? xeReturnValue = XERoot.Element("ReturnValue");
                 if (xeReturnValue != null)
                 {
                     return XmlHelper.GetChildElementValue(xeReturnValue, "ReturnType");

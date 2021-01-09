@@ -91,7 +91,7 @@ namespace Libraries
             }
             else
             {
-                XAttribute attr = parent.Attribute(name);
+                XAttribute? attr = parent.Attribute(name);
                 if (attr != null)
                 {
                     return attr.Value.Trim();
@@ -114,7 +114,7 @@ namespace Libraries
 
         public static string GetChildElementValue(XElement parent, string childName)
         {
-            XElement child = parent.Element(childName);
+            XElement? child = parent.Element(childName);
 
             if (child != null)
             {

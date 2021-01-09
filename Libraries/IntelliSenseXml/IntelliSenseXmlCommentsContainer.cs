@@ -88,7 +88,6 @@ namespace Libraries.IntelliSenseXml
             if (!fileInfo.Exists)
             {
                 throw new Exception($"The IntelliSense xml file does not exist: {fileInfo.FullName}");
-                return;
             }
 
             xDoc = XDocument.Load(fileInfo.FullName);

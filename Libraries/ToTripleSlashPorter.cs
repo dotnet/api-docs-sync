@@ -17,9 +17,50 @@ namespace Libraries
 {
     public class ToTripleSlashPorter
     {
+        private struct ProjectData
+        {
+            public MSBuildWorkspace Workspace;
+            public Project Project;
+            public Compilation Compilation;
+        }
+
+        private struct SymbolData
+        {
+            public ProjectData ProjectData;
+            public DocsType Api;
+        }
+
         private readonly Configuration Config;
         private readonly DocsCommentsContainer DocsComments;
-        private VisualStudioInstance MSBuildInstance;
+        private readonly VisualStudioInstance MSBuildInstance;
+
+        private List<ProjectData> ProjectDatas = new();
+#pragma warning disable RS1024 // Compare symbols correctly
+        // Bug fixed https://github.com/dotnet/roslyn-analyzers/pull/4571
+        private Dictionary<ISymbol, SymbolData> ResolvedSymbols = new();
+#pragma warning restore RS1024 // Compare symbols correctly
+
+        BinaryLogger? _binLogger = null;
+        private BinaryLogger? BinLogger
+        {
+            get
+            {
+                if (Config.BinLogger)
+                {
+                    if (_binLogger == null)
+                    {
+                        _binLogger = new BinaryLogger()
+                        {
+                            Parameters = Path.Combine(Environment.CurrentDirectory, Config.BinLogPath),
+                            Verbosity = Microsoft.Build.Framework.LoggerVerbosity.Diagnostic,
+                            CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed
+                        };
+                    }
+                }
+
+                return _binLogger;
+            }
+        }
 
         public ToTripleSlashPorter(Configuration config)
         {
@@ -27,6 +68,7 @@ namespace Libraries
             {
                 throw new InvalidOperationException($"Unexpected porting direction: {config.Direction}");
             }
+
             Config = config;
             DocsComments = new DocsCommentsContainer(config);
 
@@ -46,46 +88,83 @@ namespace Libraries
 
             Log.Info("Porting from Docs to triple slash...");
 
-            MSBuildWorkspace workspace;
-            try
-            {
-                workspace = MSBuildWorkspace.Create();
-            }
-            catch (ReflectionTypeLoadException)
-            {
-                throw new Exception("The MSBuild directory was not found in PATH. Use '-MSBuild <directory>' to specify it.");
-            }
+            // Load and store the main project
+            ProjectDatas.Add(GetProjectData(Config.CsProj!.FullName));
 
-            CheckDiagnostics(workspace, "MSBuildWorkspace.Create");
-
-            BinaryLogger? binLogger = null;
-            if (Config.BinLogger)
+            foreach (DocsType docsType in DocsComments.Types)
             {
-                binLogger = new BinaryLogger()
+                foreach (ProjectData pd in ProjectDatas)
                 {
-                    Parameters = Path.Combine(Environment.CurrentDirectory, Config.BinLogPath),
-                    Verbosity = Microsoft.Build.Framework.LoggerVerbosity.Diagnostic,
-                    CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed
-                };
+                    // Try to find the symbol in the current compilation
+                    INamedTypeSymbol? symbol =
+                        pd.Compilation.GetTypeByMetadataName(docsType.FullName) ??
+                        pd.Compilation.Assembly.GetTypeByMetadataName(docsType.FullName);
+
+                    // If not found, nothing to do - It means that the Docs for APIs
+                    // from an unrelated namespace were loaded for this compilation's assembly
+                    if (symbol == null)
+                    {
+                        Log.Warning($"Type symbol not found in compilation: {docsType.DocId}.");
+                        continue;
+                    }
+
+                    // Make sure at least one syntax tree of this symbol can be found in the current project's compilation
+                    // Otherwise, retrieve the correct project where this symbol is supposed to be found
+                    
+                    Location location = symbol.Locations.FirstOrDefault()
+                        ?? throw new NullReferenceException($"No locations found for {docsType.FullName}.");
+
+                    SyntaxTree tree = location.SourceTree
+                        ?? throw new NullReferenceException($"No tree found in the location of {docsType.FullName}.");
+
+                    if (pd.Compilation.SyntaxTrees.FirstOrDefault(x => x.FilePath == tree.FilePath) is null)
+                    {
+                        // The symbol has to live in one of the current project's referenced projects
+                        foreach (ProjectReference projectReference in pd.Project.ProjectReferences)
+                        {
+                            PropertyInfo prop = typeof(ProjectId).GetProperty("DebugName", BindingFlags.NonPublic | BindingFlags.Instance)
+                                ?? throw new NullReferenceException("ProjectId.DebugName private property not found.");
+
+                            string projectPath = prop.GetValue(projectReference.ProjectId)?.ToString()
+                                ?? throw new NullReferenceException("ProjectId.DebugName value was null.");
+
+                            if (string.IsNullOrWhiteSpace(projectPath))
+                            {
+                                throw new Exception("Project path was empty.");
+                            }
+
+                            // Can't reuse the existing Workspace or exception thrown saying we already have the project loaded in this workspace.
+                            // Unfortunately, there is no way to retrieve a references project as a Project instance from the existing workspace.
+                            ProjectData pd2 = GetProjectData(projectPath);
+                            ProjectDatas.Add(pd2);
+                            ResolvedSymbols.Add(symbol, new SymbolData { Api = docsType, ProjectData = pd2 });
+                        }
+                    }
+                    else
+                    {
+                        ResolvedSymbols.Add(symbol, new SymbolData { Api = docsType, ProjectData = pd });
+                    }
+                }
             }
 
-            Project? project = workspace.OpenProjectAsync(Config.CsProj!.FullName, msbuildLogger: binLogger).Result;
-            if (project == null)
+
+            foreach ((ISymbol symbol, SymbolData data) in ResolvedSymbols)
             {
-                throw new Exception("Could not find a project.");
+                ProjectData t = data.ProjectData;
+                foreach (Location location in symbol.Locations)
+                {
+                    SyntaxTree tree = location.SourceTree
+                        ?? throw new NullReferenceException($"Tree null for {data.Api.FullName}");
+
+                    SemanticModel model = t.Compilation.GetSemanticModel(tree);
+                    TripleSlashSyntaxRewriter rewriter = new(DocsComments, model, location, location.SourceTree);
+                    SyntaxNode newRoot = rewriter.Visit(tree.GetRoot())
+                        ?? throw new NullReferenceException($"Returned null root node for {data.Api.FullName} in {tree.FilePath}");
+
+                    File.WriteAllText(tree.FilePath, newRoot.ToFullString());
+                }
             }
 
-            CheckDiagnostics(workspace, "workspace.OpenProjectAsync");
-
-            Compilation? compilation = project.GetCompilationAsync().Result;
-            if (compilation == null)
-            {
-                throw new NullReferenceException("The project's compilation was null.");
-            }
-
-            CheckDiagnostics(workspace, "project.GetCompilationAsync");
-
-            PortCommentsForProject(compilation!);
         }
 
         private void CheckDiagnostics(MSBuildWorkspace workspace, string stepName)
@@ -116,46 +195,33 @@ namespace Libraries
             }
         }
 
-        private void PortCommentsForProject(Compilation compilation)
+        private ProjectData GetProjectData(string csprojPath)
         {
-            foreach (DocsType docsType in DocsComments.Types)
+            ProjectData t = new ProjectData();
+
+            try
             {
-                INamedTypeSymbol? typeSymbol =
-                    compilation.GetTypeByMetadataName(docsType.FullName) ??
-                    compilation.Assembly.GetTypeByMetadataName(docsType.FullName);
-
-                if (typeSymbol == null)
-                {
-                    Log.Warning($"Type symbol not found in compilation: {docsType.DocId}");
-                    continue;
-                }
-
-                PortCommentsForType(compilation, docsType, typeSymbol);
+                t.Workspace = MSBuildWorkspace.Create();
             }
-        }
-
-        private void PortCommentsForType(Compilation compilation, IDocsAPI api, ISymbol symbol)
-        {
-            foreach (Location location in symbol.Locations)
+            catch (ReflectionTypeLoadException)
             {
-                SyntaxTree? tree = location.SourceTree;
-                if (tree == null)
-                {
-                    Log.Warning($"Tree not found for location of {symbol.Name}");
-                    continue;
-                }
-
-                SemanticModel model = compilation.GetSemanticModel(tree);
-                var rewriter = new TripleSlashSyntaxRewriter(DocsComments, model, location, tree);
-                SyntaxNode? newRoot = rewriter.Visit(tree.GetRoot());
-                if (newRoot == null)
-                {
-                    Log.Warning($"New returned root is null for {api.DocId} in {tree.FilePath}");
-                    continue;
-                }
-
-                File.WriteAllText(tree.FilePath, newRoot.ToFullString());
+                Log.Error("The MSBuild directory was not found in PATH. Use '-MSBuild <directory>' to specify it.");
+                throw;
             }
+
+            CheckDiagnostics(t.Workspace, "MSBuildWorkspace.Create");
+
+            t.Project = t.Workspace.OpenProjectAsync(csprojPath, msbuildLogger: BinLogger).Result
+                ?? throw new NullReferenceException($"Could not find the project: {csprojPath}");
+
+            CheckDiagnostics(t.Workspace, $"workspace.OpenProjectAsync - {csprojPath}");
+
+            t.Compilation = t.Project.GetCompilationAsync().Result
+                ?? throw new NullReferenceException("The project's compilation was null.");
+
+            CheckDiagnostics(t.Workspace, $"project.GetCompilationAsync - {csprojPath}");
+
+            return t;
         }
 
         #region MSBuild loading logic

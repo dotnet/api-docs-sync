@@ -19,8 +19,7 @@ namespace DocsPortingTool
                     }
                 case Configuration.PortingDirection.ToTripleSlash:
                     {
-                        ToTripleSlashPorter porter = new(config);
-                        porter.Start();
+                        ToTripleSlashPorter.Start(config);
                         break;
                     }
                 default:

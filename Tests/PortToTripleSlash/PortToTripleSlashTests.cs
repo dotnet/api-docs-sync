@@ -1,4 +1,11 @@
-﻿using System.IO;
+﻿#nullable enable
+using Microsoft.Build.Locator;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Loader;
 using Xunit;
 
 namespace Libraries.Tests
@@ -11,7 +18,7 @@ namespace Libraries.Tests
             PortToTripleSlash("Basic");
         }
 
-        private void PortToTripleSlash(
+        private static void PortToTripleSlash(
             string testDataDir,
             bool save = true,
             bool skipInterfaceImplementations = true,
@@ -19,9 +26,9 @@ namespace Libraries.Tests
             string namespaceName = TestData.TestNamespace,
             string typeName = TestData.TestType)
         {
-            using TestDirectory tempDir = new TestDirectory();
+            using TestDirectory tempDir = new();
 
-            PortToTripleSlashTestData testData = new PortToTripleSlashTestData(
+            PortToTripleSlashTestData testData = new(
                 tempDir,
                 testDataDir,
                 assemblyName: assemblyName,
@@ -45,13 +52,13 @@ namespace Libraries.Tests
 
             c.DirsDocsXml.Add(testData.DocsDir);
 
-            var porter = new ToTripleSlashPorter(c);
+            var porter = new ToTripleSlashPorter(c, ToTripleSlashPorter.LoadVSInstance());
             porter.Start();
 
             Verify(testData);
         }
 
-        private void Verify(PortToTripleSlashTestData testData)
+        private static void Verify(PortToTripleSlashTestData testData)
         {
             string[] expectedLines = File.ReadAllLines(testData.ExpectedFilePath);
             string[] actualLines = File.ReadAllLines(testData.ActualFilePath);

@@ -15,7 +15,7 @@ namespace Libraries.RoslynTripleSlash
         private DocsCommentsContainer DocsComments { get; }
         private SemanticModel Model { get; }
 
-        public TripleSlashSyntaxRewriter(DocsCommentsContainer docsComments, SemanticModel model, Location location, SyntaxTree tree) : base(visitIntoStructuredTrivia: true)
+        public TripleSlashSyntaxRewriter(DocsCommentsContainer docsComments, SemanticModel model) : base(visitIntoStructuredTrivia: true)
         {
             DocsComments = docsComments;
             Model = model;
@@ -260,10 +260,10 @@ namespace Libraries.RoslynTripleSlash
             if (!text.IsDocsEmpty())
             {
                 string trimmedRemarks = text.RemoveSubstrings("<![CDATA[", "]]>").Trim(); // The SyntaxFactory needs to be the one to add these
-                SyntaxTokenList cdata = GetTextAsTokens(trimmedRemarks, leadingWhitespace.Add(SyntaxFactory.CarriageReturnLineFeed), addInitialNewLine: true, remarks: true);
-                XmlNodeSyntax xmlRemarksContent = SyntaxFactory.XmlCDataSection(SyntaxFactory.Token(SyntaxKind.XmlCDataStartToken), cdata, SyntaxFactory.Token(SyntaxKind.XmlCDataEndToken));
-                XmlElementSyntax xmlRemarks = SyntaxFactory.XmlRemarksElement(xmlRemarksContent);
-
+                //SyntaxTokenList cdata = GetTextAsTokens(trimmedRemarks, leadingWhitespace.Add(SyntaxFactory.CarriageReturnLineFeed), addInitialNewLine: true, remarks: true);
+                //XmlNodeSyntax contents = SyntaxFactory.XmlCDataSection(SyntaxFactory.Token(SyntaxKind.XmlCDataStartToken), cdata, SyntaxFactory.Token(SyntaxKind.XmlCDataEndToken));
+                SyntaxList<XmlNodeSyntax> contents = GetContentsInRows(trimmedRemarks);
+                XmlElementSyntax xmlRemarks = SyntaxFactory.XmlRemarksElement(contents);
                 return GetXmlTrivia(xmlRemarks, leadingWhitespace);
             }
 

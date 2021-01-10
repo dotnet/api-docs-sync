@@ -32,12 +32,10 @@ namespace Libraries
 
         private readonly Configuration Config;
         private readonly DocsCommentsContainer DocsComments;
-        private readonly VisualStudioInstance MSBuildInstance;
 
-        private List<ProjectData> ProjectDatas = new();
 #pragma warning disable RS1024 // Compare symbols correctly
         // Bug fixed https://github.com/dotnet/roslyn-analyzers/pull/4571
-        private Dictionary<ISymbol, SymbolData> ResolvedSymbols = new();
+        private readonly Dictionary<ISymbol, SymbolData> ResolvedSymbols = new();
 #pragma warning restore RS1024 // Compare symbols correctly
 
         BinaryLogger? _binLogger = null;
@@ -62,7 +60,7 @@ namespace Libraries
             }
         }
 
-        public ToTripleSlashPorter(Configuration config)
+        private ToTripleSlashPorter(Configuration config)
         {
             if (config.Direction != Configuration.PortingDirection.ToTripleSlash)
             {
@@ -71,14 +69,18 @@ namespace Libraries
 
             Config = config;
             DocsComments = new DocsCommentsContainer(config);
-
-            // This ensures we can load MSBuild property before calling the ToTripleSlashPorter constructor
-            MSBuildInstance = MSBuildLocator.QueryVisualStudioInstances().First();
-            Register(MSBuildInstance.MSBuildPath);
-            MSBuildLocator.RegisterInstance(MSBuildInstance);
         }
 
-        public void Start()
+        public static void Start(Configuration config)
+        {
+            // IMPORTANT: Need to load the MSBuild property before calling the ToTripleSlashPorter constructor.
+            LoadVSInstance();
+
+            ToTripleSlashPorter porter = new ToTripleSlashPorter(config);
+            porter.Port();
+        }
+
+        private void Port()
         {
             DocsComments.CollectFiles();
             if (!DocsComments.Types.Any())
@@ -89,61 +91,57 @@ namespace Libraries
             Log.Info("Porting from Docs to triple slash...");
 
             // Load and store the main project
-            ProjectDatas.Add(GetProjectData(Config.CsProj!.FullName));
+            ProjectData mainProjectData = GetProjectData(Config.CsProj!.FullName);
 
             foreach (DocsType docsType in DocsComments.Types)
             {
-                foreach (ProjectData pd in ProjectDatas)
+                // Try to find the symbol in the current compilation
+                INamedTypeSymbol? symbol =
+                    mainProjectData.Compilation.GetTypeByMetadataName(docsType.FullName) ??
+                    mainProjectData.Compilation.Assembly.GetTypeByMetadataName(docsType.FullName);
+
+                // If not found, nothing to do - It means that the Docs for APIs
+                // from an unrelated namespace were loaded for this compilation's assembly
+                if (symbol == null)
                 {
-                    // Try to find the symbol in the current compilation
-                    INamedTypeSymbol? symbol =
-                        pd.Compilation.GetTypeByMetadataName(docsType.FullName) ??
-                        pd.Compilation.Assembly.GetTypeByMetadataName(docsType.FullName);
+                    Log.Warning($"Type symbol not found in compilation: {docsType.DocId}.");
+                    continue;
+                }
 
-                    // If not found, nothing to do - It means that the Docs for APIs
-                    // from an unrelated namespace were loaded for this compilation's assembly
-                    if (symbol == null)
+                // Make sure at least one syntax tree of this symbol can be found in the current project's compilation
+                // Otherwise, retrieve the correct project where this symbol is supposed to be found
+
+                Location location = symbol.Locations.FirstOrDefault()
+                    ?? throw new NullReferenceException($"No locations found for {docsType.FullName}.");
+
+                SyntaxTree tree = location.SourceTree
+                    ?? throw new NullReferenceException($"No tree found in the location of {docsType.FullName}.");
+
+                if (mainProjectData.Compilation.SyntaxTrees.FirstOrDefault(x => x.FilePath == tree.FilePath) is null)
+                {
+                    // The symbol has to live in one of the current project's referenced projects
+                    foreach (ProjectReference projectReference in mainProjectData.Project.ProjectReferences)
                     {
-                        Log.Warning($"Type symbol not found in compilation: {docsType.DocId}.");
-                        continue;
-                    }
+                        PropertyInfo prop = typeof(ProjectId).GetProperty("DebugName", BindingFlags.NonPublic | BindingFlags.Instance)
+                            ?? throw new NullReferenceException("ProjectId.DebugName private property not found.");
 
-                    // Make sure at least one syntax tree of this symbol can be found in the current project's compilation
-                    // Otherwise, retrieve the correct project where this symbol is supposed to be found
-                    
-                    Location location = symbol.Locations.FirstOrDefault()
-                        ?? throw new NullReferenceException($"No locations found for {docsType.FullName}.");
+                        string projectPath = prop.GetValue(projectReference.ProjectId)?.ToString()
+                            ?? throw new NullReferenceException("ProjectId.DebugName value was null.");
 
-                    SyntaxTree tree = location.SourceTree
-                        ?? throw new NullReferenceException($"No tree found in the location of {docsType.FullName}.");
-
-                    if (pd.Compilation.SyntaxTrees.FirstOrDefault(x => x.FilePath == tree.FilePath) is null)
-                    {
-                        // The symbol has to live in one of the current project's referenced projects
-                        foreach (ProjectReference projectReference in pd.Project.ProjectReferences)
+                        if (string.IsNullOrWhiteSpace(projectPath))
                         {
-                            PropertyInfo prop = typeof(ProjectId).GetProperty("DebugName", BindingFlags.NonPublic | BindingFlags.Instance)
-                                ?? throw new NullReferenceException("ProjectId.DebugName private property not found.");
-
-                            string projectPath = prop.GetValue(projectReference.ProjectId)?.ToString()
-                                ?? throw new NullReferenceException("ProjectId.DebugName value was null.");
-
-                            if (string.IsNullOrWhiteSpace(projectPath))
-                            {
-                                throw new Exception("Project path was empty.");
-                            }
-
-                            // Can't reuse the existing Workspace or exception thrown saying we already have the project loaded in this workspace.
-                            // Unfortunately, there is no way to retrieve a references project as a Project instance from the existing workspace.
-                            ProjectData pd2 = GetProjectData(projectPath);
-                            ProjectDatas.Add(pd2);
-                            ResolvedSymbols.Add(symbol, new SymbolData { Api = docsType, ProjectData = pd2 });
+                            throw new Exception("Project path was empty.");
                         }
+
+                        // Can't reuse the existing Workspace or exception thrown saying we already have the project loaded in this workspace.
+                        // Unfortunately, there is no way to retrieve a references project as a Project instance from the existing workspace.
+                        ProjectData extraProjectData = GetProjectData(projectPath);
+                        ResolvedSymbols.Add(symbol, new SymbolData { Api = docsType, ProjectData = extraProjectData });
                     }
-                    else
-                    {
-                        ResolvedSymbols.Add(symbol, new SymbolData { Api = docsType, ProjectData = pd });
-                    }
+                }
+                else
+                {
+                    ResolvedSymbols.Add(symbol, new SymbolData { Api = docsType, ProjectData = mainProjectData });
                 }
             }
 
@@ -157,14 +155,13 @@ namespace Libraries
                         ?? throw new NullReferenceException($"Tree null for {data.Api.FullName}");
 
                     SemanticModel model = t.Compilation.GetSemanticModel(tree);
-                    TripleSlashSyntaxRewriter rewriter = new(DocsComments, model, location, location.SourceTree);
+                    TripleSlashSyntaxRewriter rewriter = new(DocsComments, model);
                     SyntaxNode newRoot = rewriter.Visit(tree.GetRoot())
                         ?? throw new NullReferenceException($"Returned null root node for {data.Api.FullName} in {tree.FilePath}");
 
                     File.WriteAllText(tree.FilePath, newRoot.ToFullString());
                 }
             }
-
         }
 
         private void CheckDiagnostics(MSBuildWorkspace workspace, string stepName)
@@ -197,7 +194,7 @@ namespace Libraries
 
         private ProjectData GetProjectData(string csprojPath)
         {
-            ProjectData t = new ProjectData();
+            ProjectData t = new();
 
             try
             {
@@ -224,16 +221,24 @@ namespace Libraries
             return t;
         }
 
+
         #region MSBuild loading logic
 
-        private static readonly Dictionary<string, Assembly> s_pathsToAssemblies = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
-        private static readonly Dictionary<string, Assembly> s_namesToAssemblies = new Dictionary<string, Assembly>();
+        private static readonly Dictionary<string, Assembly> s_pathsToAssemblies = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, Assembly> s_namesToAssemblies = new();
 
-        private static readonly object s_guard = new object();
+        private static readonly object s_guard = new();
 
-        /// <summary>
-        /// Register an assembly loader that will load assemblies with higher version than what was requested.
-        /// </summary>
+        // Loads the external VS instance using the correct MSBuild dependency, which differs from the one used by this process.
+        public static VisualStudioInstance LoadVSInstance()
+        {
+            VisualStudioInstance vsBuildInstance = MSBuildLocator.QueryVisualStudioInstances().First();
+            Register(vsBuildInstance.MSBuildPath);
+            MSBuildLocator.RegisterInstance(vsBuildInstance);
+            return vsBuildInstance;
+        }
+
+        // Register an assembly loader that will load assemblies with higher version than what was requested.
         private static void Register(string searchPath)
         {
             AssemblyLoadContext.Default.Resolving += (AssemblyLoadContext context, AssemblyName assemblyName) =>
@@ -314,6 +319,5 @@ namespace Libraries
         }
 
         #endregion
-
     }
 }

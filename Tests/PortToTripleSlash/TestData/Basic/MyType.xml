@@ -95,6 +95,8 @@ Multiple lines.
 
 Mentions the `param1`, the <xref:System.ArgumentNullException> and the `param2`.
 
+There are also a `true` and a `null`.
+
           ]]></format>
         </remarks>
         <exception cref="T:System.ArgumentNullException">This is the ArgumentNullException thrown by MyIntMethod. It mentions the <paramref name="param1" />.</exception>

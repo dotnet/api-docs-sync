@@ -47,7 +47,8 @@ namespace MyNamespace
         /// <returns>This is the MyIntMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
         /// <remarks>These are the MyIntMethod remarks.
         /// Multiple lines.
-        /// Mentions the <paramref name="param1" />, the <see cref="System.ArgumentNullException" /> and the <paramref name="param2" />.</remarks>
+        /// Mentions the <paramref name="param1" />, the <see cref="System.ArgumentNullException" /> and the <paramref name="param2" />.
+        /// There are also a <see langword="true" /> and a <see langword="null" />.</remarks>
         /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyIntMethod. It mentions the <paramref name="param1" />.</exception>
         /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyIntMethod.</exception>
         public int MyIntMethod(int param1, int param2)

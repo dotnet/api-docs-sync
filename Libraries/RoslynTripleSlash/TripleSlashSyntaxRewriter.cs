@@ -88,6 +88,7 @@ namespace Libraries.RoslynTripleSlash
     */
     internal class TripleSlashSyntaxRewriter : CSharpSyntaxRewriter
     {
+        private static readonly string[] ReservedKeywords = new[] { "abstract", "async", "await", "false", "null", "sealed", "static", "true", "virtual" };
         private DocsCommentsContainer DocsComments { get; }
         private SemanticModel Model { get; }
 
@@ -377,8 +378,8 @@ namespace Libraries.RoslynTripleSlash
         {
             if (!api.Remarks.IsDocsEmpty())
             {
-                string text = GetRemarksWithXmlParameters(api);
-                XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace, markdown: true);
+                string text = GetRemarksWithXmlElements(api);
+                XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace);
                 XmlElementSyntax xmlRemarks = SyntaxFactory.XmlRemarksElement(contents);
                 return GetXmlTrivia(xmlRemarks, leadingWhitespace);
             }
@@ -386,20 +387,33 @@ namespace Libraries.RoslynTripleSlash
             return new();
         }
 
-        private static string GetRemarksWithXmlParameters(IDocsAPI api)
+        /// <summary>
+        /// <see langword="virtual"static"sealed"await"async"abstract"
+        /// </summary>
+        /// <param name="api"></param>
+        /// <returns></returns>
+        private static string GetRemarksWithXmlElements(IDocsAPI api)
         {
             string remarks = api.Remarks;
 
-            if (!api.Remarks.IsDocsEmpty() && (
-                api.Params.Any() || api.TypeParams.Any()))
+            if (!api.Remarks.IsDocsEmpty())
             {
-                MatchCollection collection = Regex.Matches(api.Remarks, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
+                remarks = Regex.Replace(remarks, @"<!\[CDATA\[(\r?\n)*[\t ]*", "");
+                remarks = Regex.Replace(remarks, @"\]\]>", "");
+                remarks = Regex.Replace(remarks, @"##[ ]?Remarks(\r?\n)*[\t ]*", "");
+                remarks = Regex.Replace(remarks, @"(?<xref><xref\:(?<DocId>[a-zA-Z0-9_\.]+)(?<extraVars>\?[a-zA-Z0-9_]+=[a-zA-Z0-9_])?>)", "<see cref=\"${DocId}\" />");
+
+                    MatchCollection collection = Regex.Matches(api.Remarks, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
 
                 foreach (Match match in collection)
                 {
                     string backtickedParam = match.Groups["backtickedParam"].Value;
                     string paramName = match.Groups["paramName"].Value;
-                    if (api.Params.Any(x => x.Name == paramName))
+                    if(ReservedKeywords.Any(x => x == paramName))
+                    {
+                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<see langword=\"{paramName}\" />");
+                    }
+                    else if (api.Params.Any(x => x.Name == paramName))
                     {
                         remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<paramref name=\"{paramName}\" />");
                     }
@@ -409,7 +423,6 @@ namespace Libraries.RoslynTripleSlash
                     }
                 }
             }
-
             return remarks;
         }
 
@@ -581,32 +594,15 @@ namespace Libraries.RoslynTripleSlash
             return relateds;
         }
 
-        private static string ReplaceText(string text, bool markdown)
-        {
-            if (markdown)
-            {
-                text = Regex.Replace(text, @"<!\[CDATA\[(\r?\n)*[\t ]*", "");
-                text = Regex.Replace(text, @"\]\]>", "");
-                text = Regex.Replace(text, @"##[ ]?Remarks(\r?\n)*[\t ]*", "");
-                text = Regex.Replace(text, @"(?<xref><xref\:(?<DocId>[a-zA-Z0-9_\.]+)>)", "<see cref=\"${DocId}\" />");
-            }
-            else
-            {
-                text = text.WithoutDocIdPrefixes();
-            }
-
-            return text;
-        }
-
         /*
         XmlText
             XmlTextLiteralNewLineToken (XmlTextSyntax) -> endline
             XmlTextLiteralToken (XmlTextLiteralToken) -> [ text]
                 Lead: DocumentationCommentExteriorTrivia (SyntaxTrivia) -> [    /// ]
          */
-        private static XmlTextSyntax GetTextAsCommentedTokens(string text, SyntaxTriviaList leadingWhitespace, bool markdown = false)
+        private static XmlTextSyntax GetTextAsCommentedTokens(string text, SyntaxTriviaList leadingWhitespace)
         {
-            text = ReplaceText(text, markdown);
+            text = text.WithoutDocIdPrefixes();
 
             // collapse newlines to a single one
             string whitespace = Regex.Replace(leadingWhitespace.ToFullString(), @"(\r?\n)+", "");

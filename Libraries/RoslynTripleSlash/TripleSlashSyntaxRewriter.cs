@@ -401,7 +401,7 @@ namespace Libraries.RoslynTripleSlash
                 remarks = Regex.Replace(remarks, @"<!\[CDATA\[(\r?\n)*[\t ]*", "");
                 remarks = Regex.Replace(remarks, @"\]\]>", "");
                 remarks = Regex.Replace(remarks, @"##[ ]?Remarks(\r?\n)*[\t ]*", "");
-                remarks = Regex.Replace(remarks, @"(?<xref><xref\:(?<DocId>[a-zA-Z0-9_\.]+)(?<extraVars>\?[a-zA-Z0-9_]+=[a-zA-Z0-9_])?>)", "<see cref=\"${DocId}\" />");
+                remarks = Regex.Replace(remarks, @"(?<xref><xref\:(?<DocId>[a-zA-Z0-9_\.]+)(?<extraVars>\?[a-zA-Z0-9_]+=[a-zA-Z0-9_]+)?>)", "<see cref=\"${DocId}\" />");
 
                     MatchCollection collection = Regex.Matches(api.Remarks, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
 

@@ -1,18 +1,12 @@
-﻿<Type Name="MyDelegate" FullName="MyNamespace.MyType.MyDelegate">
-  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType.MyDelegate" />
+﻿<Type Name="MyDelegate" FullName="MyNamespace.MyType.MyDelegate`1">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType.MyDelegate`1" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
-  <Parameters>
-    <Parameter Name="sender" Type="System.Object" />
-    <Parameter Name="e" Type="System.Object" />
-  </Parameters>
-  <ReturnValue>
-    <ReturnType>System.Void</ReturnType>
-  </ReturnValue>
   <Docs>
     <param name="sender">This is the sender parameter.</param>
     <param name="e">This is the e parameter.</param>
+    <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
     <summary>This is the MyDelegate summary.</summary>
     <remarks>To be added.</remarks>
     <altmember cref="T:System.Delegate" />

@@ -29,7 +29,7 @@ namespace MyNamespace
         /// <summary>This is the MyProperty summary.</summary>
         /// <value>This is the MyProperty value.</value>
         /// <remarks>These are the MyProperty remarks.
-        /// Multiple lines and a reference to the field <see cref="MyNamespace.MyType.MyField" />.</remarks>
+        /// Multiple lines and a reference to the field <see cref="MyNamespace.MyType.MyField" /> and the xref uses displayProperty, which should be ignored when porting.</remarks>
         public int MyProperty
         {
             get { return _myProperty; /* Internal comments should remain untouched. */ }

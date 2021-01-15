@@ -45,7 +45,7 @@ Multiple lines.
 
 These are the MyProperty remarks.
 
-Multiple lines and a reference to the field <xref:MyNamespace.MyType.MyField>.
+Multiple lines and a reference to the field <xref:MyNamespace.MyType.MyField?displayProperty=nameWithType> and the xref uses displayProperty, which should be ignored when porting.
 
           ]]></format>
         </remarks>

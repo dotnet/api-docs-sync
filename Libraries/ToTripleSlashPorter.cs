@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -35,7 +36,7 @@ namespace Libraries
 
 #pragma warning disable RS1024 // Compare symbols correctly
         // Bug fixed https://github.com/dotnet/roslyn-analyzers/pull/4571
-        private readonly Dictionary<ISymbol, SymbolData> ResolvedSymbols = new();
+        private readonly Dictionary<INamedTypeSymbol, SymbolData> ResolvedSymbols = new();
 #pragma warning restore RS1024 // Compare symbols correctly
 
         BinaryLogger? _binLogger = null;
@@ -76,7 +77,7 @@ namespace Libraries
             // IMPORTANT: Need to load the MSBuild property before calling the ToTripleSlashPorter constructor.
             LoadVSInstance();
 
-            ToTripleSlashPorter porter = new ToTripleSlashPorter(config);
+            var porter = new ToTripleSlashPorter(config);
             porter.Port();
         }
 
@@ -114,8 +115,12 @@ namespace Libraries
                 Location location = symbol.Locations.FirstOrDefault()
                     ?? throw new NullReferenceException($"No locations found for {docsType.FullName}.");
 
-                SyntaxTree tree = location.SourceTree
-                    ?? throw new NullReferenceException($"No tree found in the location of {docsType.FullName}.");
+                SyntaxTree? tree = location.SourceTree;
+                if (tree == null)
+                {
+                    Log.Warning($"No tree found in the location of {docsType.FullName}. Skipping.");
+                    continue;
+                }
 
                 if (mainProjectData.Compilation.SyntaxTrees.FirstOrDefault(x => x.FilePath == tree.FilePath) is null)
                 {
@@ -135,8 +140,9 @@ namespace Libraries
 
                         // Can't reuse the existing Workspace or exception thrown saying we already have the project loaded in this workspace.
                         // Unfortunately, there is no way to retrieve a references project as a Project instance from the existing workspace.
-                        ProjectData extraProjectData = GetProjectData(projectPath);
-                        ResolvedSymbols.Add(symbol, new SymbolData { Api = docsType, ProjectData = extraProjectData });
+                        ProjectData extraProjectData = GetProjectDataAndSymbol(projectPath, docsType.FullName, out INamedTypeSymbol? actualSymbol);
+
+                        ResolvedSymbols.Add(actualSymbol, new SymbolData { Api = docsType, ProjectData = extraProjectData });
                     }
                 }
                 else
@@ -164,7 +170,7 @@ namespace Libraries
             }
         }
 
-        private void CheckDiagnostics(MSBuildWorkspace workspace, string stepName)
+        private static void CheckDiagnostics(MSBuildWorkspace workspace, string stepName)
         {
             ImmutableList<WorkspaceDiagnostic> diagnostics = workspace.Diagnostics;
             if (diagnostics.Any())
@@ -192,13 +198,34 @@ namespace Libraries
             }
         }
 
+        private ProjectData GetProjectDataAndSymbol(
+            string csprojPath,
+            string symbolFullName,
+            [NotNull] out INamedTypeSymbol? actualSymbol)
+        {
+            ProjectData pd = GetProjectData(csprojPath);
+
+            // Try to find the symbol in the current compilation
+            actualSymbol =
+                pd.Compilation.GetTypeByMetadataName(symbolFullName) ??
+                pd.Compilation.Assembly.GetTypeByMetadataName(symbolFullName);
+
+            if (actualSymbol == null)
+            {
+                Log.Error($"Type symbol not found in compilation: {symbolFullName}.");
+                throw new NullReferenceException();
+            }
+
+            return pd;
+        }
+
         private ProjectData GetProjectData(string csprojPath)
         {
-            ProjectData t = new();
+            ProjectData pd = new();
 
             try
             {
-                t.Workspace = MSBuildWorkspace.Create();
+                pd.Workspace = MSBuildWorkspace.Create();
             }
             catch (ReflectionTypeLoadException)
             {
@@ -206,21 +233,20 @@ namespace Libraries
                 throw;
             }
 
-            CheckDiagnostics(t.Workspace, "MSBuildWorkspace.Create");
+            CheckDiagnostics(pd.Workspace, "MSBuildWorkspace.Create");
 
-            t.Project = t.Workspace.OpenProjectAsync(csprojPath, msbuildLogger: BinLogger).Result
+            pd.Project = pd.Workspace.OpenProjectAsync(csprojPath, msbuildLogger: BinLogger).Result
                 ?? throw new NullReferenceException($"Could not find the project: {csprojPath}");
 
-            CheckDiagnostics(t.Workspace, $"workspace.OpenProjectAsync - {csprojPath}");
+            CheckDiagnostics(pd.Workspace, $"workspace.OpenProjectAsync - {csprojPath}");
 
-            t.Compilation = t.Project.GetCompilationAsync().Result
+            pd.Compilation = pd.Project.GetCompilationAsync().Result
                 ?? throw new NullReferenceException("The project's compilation was null.");
 
-            CheckDiagnostics(t.Workspace, $"project.GetCompilationAsync - {csprojPath}");
+            CheckDiagnostics(pd.Workspace, $"project.GetCompilationAsync - {csprojPath}");
 
-            return t;
+            return pd;
         }
-
 
         #region MSBuild loading logic
 

@@ -52,8 +52,7 @@ namespace Libraries.Tests
 
             c.DirsDocsXml.Add(testData.DocsDir);
 
-            var porter = new ToTripleSlashPorter(c, ToTripleSlashPorter.LoadVSInstance());
-            porter.Start();
+            ToTripleSlashPorter.Start(c);
 
             Verify(testData);
         }

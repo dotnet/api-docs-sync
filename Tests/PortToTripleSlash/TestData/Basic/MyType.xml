@@ -32,13 +32,9 @@ Multiple lines.
     <Member MemberName="MyProperty">
       <MemberSignature Language="DocId" Value="P:MyNamespace.MyType.MyProperty" />
       <MemberType>Property</MemberType>
-      <Implements />
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
       </AssemblyInfo>
-      <ReturnValue>
-        <ReturnType>System.Int32</ReturnType>
-      </ReturnValue>
       <Docs>
         <summary>This is the MyProperty summary.</summary>
         <value>This is the MyProperty value.</value>
@@ -49,7 +45,7 @@ Multiple lines.
 
 These are the MyProperty remarks.
 
-Multiple lines.
+Multiple lines and a reference to the field <xref:MyNamespace.MyType.MyField>.
 
           ]]></format>
         </remarks>
@@ -61,9 +57,6 @@ Multiple lines.
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
       </AssemblyInfo>
-      <ReturnValue>
-        <ReturnType>System.Int32</ReturnType>
-      </ReturnValue>
       <MemberValue>1</MemberValue>
       <Docs>
         <summary>This is the MyField summary.</summary>
@@ -83,13 +76,9 @@ Multiple lines.
     <Member MemberName="MyIntMethod">
       <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyIntMethod(System.Int32,System.Int32)" />
       <MemberType>Method</MemberType>
-      <Implements />
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
       </AssemblyInfo>
-      <ReturnValue>
-        <ReturnType>System.Int32</ReturnType>
-      </ReturnValue>
       <Docs>
         <param name="param1">This is the MyIntMethod param1 summary.</param>
         <param name="param2">This is the MyIntMethod param2 summary.</param>
@@ -104,7 +93,7 @@ These are the MyIntMethod remarks.
 
 Multiple lines.
 
-Mentions the `param1` and the <xref:System.ArgumentNullException>.
+Mentions the `param1`, the <xref:System.ArgumentNullException> and the `param2`.
 
           ]]></format>
         </remarks>
@@ -115,14 +104,9 @@ Mentions the `param1` and the <xref:System.ArgumentNullException>.
     <Member MemberName="MyVoidMethod">
       <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyVoidMethod" />
       <MemberType>Method</MemberType>
-      <Implements />
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
-        <AssemblyVersion>4.0.0.0</AssemblyVersion>
       </AssemblyInfo>
-      <ReturnValue>
-        <ReturnType>System.Void</ReturnType>
-      </ReturnValue>
       <Docs>
         <summary>This is the MyVoidMethod summary.</summary>
         <remarks>
@@ -139,23 +123,47 @@ Mentions the <xref:System.ArgumentNullException>.
           ]]></format>
         </remarks>
         <exception cref="T:System.ArgumentNullException">This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.</exception>
-        <exception cref="T:System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyVoidMethod.</exception>
+        <exception cref="T:System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyVoidMethod.
+
+-or-
+
+This is the second case.
+
+Empty newlines should be respected.</exception>
       </Docs>
     </Member>
-    <Member MemberName="MyTypeParamMethod">
-      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyTypeParamMethod``1" />
+    <Member MemberName="UndocumentedMethod">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.UndocumentedMethod" />
       <MemberType>Method</MemberType>
-      <Implements />
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
       </AssemblyInfo>
-      <ReturnValue>
-        <ReturnType>System.Void</ReturnType>
-      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="MyTypeParamMethod">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyTypeParamMethod``1(System.Int32)" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
       <Docs>
         <typeparam name="T">This is the MyTypeParamMethod typeparam T.</typeparam>
+        <param name="param1">This is the MyTypeParamMethod parameter param1.</param>
         <summary>This is the MyTypeParamMethod summary.</summary>
-        <remarks>To be added.</remarks>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+This is a reference to the typeparam `T`.
+
+This is a reference to the parameter `param1`.
+
+          ]]></format>
+        </remarks>
       </Docs>
     </Member>
     <Member MemberName="MyEvent">
@@ -164,11 +172,23 @@ Mentions the <xref:System.ArgumentNullException>.
       <AssemblyInfo>
         <AssemblyName>MyAssembly</AssemblyName>
       </AssemblyInfo>
-      <ReturnValue>
-        <ReturnType>MyNamespace.MyDelegate</ReturnType>
-      </ReturnValue>
       <Docs>
         <summary>This is the MyEvent summary.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="op_Addition">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.op_Addition(MyNamespace.MyType,MyNamespace.MyType)" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <param name="value1">The first type to add.</param>
+        <param name="value2">The second type to add.</param>
+        <summary>Adds two MyType instances.</summary>
+        <returns>The added types.</returns>
+        <remarks>To be added.</remarks>
       </Docs>
     </Member>
   </Members>

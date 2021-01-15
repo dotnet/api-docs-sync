@@ -2,12 +2,14 @@
   "profiles": {
     "Program": {
       "commandName": "Project",
-      "commandLineArgs": "-CsProj D:\\runtime\\src\\libraries\\System.IO.Compression\\src\\System.IO.Compression.csproj -Docs D:\\dotnet-api-docs\\xml -Save true -Direction ToTripleSlash -IncludedAssemblies System.IO.Compression,System.IO.Compression.Brotli -SkipInterfaceImplementations true",
+      "commandLineArgs": "-CsProj D:\\runtime\\src\\libraries\\System.IO.Compression.Brotli\\src\\System.IO.Compression.Brotli.csproj -Docs D:\\dotnet-api-docs\\xml -Save true -Direction ToTripleSlash -IncludedAssemblies System.IO.Compression.Brotli -IncludedNamespaces System.IO.Compression",
       "environmentVariables": {
+        "S.Numerics.Vectors": "-CsProj D:\\runtime\\src\\libraries\\System.Numerics.Vectors\\src\\System.Numerics.Vectors.csproj -Docs D:\\dotnet-api-docs\\xml -Save true -Direction ToTripleSlash -IncludedAssemblies System.Numerics.Vectors -IncludedNamespaces System.Numerics,System.Numerics.Vectors",
         "DOCS_IOT": "D:\\iot\\artifacts\\bin",
         "DOCS_CORECLR": "D:\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\",
         "DOCS_WINFORMS": "D:\\winforms\\artifacts\\bin\\",
         "DOCS_WPF": "D:\\wpf\\.tools\\native\\bin\\dotnet-api-docs_netcoreapp3.0\\0.0.0.1\\_intellisense\\\\netcore-3.0\\",
+        "S.IO.C.Brotli": "-CsProj D:\\runtime\\src\\libraries\\System.IO.Compression.Brotli\\src\\System.IO.Compression.Brotli.csproj -Docs D:\\dotnet-api-docs\\xml -Save true -Direction ToTripleSlash -IncludedAssemblies System.IO.Compression.Brotli -IncludedNamespaces System.IO.Compression",
         "DOCS_RUNTIME": "D:\\runtime\\artifacts\\bin\\"
       }
     }

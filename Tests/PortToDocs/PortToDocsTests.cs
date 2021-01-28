@@ -177,27 +177,26 @@ namespace Libraries.Tests
         }
 
 
-        private static string GetProblematicLines(string title, string[] lines, int i)
+        private static string GetProblematicLines(string title, string[] lines, int lineNumber)
         {
             string output = $"{title}:{Environment.NewLine}";
-            if ((i - 2) >= 0)
+
+            for (int i = 0; i <= 4; i++)
             {
-                output += $"[{i - 2}] {lines[i - 2]}{Environment.NewLine}";
-            }
-            if ((i - 1) >= 0)
-            {
-                output += $"[{i - 1}] {lines[i - 1]}{Environment.NewLine}";
+                if ((lineNumber - i) >= 0)
+                {
+                    output += $"[{lineNumber - i}] {lines[lineNumber - i]}{Environment.NewLine}";
+                }
             }
 
-            output += $"[{i}] {lines[i]}{Environment.NewLine}";
+            output += $"[{lineNumber}] {lines[lineNumber]}{Environment.NewLine}";
 
-            if ((i + 1) < lines.Length)
+            for (int i = 0; i <= 4; i++)
             {
-                output += $"[{i + 1}] {lines[i + 1]}{Environment.NewLine}";
-            }
-            if ((i + 2) < lines.Length)
-            {
-                output += $"[{i + 2}] {lines[i + 2]}{Environment.NewLine}";
+                if ((lineNumber + i) < lines.Length)
+                {
+                    output += $"[{lineNumber + i}] {lines[lineNumber + i]}{Environment.NewLine}";
+                }
             }
 
             return output;

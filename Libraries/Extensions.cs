@@ -38,19 +38,6 @@ namespace Libraries
         // Checks if the passed string is considered "empty" according to the Docs repo rules.
         public static bool IsDocsEmpty(this string? s) =>
             string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
-
-        public static string WithoutDocIdPrefixes(this string text)
-        {
-            if (text.Length > 2 && text[1] == ':')
-            {
-                return text[2..];
-            }
-
-            return Regex.Replace(
-                input: text,
-                pattern: @"cref=""[a-zA-Z]{1}\:(?<cref>[a-zA-Z0-9\._]+)""",
-                replacement: "cref=\"${cref}\"");
-        }
     }
 
 }

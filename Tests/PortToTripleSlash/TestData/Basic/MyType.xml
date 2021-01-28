@@ -59,13 +59,17 @@ Multiple lines and a reference to the field <xref:MyNamespace.MyType.MyField?dis
       </AssemblyInfo>
       <MemberValue>1</MemberValue>
       <Docs>
-        <summary>This is the MyField summary.</summary>
+        <summary>This is the MyField summary.
+
+There is a primitive type <see cref="T:System.Single" /> here.</summary>
         <remarks>
           <format type="text/markdown"><![CDATA[
 
 ## Remarks
 
 These are the MyField remarks.
+
+There is a primitive type <xref:System.Int32> here.
 
 Multiple lines.
 
@@ -112,7 +116,8 @@ There are also a `true` and a `null`.
       <Docs>
         <summary>This is the MyVoidMethod summary.</summary>
         <remarks>
-          <format type="text/markdown"><![CDATA[
+          <format type="text/markdown">
+  <![CDATA[
 
 ## Remarks
 
@@ -121,6 +126,10 @@ These are the MyVoidMethod remarks.
 Multiple lines.
 
 Mentions the <xref:System.ArgumentNullException>.
+
+Also mentions an overloaded method DocID: <xref:MyNamespace.MyType.MyIntMethod%2A>.
+
+And also mentions an overloaded method DocID with displayProperty which should be ignored when porting: <xref:MyNamespace.MyType.MyIntMethod%2A?displayProperty=nameWithType>.
 
           ]]></format>
         </remarks>

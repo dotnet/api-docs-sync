@@ -89,6 +89,27 @@ namespace Libraries.RoslynTripleSlash
     internal class TripleSlashSyntaxRewriter : CSharpSyntaxRewriter
     {
         private static readonly string[] ReservedKeywords = new[] { "abstract", "async", "await", "false", "null", "sealed", "static", "true", "virtual" };
+
+        private static readonly Dictionary<string, string> PrimitiveTypes = new()
+        {
+            { "System.Boolean", "bool" },
+            { "System.Byte",    "byte" },
+            { "System.Char",    "char" },
+            { "System.Decimal", "decimal" },
+            { "System.Double",  "double" },
+            { "System.Int16",   "short" },
+            { "System.Int32",   "int" },
+            { "System.Int64",   "long" },
+            { "System.Object",  "object" }, // Ambiguous: could be 'object' or 'dynamic' https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/built-in-types
+            { "System.SByte",   "sbyte" },
+            { "System.Single",  "float" },
+            { "System.String",  "string" },
+            { "System.UInt16",  "ushort" },
+            { "System.UInt32",  "uint" },
+            { "System.UInt64",  "ulong" },
+            { "System.Void",    "void" }
+        };
+
         private DocsCommentsContainer DocsComments { get; }
         private SemanticModel Model { get; }
 
@@ -213,6 +234,8 @@ namespace Libraries.RoslynTripleSlash
 
         #endregion
 
+        #region Visit helpers
+
         private SyntaxNode? VisitType(SyntaxNode? node, ISymbol? symbol)
         {
             if (node == null || symbol == null)
@@ -317,6 +340,38 @@ namespace Libraries.RoslynTripleSlash
             return node;
         }
 
+        private bool TryGetMember(SyntaxNode node, [NotNullWhen(returnValue: true)] out DocsMember? member)
+        {
+            member = null;
+            if (Model.GetDeclaredSymbol(node) is ISymbol symbol)
+            {
+                string? docId = symbol.GetDocumentationCommentId();
+                if (!string.IsNullOrWhiteSpace(docId))
+                {
+                    member = DocsComments.Members.FirstOrDefault(m => m.DocId == docId);
+                }
+            }
+
+            return member != null;
+        }
+
+        private bool TryGetType(ISymbol symbol, [NotNullWhen(returnValue: true)] out DocsType? type)
+        {
+            type = null;
+
+            string? docId = symbol.GetDocumentationCommentId();
+            if (!string.IsNullOrWhiteSpace(docId))
+            {
+                type = DocsComments.Types.FirstOrDefault(t => t.DocId == docId);
+            }
+
+            return type != null;
+        }
+
+        #endregion
+
+        #region Syntax manipulation
+
         private static SyntaxNode GetNodeWithTrivia(SyntaxTriviaList leadingWhitespace, SyntaxNode node, params SyntaxTriviaList[] trivias)
         {
             SyntaxTriviaList finalTrivia = new();
@@ -385,45 +440,6 @@ namespace Libraries.RoslynTripleSlash
             }
 
             return new();
-        }
-
-        /// <summary>
-        /// <see langword="virtual"static"sealed"await"async"abstract"
-        /// </summary>
-        /// <param name="api"></param>
-        /// <returns></returns>
-        private static string GetRemarksWithXmlElements(IDocsAPI api)
-        {
-            string remarks = api.Remarks;
-
-            if (!api.Remarks.IsDocsEmpty())
-            {
-                remarks = Regex.Replace(remarks, @"<!\[CDATA\[(\r?\n)*[\t ]*", "");
-                remarks = Regex.Replace(remarks, @"\]\]>", "");
-                remarks = Regex.Replace(remarks, @"##[ ]?Remarks(\r?\n)*[\t ]*", "");
-                remarks = Regex.Replace(remarks, @"(?<xref><xref\:(?<DocId>[a-zA-Z0-9_\.]+)(?<extraVars>\?[a-zA-Z0-9_]+=[a-zA-Z0-9_]+)?>)", "<see cref=\"${DocId}\" />");
-
-                    MatchCollection collection = Regex.Matches(api.Remarks, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
-
-                foreach (Match match in collection)
-                {
-                    string backtickedParam = match.Groups["backtickedParam"].Value;
-                    string paramName = match.Groups["paramName"].Value;
-                    if(ReservedKeywords.Any(x => x == paramName))
-                    {
-                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<see langword=\"{paramName}\" />");
-                    }
-                    else if (api.Params.Any(x => x.Name == paramName))
-                    {
-                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<paramref name=\"{paramName}\" />");
-                    }
-                    else if (api.TypeParams.Any(x => x.Name == paramName))
-                    {
-                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<typeparamref name=\"{paramName}\" />");
-                    }
-                }
-            }
-            return remarks;
         }
 
         private static SyntaxTriviaList GetValue(DocsMember api, SyntaxTriviaList leadingWhitespace)
@@ -503,8 +519,7 @@ namespace Libraries.RoslynTripleSlash
         {
             if (!text.IsDocsEmpty())
             {
-                TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref.WithoutDocIdPrefixes()));
-                //XmlTextSyntax contents = SyntaxFactory.XmlText(GetTextAsTokens(text.WithoutPrefix(), leadingWhitespace));
+                TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(RemoveDocIdPrefixes(cref)));
                 XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace);
                 XmlElementSyntax element = SyntaxFactory.XmlExceptionElement(crefSyntax, contents);
                 return GetXmlTrivia(element, leadingWhitespace);
@@ -529,7 +544,8 @@ namespace Libraries.RoslynTripleSlash
 
         private static SyntaxTriviaList GetSeeAlso(string cref, SyntaxTriviaList leadingWhitespace)
         {
-            TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref.WithoutDocIdPrefixes()));
+            cref = ReplacePrimitiveTypes(cref);
+            TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
             XmlEmptyElementSyntax element = SyntaxFactory.XmlSeeAlsoElement(crefSyntax);
             return GetXmlTrivia(element, leadingWhitespace);
         }
@@ -550,7 +566,8 @@ namespace Libraries.RoslynTripleSlash
 
         private static SyntaxTriviaList GetAltMember(string cref, SyntaxTriviaList leadingWhitespace)
         {
-            XmlAttributeSyntax attribute = SyntaxFactory.XmlTextAttribute("cref", cref.WithoutDocIdPrefixes());
+            cref = ReplacePrimitiveTypes(cref);
+            XmlAttributeSyntax attribute = SyntaxFactory.XmlTextAttribute("cref", cref);
             XmlEmptyElementSyntax emptyElement = SyntaxFactory.XmlEmptyElement(SyntaxFactory.XmlName(SyntaxFactory.Identifier("altmember")), new SyntaxList<XmlAttributeSyntax>(attribute));
             return GetXmlTrivia(emptyElement, leadingWhitespace);
         }
@@ -594,15 +611,9 @@ namespace Libraries.RoslynTripleSlash
             return relateds;
         }
 
-        /*
-        XmlText
-            XmlTextLiteralNewLineToken (XmlTextSyntax) -> endline
-            XmlTextLiteralToken (XmlTextLiteralToken) -> [ text]
-                Lead: DocumentationCommentExteriorTrivia (SyntaxTrivia) -> [    /// ]
-         */
         private static XmlTextSyntax GetTextAsCommentedTokens(string text, SyntaxTriviaList leadingWhitespace)
         {
-            text = text.WithoutDocIdPrefixes();
+            text = ReplacePrimitiveTypes(text);
 
             // collapse newlines to a single one
             string whitespace = Regex.Replace(leadingWhitespace.ToFullString(), @"(\r?\n)+", "");
@@ -662,32 +673,64 @@ namespace Libraries.RoslynTripleSlash
             return GetXmlTrivia(element, leadingWhitespace);
         }
 
-        private bool TryGetMember(SyntaxNode node, [NotNullWhen(returnValue: true)] out DocsMember? member)
+        private static string GetRemarksWithXmlElements(IDocsAPI api)
         {
-            member = null;
-            if (Model.GetDeclaredSymbol(node) is ISymbol symbol)
+            string remarks = api.Remarks;
+
+            if (!api.Remarks.IsDocsEmpty())
             {
-                string? docId = symbol.GetDocumentationCommentId();
-                if (!string.IsNullOrWhiteSpace(docId))
+                remarks = Regex.Replace(remarks, @"<!\[CDATA\[(\r?\n)*[\t ]*", "");
+                remarks = Regex.Replace(remarks, @"\]\]>", "");
+                remarks = Regex.Replace(remarks, @"##[ ]?Remarks(\r?\n)*[\t ]*", "");
+                remarks = Regex.Replace(remarks, @"(?<xref><xref\:(?<DocId>[a-zA-Z0-9_,\.\[\]\(\)`\{\}\@\+\*\&\^\#]+)(?<OverloadIndicator>%2A)?(?<extraVars>\?[a-zA-Z0-9_]+=[a-zA-Z0-9_]+)?>)", "<see cref=\"${DocId}\" />");
+
+                MatchCollection collection = Regex.Matches(api.Remarks, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
+
+                foreach (Match match in collection)
                 {
-                    member = DocsComments.Members.FirstOrDefault(m => m.DocId == docId);
+                    string backtickedParam = match.Groups["backtickedParam"].Value;
+                    string paramName = match.Groups["paramName"].Value;
+                    if (ReservedKeywords.Any(x => x == paramName))
+                    {
+                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<see langword=\"{paramName}\" />");
+                    }
+                    else if (api.Params.Any(x => x.Name == paramName))
+                    {
+                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<paramref name=\"{paramName}\" />");
+                    }
+                    else if (api.TypeParams.Any(x => x.Name == paramName))
+                    {
+                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<typeparamref name=\"{paramName}\" />");
+                    }
                 }
-            }
 
-            return member != null;
+                remarks = ReplacePrimitiveTypes(remarks);
+            }
+            return remarks;
         }
 
-        private bool TryGetType(ISymbol symbol, [NotNullWhen(returnValue: true)] out DocsType? type)
+        private static string RemoveDocIdPrefixes(string text)
         {
-            type = null;
-
-            string? docId = symbol.GetDocumentationCommentId();
-            if (!string.IsNullOrWhiteSpace(docId))
+            if (text.Length > 2 && text[1] == ':')
             {
-                type = DocsComments.Types.FirstOrDefault(t => t.DocId == docId);
+                return text[2..];
             }
 
-            return type != null;
+            text = Regex.Replace(text, @"cref=""[a-zA-Z]{1}\:", "cref=\"");
+
+            return text;
         }
+
+        private static string ReplacePrimitiveTypes(string text)
+        {
+            text = RemoveDocIdPrefixes(text);
+            foreach ((string key, string value) in PrimitiveTypes)
+            {
+                text = Regex.Replace(text, @$"<see cref=""{key}""", @$"<see cref=""{value}""");
+            }
+            return text;
+        }
+
+        #endregion
     }
 }

@@ -36,8 +36,10 @@ namespace MyNamespace
             set { _myProperty = value; } // Internal comments should remain untouched
         }
 
-        /// <summary>This is the MyField summary.</summary>
+        /// <summary>This is the MyField summary.
+        /// There is a primitive type <see cref="float" /> here.</summary>
         /// <remarks>These are the MyField remarks.
+        /// There is a primitive type <see cref="int" /> here.
         /// Multiple lines.</remarks>
         public int MyField = 1;
 
@@ -60,7 +62,9 @@ namespace MyNamespace
         /// <summary>This is the MyVoidMethod summary.</summary>
         /// <remarks>These are the MyVoidMethod remarks.
         /// Multiple lines.
-        /// Mentions the <see cref="System.ArgumentNullException" />.</remarks>
+        /// Mentions the <see cref="System.ArgumentNullException" />.
+        /// Also mentions an overloaded method DocID: <see cref="MyNamespace.MyType.MyIntMethod" />.
+        /// And also mentions an overloaded method DocID with displayProperty which should be ignored when porting: <see cref="MyNamespace.MyType.MyIntMethod" />.</remarks>
         /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.</exception>
         /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyVoidMethod.
         /// -or-

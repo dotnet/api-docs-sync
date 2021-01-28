@@ -181,7 +181,7 @@ namespace Libraries.Tests
         {
             string output = $"{title}:{Environment.NewLine}";
 
-            for (int i = 0; i <= 4; i++)
+            for (int i = 5; i >= 1; i--)
             {
                 if ((lineNumber - i) >= 0)
                 {
@@ -191,7 +191,7 @@ namespace Libraries.Tests
 
             output += $"[{lineNumber}] {lines[lineNumber]}{Environment.NewLine}";
 
-            for (int i = 0; i <= 4; i++)
+            for (int i = 1; i <= 5; i++)
             {
                 if ((lineNumber + i) < lines.Length)
                 {

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -152,31 +153,20 @@ namespace Libraries.Tests
 
             for (int i = 0; i < expectedLines.Length; i++)
             {
+                Assert.True(i < expectedLines.Length);
+                Assert.True(i < actualLines.Length);
+
                 string expectedLine = expectedLines[i];
                 string actualLine = actualLines[i];
 
                 // Print some more details before asserting
                 if (expectedLine != actualLine)
                 {
-                    if ((i - 2) >= 0)
-                    {
-                        Output.WriteLine("[-2] " + expectedLines[i - 2]);
-                    }
-                    if ((i - 1) >= 0)
-                    {
-                        Output.WriteLine("[-1] " + expectedLines[i - 1]);
-                    }
+                    string expected = GetProblematicLines("Expected", expectedLines, i);
+                    string actual = GetProblematicLines("Actual", actualLines, i);
 
-                    Output.WriteLine("[:(] " + expectedLine);
-
-                    if ((i + 1) < expectedLines.Length)
-                    {
-                        Output.WriteLine("[+1] " + expectedLines[i + 1]);
-                    }
-                    if ((i + 2) < expectedLines.Length)
-                    {
-                        Output.WriteLine("[+2] " + expectedLines[i + 2]);
-                    }
+                    Output.WriteLine(expected);
+                    Output.WriteLine(actual);
                 }
 
                 Assert.Equal(expectedLine, actualLine);
@@ -186,5 +176,31 @@ namespace Libraries.Tests
             Assert.Equal(expectedLines.Length, actualLines.Length);
         }
 
+
+        private static string GetProblematicLines(string title, string[] lines, int i)
+        {
+            string output = $"{title}:{Environment.NewLine}";
+            if ((i - 2) >= 0)
+            {
+                output += $"[{i - 2}] {lines[i - 2]}{Environment.NewLine}";
+            }
+            if ((i - 1) >= 0)
+            {
+                output += $"[{i - 1}] {lines[i - 1]}{Environment.NewLine}";
+            }
+
+            output += $"[{i}] {lines[i]}{Environment.NewLine}";
+
+            if ((i + 1) < lines.Length)
+            {
+                output += $"[{i + 1}] {lines[i + 1]}{Environment.NewLine}";
+            }
+            if ((i + 2) < lines.Length)
+            {
+                output += $"[{i + 2}] {lines[i + 2]}{Environment.NewLine}";
+            }
+
+            return output;
+        }
     }
 }

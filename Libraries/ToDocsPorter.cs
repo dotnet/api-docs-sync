@@ -240,7 +240,11 @@ namespace Libraries
                         string cleanedInterfaceRemarks = string.Empty;
                         if (!interfacedMember.Remarks.Contains(Configuration.ToBeAdded))
                         {
-                            cleanedInterfaceRemarks = interfacedMember.Remarks.RemoveSubstrings("##Remarks", "## Remarks", "<![CDATA[", "]]>");
+                            string interfaceMemberRemarks = interfacedMember.Remarks.RemoveSubstrings("##Remarks", "## Remarks", "<![CDATA[", "]]>");
+                            foreach (string line in interfaceMemberRemarks.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                            {
+                                cleanedInterfaceRemarks += line + Environment.NewLine;
+                            }
                         }
 
                         // Only port the interface remarks if the user desired that

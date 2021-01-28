@@ -150,8 +150,6 @@ namespace Libraries.Tests
             string[] expectedLines = File.ReadAllLines(testData.ExpectedFilePath);
             string[] actualLines = File.ReadAllLines(testData.ActualFilePath);
 
-            Assert.Equal(expectedLines.Length, actualLines.Length);
-
             for (int i = 0; i < expectedLines.Length; i++)
             {
                 string expectedLine = expectedLines[i];
@@ -183,6 +181,9 @@ namespace Libraries.Tests
 
                 Assert.Equal(expectedLine, actualLine);
             }
+
+            // Check at the end, because we first want to fail on different lines
+            Assert.Equal(expectedLines.Length, actualLines.Length);
         }
 
     }

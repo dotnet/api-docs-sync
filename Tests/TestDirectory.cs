@@ -15,7 +15,7 @@ namespace Libraries.Tests
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             DirInfo = new DirectoryInfo(path);
             DirInfo.Create();
-            Assert.True(DirInfo.Exists);
+            Assert.True(DirInfo.Exists, "Verify root test directory exists.");
         }
 
         public DirectoryInfo CreateSubdirectory(string dirName)

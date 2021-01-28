@@ -145,8 +145,7 @@ namespace Libraries
 
             XElement xeFormat = new XElement("format");
 
-            string updatedValue = RemoveUndesiredEndlines(newValue);
-            updatedValue = SubstituteRemarksRegexPatterns(updatedValue);
+            string updatedValue = SubstituteRemarksRegexPatterns(newValue);
             updatedValue = ReplaceMarkdownPatterns(updatedValue);
 
             string remarksTitle = string.Empty;

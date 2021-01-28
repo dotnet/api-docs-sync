@@ -235,15 +235,17 @@ namespace Libraries
                         string interfacedMemberTypeDocIdNoPrefix = interfacedMember.ParentType.DocId[2..];
 
                         // Special text for EIIs in Remarks
-                        string eiiMessage = $"This member is an explicit interface member implementation. It can be used only when the <xref:{dMemberToUpdateTypeDocIdNoPrefix}> instance is cast to an <xref:{interfacedMemberTypeDocIdNoPrefix}> interface.{Environment.NewLine + Environment.NewLine}";
+                        string eiiMessage = $"This member is an explicit interface member implementation. It can be used only when the <xref:{dMemberToUpdateTypeDocIdNoPrefix}> instance is cast to an <xref:{interfacedMemberTypeDocIdNoPrefix}> interface.";
 
                         string cleanedInterfaceRemarks = string.Empty;
                         if (!interfacedMember.Remarks.Contains(Configuration.ToBeAdded))
                         {
+                            cleanedInterfaceRemarks += Environment.NewLine;
+
                             string interfaceMemberRemarks = interfacedMember.Remarks.RemoveSubstrings("##Remarks", "## Remarks", "<![CDATA[", "]]>");
                             foreach (string line in interfaceMemberRemarks.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                             {
-                                cleanedInterfaceRemarks += line + Environment.NewLine;
+                                cleanedInterfaceRemarks += Environment.NewLine + line;
                             }
                         }
 

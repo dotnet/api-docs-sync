@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Xunit;
 
@@ -145,14 +146,39 @@ namespace Libraries.Tests
             string[] expectedLines = File.ReadAllLines(testData.ExpectedFilePath);
             string[] actualLines = File.ReadAllLines(testData.ActualFilePath);
 
+            Assert.Equal(expectedLines.Length, actualLines.Length);
+
             for (int i = 0; i < expectedLines.Length; i++)
             {
                 string expectedLine = expectedLines[i];
                 string actualLine = actualLines[i];
+
+                // Print some more details before asserting
+                if (expectedLine != actualLine)
+                {
+                    if ((i - 2) >= 0)
+                    {
+                        Console.WriteLine("[-2] " + expectedLines[i - 2]);
+                    }
+                    if ((i - 1) >= 0)
+                    {
+                        Console.WriteLine("[-1] " + expectedLines[i - 1]);
+                    }
+
+                    Console.WriteLine("[:(] " + expectedLine);
+
+                    if ((i + 1) < expectedLines.Length)
+                    {
+                        Console.WriteLine("[+1] " + expectedLines[i + 1]);
+                    }
+                    if ((i + 2) < expectedLines.Length)
+                    {
+                        Console.WriteLine("[+2] " + expectedLines[i + 2]);
+                    }
+                }
+
                 Assert.Equal(expectedLine, actualLine);
             }
-
-            Assert.Equal(expectedLines.Length, actualLines.Length);
         }
 
     }

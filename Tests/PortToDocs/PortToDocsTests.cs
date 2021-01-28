@@ -1,11 +1,15 @@
-using System;
 using System.IO;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Libraries.Tests
 {
-    public class PortToDocsTests
+    public class PortToDocsTests : BasePortTests
     {
+        public PortToDocsTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         // Verifies the basic case of porting all regular fields.
         public void Port_Basic()
@@ -158,22 +162,22 @@ namespace Libraries.Tests
                 {
                     if ((i - 2) >= 0)
                     {
-                        Console.WriteLine("[-2] " + expectedLines[i - 2]);
+                        Output.WriteLine("[-2] " + expectedLines[i - 2]);
                     }
                     if ((i - 1) >= 0)
                     {
-                        Console.WriteLine("[-1] " + expectedLines[i - 1]);
+                        Output.WriteLine("[-1] " + expectedLines[i - 1]);
                     }
 
-                    Console.WriteLine("[:(] " + expectedLine);
+                    Output.WriteLine("[:(] " + expectedLine);
 
                     if ((i + 1) < expectedLines.Length)
                     {
-                        Console.WriteLine("[+1] " + expectedLines[i + 1]);
+                        Output.WriteLine("[+1] " + expectedLines[i + 1]);
                     }
                     if ((i + 2) < expectedLines.Length)
                     {
-                        Console.WriteLine("[+2] " + expectedLines[i + 2]);
+                        Output.WriteLine("[+2] " + expectedLines[i + 2]);
                     }
                 }
 

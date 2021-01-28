@@ -1,17 +1,16 @@
 ﻿#nullable enable
-using Microsoft.Build.Locator;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Loader;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Libraries.Tests
 {
-    public class PortToTripleSlashTests
+    public class PortToTripleSlashTests : BasePortTests
     {
+        public PortToTripleSlashTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
         [Fact]
         public void Port_Basic()
         {

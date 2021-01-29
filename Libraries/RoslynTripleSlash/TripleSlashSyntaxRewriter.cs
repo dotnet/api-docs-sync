@@ -726,7 +726,7 @@ namespace Libraries.RoslynTripleSlash
             text = RemoveDocIdPrefixes(text);
             foreach ((string key, string value) in PrimitiveTypes)
             {
-                text = Regex.Replace(text, @$"<see cref=""{key}""", @$"<see cref=""{value}""");
+                text = Regex.Replace(text, key, value);
             }
             return text;
         }

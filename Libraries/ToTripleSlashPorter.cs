@@ -56,6 +56,7 @@ namespace Libraries
 
         private const string _allowedWarningMessage = "Found project reference without a matching metadata reference";
 
+        // If enabled via CLI arguments, a binlog file will be generated when running this tool.
         BinaryLogger? _binLogger = null;
         private BinaryLogger? BinLogger
         {
@@ -78,6 +79,7 @@ namespace Libraries
             }
         }
 
+        // Initializes a new porter instance with the specified configuration.
         private ToTripleSlashPorter(Configuration config)
         {
             if (config.Direction != Configuration.PortingDirection.ToTripleSlash)
@@ -89,6 +91,17 @@ namespace Libraries
             DocsComments = new DocsCommentsContainer(config);
         }
 
+        /// <summary>
+        /// Starts the porting process using the specified CLI arguments.
+        /// This includes:
+        /// - Loading a Visual Studio instance.
+        /// - Loading the assembly loader.
+        /// - Creating an instance of this porter.
+        /// - Loading the Docs xmls.
+        /// - Linding the source code for each one of the loaded xml types.
+        /// - Porting the xml docs to triple slash.
+        /// </summary>
+        /// <param name="config">The configuration collected from the CLI arguments.</param>
         public static void Start(Configuration config)
         {
             // IMPORTANT: Need to load the MSBuild property before calling the ToTripleSlashPorter constructor.
@@ -98,6 +111,7 @@ namespace Libraries
             porter.Port();
         }
 
+        // Collects the Docs xml files, the source code files, and ports the xml comments to triple slash.
         private void Port()
         {
             DocsComments.CollectFiles();
@@ -145,9 +159,11 @@ namespace Libraries
                 }
             }
 
-            PortResolvedSymbols();
+            PortDocsForResolvedSymbols();
         }
 
+        // Tries to find the specified type among the source code files of all the specified projects.
+        // If not found, logs a warning message.
         private void FindSymbolInReferencedProjects(DocsType docsType, IEnumerable<ProjectReference> projectReferences)
         {
             foreach (ProjectReference projectReference in projectReferences)
@@ -182,25 +198,25 @@ namespace Libraries
             }
         }
 
+        // Checks if the specified tree can be found among the collection of trees of the specified compilation.
         private bool IsLocationTreeInCompilationTrees(Location location, Compilation compilation)
         {
             return location.SourceTree is not null &&
                    compilation.SyntaxTrees.FirstOrDefault(x => x.FilePath == location.SourceTree.FilePath) is not null;
         }
 
+        // Adds the specified SymbolInformation object to the ResolvedSymbols dictionary, if it has not yet been added.
         private void AddToResolvedSymbols(SymbolInformation symbolInfo)
         {
             string key = symbolInfo.Tree.FilePath;
-            if (!ResolvedSymbols.ContainsKey(symbolInfo.Tree.FilePath))
-            {
-                ResolvedSymbols.Add(key, symbolInfo);
-            }
-            else
+            if (!ResolvedSymbols.TryAdd(key, symbolInfo))
             {
                 Log.DarkYellow($"Symbol tree had already been added for '{key}'.");
             }
         }
 
+        // Tries to find the specified type among the source code files of the specified project.
+        // Returns false if not found.
         private bool TryFindSymbolInReferencedProject(
             string projectPath,
             string apiFullName,
@@ -227,7 +243,8 @@ namespace Libraries
             return false;
         }
 
-        private void PortResolvedSymbols()
+        // Copies the Docs xml documentation of all the found symbols to their respective source code locations.
+        private void PortDocsForResolvedSymbols()
         {
             Log.Info("Porting comments from Docs to triple slash...");
 
@@ -242,6 +259,8 @@ namespace Libraries
             }
         }
 
+        // Retrieves the location of the specified path using reflection.
+        // There is no public API available to retrieve this information.
         private static string GetProjectPath(ProjectReference projectReference)
         {
             PropertyInfo prop = typeof(ProjectId).GetProperty("DebugName", BindingFlags.NonPublic | BindingFlags.Instance)
@@ -258,6 +277,7 @@ namespace Libraries
             return projectPath;
         }
 
+        // If the workspace captured any error diagnostic messages, prints all of them and then throws.
         private static void CheckDiagnostics(MSBuildWorkspace workspace, string stepName)
         {
             ImmutableList<WorkspaceDiagnostic> diagnostics = workspace.Diagnostics;
@@ -290,6 +310,8 @@ namespace Libraries
             }
         }
 
+        // Tries to retrieve the specified symbol from the specified compilation.
+        // Returns true if found.
         private static bool TryGetNamedSymbol(
             Compilation compilation,
             string symbolFullName,
@@ -303,6 +325,8 @@ namespace Libraries
             return actualSymbol != null;
         }
 
+        // Tries to retrieve the project info for the specified path.
+        // Returns true if found. Logs a warning message and returns false otherwise.
         private bool TryGetProjectInfo(
             string projectPath,
             bool isMono,
@@ -321,6 +345,8 @@ namespace Libraries
             return false;
         }
 
+        // Retrieves the project info for the specified path.
+        // If any diagnostic error messages are captured after each step (workspace load, project load, compilation load), an exception is thrown.
         private ProjectInformation GetProjectInfo(string projectPath, bool isMono)
         {
             var workspaceProperties = new Dictionary<string, string>();
@@ -411,6 +437,7 @@ namespace Libraries
             };
         }
 
+        // Tries to find and return the specified assembly by looking in all the known locations where it could be found.
         private static Assembly? TryResolveAssemblyFromPaths(AssemblyLoadContext context, AssemblyName assemblyName, string searchPath, Dictionary<string, Assembly>? knownAssemblyPaths = null)
         {
             foreach (var cultureSubfolder in string.IsNullOrEmpty(assemblyName.CultureName)

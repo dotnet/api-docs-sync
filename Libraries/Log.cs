@@ -134,6 +134,21 @@ namespace Libraries
             Magenta(true, format, args);
         }
 
+        public static void DarkYellow(bool endline, string format, params object[]? args)
+        {
+            Print(endline, ConsoleColor.DarkYellow, format, args);
+        }
+
+        public static void DarkYellow(string format)
+        {
+            DarkYellow(format, null);
+        }
+
+        public static void DarkYellow(string format, params object[]? args)
+        {
+            DarkYellow(true, format, args);
+        }
+
         public static void Assert(bool condition, string format)
         {
             Assert(true, condition, format, null);

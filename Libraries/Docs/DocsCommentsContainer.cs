@@ -117,8 +117,9 @@ namespace Libraries.Docs
 
         private IEnumerable<FileInfo> EnumerateFiles()
         {
-            var includedAssembliesAndNamespaces = Config.IncludedAssemblies.Concat(Config.IncludedNamespaces);
-            var excludedAssembliesAndNamespaces = Config.ExcludedAssemblies.Concat(Config.ExcludedNamespaces);
+            // Union avoids duplication
+            var includedAssembliesAndNamespaces = Config.IncludedAssemblies.Union(Config.IncludedNamespaces);
+            var excludedAssembliesAndNamespaces = Config.ExcludedAssemblies.Union(Config.ExcludedNamespaces);
 
             foreach (DirectoryInfo rootDir in Config.DirsDocsXml)
             {
@@ -248,7 +249,7 @@ namespace Libraries.Docs
                     }
                 }
 
-                string message = $"Type {docsType.DocId} added with {totalMembersAdded} member(s) included.";
+                string message = $"Type '{docsType.DocId}' added with {totalMembersAdded} member(s) included: {fileInfo.FullName}";
                 if (addedAsInterface)
                 {
                     Log.Magenta("[Interface] - " + message);

@@ -32,13 +32,13 @@ namespace Libraries
             }
         }
 
-        private class SymbolInformation
+        private class LocationInformation
         {
             public DocsType Api { get; private set; }
             public SyntaxTree Tree { get; set; }
             public SemanticModel Model { get; set; }
 
-            public SymbolInformation(DocsType api, Location location, Compilation compilation)
+            public LocationInformation(DocsType api, Location location, Compilation compilation)
             {
                 Api = api;
                 Tree = location.SourceTree ?? throw new NullReferenceException($"Tree null for '{api.FullName}'");
@@ -51,10 +51,11 @@ namespace Libraries
 
 #pragma warning disable RS1024 // Compare symbols correctly
         // Bug fixed https://github.com/dotnet/roslyn-analyzers/pull/4571
-        private readonly Dictionary<string, SymbolInformation> ResolvedSymbols = new();
+        private readonly Dictionary<string, LocationInformation> ResolvedLocations = new();
 #pragma warning restore RS1024 // Compare symbols correctly
 
         private const string _allowedWarningMessage = "Found project reference without a matching metadata reference";
+        private static readonly string _pathSrcCoreclr = Path.Combine("src", "coreclr");
 
         // If enabled via CLI arguments, a binlog file will be generated when running this tool.
         BinaryLogger? _binLogger = null;
@@ -66,6 +67,7 @@ namespace Libraries
                 {
                     if (_binLogger == null)
                     {
+                        Log.Info("Enabling the collection of a binlog file...");
                         _binLogger = new BinaryLogger()
                         {
                             Parameters = Path.Combine(Environment.CurrentDirectory, Config.BinLogPath),
@@ -104,7 +106,7 @@ namespace Libraries
         /// <param name="config">The configuration collected from the CLI arguments.</param>
         public static void Start(Configuration config)
         {
-            // IMPORTANT: Need to load the MSBuild property before calling the ToTripleSlashPorter constructor.
+            // IMPORTANT: Need to load the MSBuild property BEFORE calling the ToTripleSlashPorter constructor.
             LoadVSInstance();
 
             var porter = new ToTripleSlashPorter(config);
@@ -131,7 +133,7 @@ namespace Libraries
                 // for APIs from an unrelated namespace were loaded for this compilation's assembly
                 if (!TryGetNamedSymbol(mainProjectInfo.Compilation, docsType.FullName, out INamedTypeSymbol? symbol))
                 {
-                    Log.Warning($"Type symbol '{docsType.FullName}' not found in compilation for '{Config.CsProj!.FullName}'.");
+                    Log.Warning($"Type symbol '{docsType.FullName}' not found in compilation for '{Config.CsProj.FullName}'.");
                     continue;
                 }
 
@@ -142,24 +144,30 @@ namespace Libraries
                 }
 
                 // Otherwise, port the exact same comments in each location
-                foreach (Location location in symbol.Locations)
-                {
-                    if (IsLocationTreeInCompilationTrees(location, mainProjectInfo.Compilation))
-                    {
-                        Log.Info($"Found '{symbol.Name}' in '{location}'.");
-                        var symbolInfo = new SymbolInformation(docsType, location, mainProjectInfo.Compilation);
-                        AddToResolvedSymbols(symbolInfo);
-                    }
-                    // Then it should be located in one of the referenced projects
-                    else
-                    {
-                        Log.DarkYellow($"Symbol '{docsType.FullName}' not found in main project. Looking in referenced projects...");
-                        FindSymbolInReferencedProjects(docsType, mainProjectInfo.Project.ProjectReferences);
-                    }
-                }
+                AddSymbolLocationsToResolvedLocations(mainProjectInfo, symbol, docsType);
+
+                Log.Info($"Also looking for '{symbol.Name}' in the referenced projects of project '{Config.CsProj.FullName}'...");
+                FindSymbolInReferencedProjects(docsType, mainProjectInfo.Project.ProjectReferences);
             }
 
             PortDocsForResolvedSymbols();
+        }
+
+        private void AddSymbolLocationsToResolvedLocations(ProjectInformation projectInfo, INamedTypeSymbol symbol, DocsType docsType)
+        {
+            foreach (Location location in symbol.Locations)
+            {
+                if (IsLocationTreeInCompilationTrees(location, projectInfo.Compilation))
+                {
+                    Log.Success($"Found symbol '{symbol.Name}' in location '{location}'.");
+                    var info = new LocationInformation(docsType, location, projectInfo.Compilation);
+                    AddToResolvedSymbols(info);
+                }
+                else
+                {
+                    Log.DarkYellow($"Symbol '{symbol.Name}' not found in locations of project '{location}'.");
+                }
+            }
         }
 
         // Tries to find the specified type among the source code files of all the specified projects.
@@ -169,25 +177,33 @@ namespace Libraries
             foreach (ProjectReference projectReference in projectReferences)
             {
                 string projectPath = GetProjectPath(projectReference);
+                string projectNamespace = Path.GetFileNameWithoutExtension(projectPath);
+
+                // Skip looking in projects whose namespace that were explicitly excluded or not explicitly included
+                if (Config.ExcludedNamespaces.Any(x => x.StartsWith(projectNamespace)) ||
+                    !Config.IncludedNamespaces.Any(x => x.StartsWith(projectNamespace)))
+                {
+                    Log.Info($"Skipping project '{projectPath}'...");
+                    continue;
+                }
 
                 // Can't reuse the existing Workspace or an exception is thrown saying we already have the project loaded in this workspace.
                 // Unfortunately, there is no way to retrieve a references project as a Project instance from the existing workspace.
 
-                if (TryFindSymbolInReferencedProject(projectPath, docsType.FullName, out ProjectInformation? pi, out INamedTypeSymbol? symbol))
+                if (TryFindSymbolInReferencedProject(projectPath, docsType.FullName, out ProjectInformation? projectInfo, out INamedTypeSymbol? symbol))
                 {
-                    foreach (Location location in symbol.Locations)
+                    // Do not look in referenced projects
+                    Log.Info($"Looking for symbol '{symbol.Name}' in all locations of '{projectPath}'...");
+                    AddSymbolLocationsToResolvedLocations(projectInfo, symbol, docsType);
+
+                    // If the symbol was found in corelib, try to also find it in mono
+                    if (projectNamespace == "System.Private.CoreLib" &&
+                        projectPath.Contains(_pathSrcCoreclr) &&
+                        TryGetProjectInfo(projectPath, isMono: true, out ProjectInformation? monoProjectInfo) &&
+                        TryGetNamedSymbol(monoProjectInfo.Compilation, docsType.FullName, out INamedTypeSymbol? monoSymbol))
                     {
-                        if (IsLocationTreeInCompilationTrees(location, pi.Compilation))
-                        {
-                            Log.Info($"Found '{symbol.Name}' in '{location}'.");
-                            var symbolInfo = new SymbolInformation(docsType, location, pi.Compilation);
-                            AddToResolvedSymbols(symbolInfo);
-                        }
-                        // Stop here, instead of attempting looking in referenced projects
-                        else
-                        {
-                            Log.DarkYellow($"Tree for '{docsType.FullName}' not found in referenced project '{pi.Project.FilePath}'. Skipping.");
-                        }
+                        Log.Cyan($"Looking for symbol '{monoSymbol.Name}' also in Mono locations of project '{monoProjectInfo.Project.FilePath}'...");
+                        AddSymbolLocationsToResolvedLocations(monoProjectInfo, monoSymbol, docsType);
                     }
                 }
                 else
@@ -206,12 +222,12 @@ namespace Libraries
         }
 
         // Adds the specified SymbolInformation object to the ResolvedSymbols dictionary, if it has not yet been added.
-        private void AddToResolvedSymbols(SymbolInformation symbolInfo)
+        private void AddToResolvedSymbols(LocationInformation info)
         {
-            string key = symbolInfo.Tree.FilePath;
-            if (!ResolvedSymbols.TryAdd(key, symbolInfo))
+            string key = info.Tree.FilePath; // This ensures we have a unique key for symbols that are also found in mono
+            if (!ResolvedLocations.TryAdd(key, info))
             {
-                Log.DarkYellow($"Symbol tree had already been added for '{key}'.");
+                Log.DarkYellow($"Symbol tree had already been added for '{key}'. Skipping.");
             }
         }
 
@@ -224,38 +240,23 @@ namespace Libraries
             [NotNullWhen(returnValue: true)] out INamedTypeSymbol? symbol)
         {
             symbol = null;
-
-            if (TryGetProjectInfo(projectPath, isMono: false, out pi) &&
-                TryGetNamedSymbol(pi.Compilation, apiFullName, out symbol))
-            {
-                Log.Success($"Symbol '{apiFullName}' found in '{projectPath}'");
-                return true;
-            }
-            // If this is CoreLib, but the symbol was not found in the libraries runtime, try to find the symbol in mono
-            else if (Path.GetFileNameWithoutExtension(projectPath) == "System.Private.CoreLib" &&
-                     TryGetProjectInfo(projectPath, isMono: true, out pi) &&
-                     TryGetNamedSymbol(pi.Compilation, apiFullName, out symbol))
-            {
-                Log.Success($"Symbol '{apiFullName}' found as Mono in '{projectPath}'");
-                return true;
-            }
-
-            return false;
+            return TryGetProjectInfo(projectPath, isMono: false, out pi) &&
+                   TryGetNamedSymbol(pi.Compilation, apiFullName, out symbol);
         }
 
         // Copies the Docs xml documentation of all the found symbols to their respective source code locations.
         private void PortDocsForResolvedSymbols()
         {
             Log.Info("Porting comments from Docs to triple slash...");
-
-            foreach ((string filePath, SymbolInformation info) in ResolvedSymbols)
+            foreach ((string filePath, LocationInformation info) in ResolvedLocations)
             {
-                Log.Info($"Porting comments for '{filePath}'...");
+                Log.Info($"Porting docs for '{filePath}'...");
                 TripleSlashSyntaxRewriter rewriter = new(DocsComments, info.Model);
                 SyntaxNode newRoot = rewriter.Visit(info.Tree.GetRoot())
                     ?? throw new NullReferenceException($"Returned null root node for {info.Api.FullName} in {info.Tree.FilePath}");
 
                 File.WriteAllText(info.Tree.FilePath, newRoot.ToFullString());
+                Log.Success($"Successfully ported docs for '{filePath}'.");
             }
         }
 
@@ -275,39 +276,6 @@ namespace Libraries
             }
 
             return projectPath;
-        }
-
-        // If the workspace captured any error diagnostic messages, prints all of them and then throws.
-        private static void CheckDiagnostics(MSBuildWorkspace workspace, string stepName)
-        {
-            ImmutableList<WorkspaceDiagnostic> diagnostics = workspace.Diagnostics;
-            if (diagnostics.Any())
-            {
-                var allMsgs = new List<string>();
-
-                foreach (var diagnostic in diagnostics)
-                {
-                    if (!diagnostic.Message.Contains(_allowedWarningMessage))
-                    {
-                        allMsgs.Add($"    {diagnostic.Kind} - {diagnostic.Message}");
-                    }
-                    else
-                    {
-                        Log.Magenta($"{stepName} - {diagnostic.Kind} - {diagnostic.Message}");
-                    }
-                }
-
-                if (allMsgs.Count > 1)
-                {
-                    Log.Error($"Diagnostic messages found in {stepName}:");
-                    foreach (string msg in allMsgs)
-                    {
-                        Log.Error(msg);
-                    }
-
-                    throw new Exception("Diagnostic errors found.");
-                }
-            }
         }
 
         // Tries to retrieve the specified symbol from the specified compilation.
@@ -362,6 +330,7 @@ namespace Libraries
             try
             {
                 workspace = MSBuildWorkspace.Create();
+                Log.Success("Created a workspace for '{0}'{1}.", projectPath, isMono ? " with RuntimeFlavor=Mono enabled" : "");
             }
             catch
             {
@@ -376,17 +345,52 @@ namespace Libraries
 
             Project project = workspace.OpenProjectAsync(projectPath, msbuildLogger: BinLogger).Result
                 ?? throw new NullReferenceException($"Could not find the project: {projectPath}");
-           
+            Log.Success($"Opened the project '{projectPath}'.");
+
             CheckDiagnostics(workspace, $"workspace.OpenProjectAsync - {projectPath}");
 
             Compilation compilation = project.GetCompilationAsync().Result
                 ?? throw new NullReferenceException("The project's compilation was null.");
+            Log.Success($"Obtained the compilation for '{projectPath}'.");
 
             CheckDiagnostics(workspace, $"project.GetCompilationAsync - {projectPath}");
 
             var pd = new ProjectInformation(project, compilation, isMono);
 
             return pd;
+        }
+
+        // If the workspace captured any error diagnostic messages, prints all of them and then throws.
+        private static void CheckDiagnostics(MSBuildWorkspace workspace, string stepName)
+        {
+            ImmutableList<WorkspaceDiagnostic> diagnostics = workspace.Diagnostics;
+            if (diagnostics.Any())
+            {
+                var allMsgs = new List<string>();
+
+                foreach (var diagnostic in diagnostics)
+                {
+                    if (!diagnostic.Message.Contains(_allowedWarningMessage))
+                    {
+                        allMsgs.Add($"    {diagnostic.Kind} - {diagnostic.Message}");
+                    }
+                    else
+                    {
+                        Log.Magenta($"{stepName} - {diagnostic.Kind} - {diagnostic.Message}");
+                    }
+                }
+
+                if (allMsgs.Count > 1)
+                {
+                    Log.Error($"Diagnostic messages found in {stepName}:");
+                    foreach (string msg in allMsgs)
+                    {
+                        Log.Error(msg);
+                    }
+
+                    throw new Exception("Diagnostic errors found.");
+                }
+            }
         }
 
         #region MSBuild loading logic

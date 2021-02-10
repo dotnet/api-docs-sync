@@ -152,8 +152,19 @@ namespace Libraries.RoslynTripleSlash
             return VisitType(baseNode, symbol);
         }
 
-        public override SyntaxNode? VisitEnumDeclaration(EnumDeclarationSyntax node) =>
-            VisitMemberDeclaration(node);
+        public override SyntaxNode? VisitEnumDeclaration(EnumDeclarationSyntax node)
+        {
+            SyntaxNode? baseNode = base.VisitEnumDeclaration(node);
+
+            ISymbol? symbol = Model.GetDeclaredSymbol(node);
+            if (symbol == null)
+            {
+                Log.Warning($"Symbol is null.");
+                return baseNode;
+            }
+
+            return VisitType(baseNode, symbol);
+        }
 
         public override SyntaxNode? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) =>
             VisitMemberDeclaration(node);
@@ -402,16 +413,25 @@ namespace Libraries.RoslynTripleSlash
         }
 
         // Finds the last set of whitespace characters that are to the left of the public|protected keyword of the node.
-        private static SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node)
+        private static SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node, bool skipModifiers = false)
         {
             if (node is MemberDeclarationSyntax memberDeclaration)
             {
-                if (memberDeclaration.Modifiers.FirstOrDefault(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.ProtectedKeyword)) is SyntaxToken publicModifier)
+                SyntaxTriviaList triviaList;
+
+                if ((memberDeclaration.Modifiers.FirstOrDefault(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.ProtectedKeyword)) is SyntaxToken modifier) &&
+                    !modifier.IsKind(SyntaxKind.None))
                 {
-                    if (publicModifier.LeadingTrivia.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia)) is SyntaxTrivia last)
-                    {
-                        return new(last);
-                    }
+                    triviaList = modifier.LeadingTrivia;
+                }
+                else
+                {
+                    triviaList = node.GetLeadingTrivia();
+                }
+
+                if (triviaList.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia)) is SyntaxTrivia last)
+                {
+                    return new(last);
                 }
             }
             return new();

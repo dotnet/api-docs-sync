@@ -2,6 +2,16 @@
 
 namespace MyNamespace
 {
+    /// <summary>This is the MyEnum enum summary.</summary>
+    public enum MyEnum
+    {
+        /// <summary>This is the MyEnumValue0 member summary. There is no public modifier.</summary>
+        MyEnumValue0 = 0,
+
+        /// <summary>This is the MyEnumValue1 member summary. There is no public modifier.</summary>
+        MyEnumValue1 = 1
+    }
+
     /// <summary>This is the MyType class summary.</summary>
     /// <remarks>These are the MyType class remarks.
     /// Multiple lines.</remarks>

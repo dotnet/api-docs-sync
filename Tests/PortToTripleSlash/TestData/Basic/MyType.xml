@@ -14,6 +14,9 @@ These are the MyType class remarks.
 
 Multiple lines.
 
+> [!NOTE]
+> This note should prevent converting markdown to xml.
+
       ]]></format>
     </remarks>
   </Docs>
@@ -95,11 +98,7 @@ Multiple lines.
 
 These are the MyIntMethod remarks.
 
-Multiple lines.
-
-Mentions the `param1`, the <xref:System.ArgumentNullException> and the `param2`.
-
-There are also a `true` and a `null`.
+There is a hyperlink, which should prevent the conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
 
           ]]></format>
         </remarks>
@@ -173,6 +172,10 @@ This is a reference to the typeparam `T`.
 
 This is a reference to the parameter `param1`.
 
+Mentions the `param1` and an <xref:System.ArgumentNullException>.
+
+There are also a `true` and a `null`.
+
           ]]></format>
         </remarks>
       </Docs>
@@ -199,7 +202,7 @@ This is a reference to the parameter `param1`.
         <param name="value2">The second type to add.</param>
         <summary>Adds two MyType instances.</summary>
         <returns>The added types.</returns>
-        <remarks>To be added.</remarks>
+        <remarks>These are the <see cref="M:MyNamespace.MyType.op_Addition(MyNamespace.MyType,MyNamespace.MyType)" /> remarks. They are in plain xml and should be transferred unmodified.</remarks>
       </Docs>
     </Member>
   </Members>

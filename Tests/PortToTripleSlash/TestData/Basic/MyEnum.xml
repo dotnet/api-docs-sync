@@ -5,7 +5,15 @@
   </AssemblyInfo>
   <Docs>
     <summary>This is the MyEnum enum summary.</summary>
-    <remarks>To be added.</remarks>
+    <remarks>
+      <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+These are the <xref:MyNamespace.MyEnum> enum remarks. They contain an [!INCLUDE[MyInclude](~/includes/MyInclude.md)] which should prevent converting markdown to xml.
+
+      ]]></format>
+    </remarks>
   </Docs>
   <Members>
     <Member MemberName="MyEnumValue0">

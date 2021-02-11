@@ -91,7 +91,7 @@ namespace Libraries.RoslynTripleSlash
         private static readonly string[] ReservedKeywords = new[] { "abstract", "async", "await", "false", "null", "sealed", "static", "true", "virtual" };
 
         private static readonly string[] UnconvertableMarkdownStrings =
-            new[] { "](http", "[!code-cpp", "[!code-csharp", "[!code-vb", "[!INCLUDE", "[!NOTE]", "```cs", "```cpp", "```vb", "```visualbasic" };
+            new[] { "](http", "](/", "[!code-cpp", "[!code-csharp", "[!code-vb", "[!INCLUDE", "[!NOTE]", "[!IMPORTANT]", "```cs", "```cpp", "```vb", "```visualbasic" };
 
         private static readonly Dictionary<string, string> PrimitiveTypes = new()
         {

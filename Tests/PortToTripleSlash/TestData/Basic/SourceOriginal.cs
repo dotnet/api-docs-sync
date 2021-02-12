@@ -2,6 +2,13 @@
 
 namespace MyNamespace
 {
+    public enum MyEnum
+    {
+        MyEnumValue0 = 0,
+
+        MyEnumValue1 = 1
+    }
+
     public class MyType
     {
         /// <summary>

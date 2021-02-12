@@ -114,6 +114,11 @@ namespace Libraries
             Cyan(true, format, args);
         }
 
+        public static void Cyan(bool endline, string format, params object[]? args)
+        {
+            Print(endline, ConsoleColor.Cyan, format, args);
+        }
+
         public static void Magenta(bool endline, string format, params object[]? args)
         {
             Print(endline, ConsoleColor.Magenta, format, args);
@@ -129,9 +134,19 @@ namespace Libraries
             Magenta(true, format, args);
         }
 
-        public static void Cyan(bool endline, string format, params object[]? args)
+        public static void DarkYellow(bool endline, string format, params object[]? args)
         {
-            Print(endline, ConsoleColor.Cyan, format, args);
+            Print(endline, ConsoleColor.DarkYellow, format, args);
+        }
+
+        public static void DarkYellow(string format)
+        {
+            DarkYellow(format, null);
+        }
+
+        public static void DarkYellow(string format, params object[]? args)
+        {
+            DarkYellow(true, format, args);
         }
 
         public static void Assert(bool condition, string format)

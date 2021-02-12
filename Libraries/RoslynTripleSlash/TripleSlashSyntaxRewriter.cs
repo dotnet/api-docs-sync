@@ -90,6 +90,9 @@ namespace Libraries.RoslynTripleSlash
     {
         private static readonly string[] ReservedKeywords = new[] { "abstract", "async", "await", "false", "null", "sealed", "static", "true", "virtual" };
 
+        private static readonly string[] UnconvertableMarkdownStrings =
+            new[] { "](http", "](/", "[!code-cpp", "[!code-csharp", "[!code-vb", "[!INCLUDE", "[!NOTE]", "[!IMPORTANT]", "```cs", "```cpp", "```vb", "```visualbasic" };
+
         private static readonly Dictionary<string, string> PrimitiveTypes = new()
         {
             { "System.Boolean", "bool" },
@@ -152,8 +155,19 @@ namespace Libraries.RoslynTripleSlash
             return VisitType(baseNode, symbol);
         }
 
-        public override SyntaxNode? VisitEnumDeclaration(EnumDeclarationSyntax node) =>
-            VisitMemberDeclaration(node);
+        public override SyntaxNode? VisitEnumDeclaration(EnumDeclarationSyntax node)
+        {
+            SyntaxNode? baseNode = base.VisitEnumDeclaration(node);
+
+            ISymbol? symbol = Model.GetDeclaredSymbol(node);
+            if (symbol == null)
+            {
+                Log.Warning($"Symbol is null.");
+                return baseNode;
+            }
+
+            return VisitType(baseNode, symbol);
+        }
 
         public override SyntaxNode? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) =>
             VisitMemberDeclaration(node);
@@ -402,16 +416,25 @@ namespace Libraries.RoslynTripleSlash
         }
 
         // Finds the last set of whitespace characters that are to the left of the public|protected keyword of the node.
-        private static SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node)
+        private static SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node, bool skipModifiers = false)
         {
             if (node is MemberDeclarationSyntax memberDeclaration)
             {
-                if (memberDeclaration.Modifiers.FirstOrDefault(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.ProtectedKeyword)) is SyntaxToken publicModifier)
+                SyntaxTriviaList triviaList;
+
+                if ((memberDeclaration.Modifiers.FirstOrDefault(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.ProtectedKeyword)) is SyntaxToken modifier) &&
+                    !modifier.IsKind(SyntaxKind.None))
                 {
-                    if (publicModifier.LeadingTrivia.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia)) is SyntaxTrivia last)
-                    {
-                        return new(last);
-                    }
+                    triviaList = modifier.LeadingTrivia;
+                }
+                else
+                {
+                    triviaList = node.GetLeadingTrivia();
+                }
+
+                if (triviaList.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia)) is SyntaxTrivia last)
+                {
+                    return new(last);
                 }
             }
             return new();
@@ -433,10 +456,7 @@ namespace Libraries.RoslynTripleSlash
         {
             if (!api.Remarks.IsDocsEmpty())
             {
-                string text = GetRemarksWithXmlElements(api);
-                XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace);
-                XmlElementSyntax xmlRemarks = SyntaxFactory.XmlRemarksElement(contents);
-                return GetXmlTrivia(xmlRemarks, leadingWhitespace);
+                return GetFormattedRemarks(api, leadingWhitespace);
             }
 
             return new();
@@ -611,7 +631,7 @@ namespace Libraries.RoslynTripleSlash
             return relateds;
         }
 
-        private static XmlTextSyntax GetTextAsCommentedTokens(string text, SyntaxTriviaList leadingWhitespace)
+        private static XmlTextSyntax GetTextAsCommentedTokens(string text, SyntaxTriviaList leadingWhitespace, bool wrapWithNewLines = false)
         {
             text = ReplacePrimitiveTypes(text);
 
@@ -622,9 +642,14 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTrivia leadingTrivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.DocumentationCommentExteriorTrivia, string.Empty);
             SyntaxTriviaList leading = SyntaxTriviaList.Create(leadingTrivia);
             
+            string[] lines = text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
             var tokens = new List<SyntaxToken>();
 
-            string[] lines = text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (wrapWithNewLines)
+            {
+                tokens.Add(whitespaceToken);
+            }
 
             for (int lineNumber = 0; lineNumber < lines.Length; lineNumber++)
             {
@@ -637,6 +662,11 @@ namespace Libraries.RoslynTripleSlash
                 {
                     tokens.Add(whitespaceToken);
                 }
+            }
+
+            if (wrapWithNewLines)
+            {
+                tokens.Add(whitespaceToken);
             }
 
             XmlTextSyntax xmlText = SyntaxFactory.XmlText(tokens.ToArray());
@@ -673,40 +703,95 @@ namespace Libraries.RoslynTripleSlash
             return GetXmlTrivia(element, leadingWhitespace);
         }
 
-        private static string GetRemarksWithXmlElements(IDocsAPI api)
+        private static bool ContainsUnconvertableMarkdown(string text)
         {
-            string remarks = api.Remarks;
-
-            if (!api.Remarks.IsDocsEmpty())
+            foreach (string markdown in UnconvertableMarkdownStrings)
             {
-                remarks = Regex.Replace(remarks, @"<!\[CDATA\[(\r?\n)*[\t ]*", "");
-                remarks = Regex.Replace(remarks, @"\]\]>", "");
-                remarks = Regex.Replace(remarks, @"##[ ]?Remarks(\r?\n)*[\t ]*", "");
-                remarks = Regex.Replace(remarks, @"(?<xref><xref\:(?<DocId>[a-zA-Z0-9_,\.\[\]\(\)`\{\}\@\+\*\&\^\#]+)(?<OverloadIndicator>%2A)?(?<extraVars>\?[a-zA-Z0-9_]+=[a-zA-Z0-9_]+)?>)", "<see cref=\"${DocId}\" />");
-
-                MatchCollection collection = Regex.Matches(api.Remarks, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
-
-                foreach (Match match in collection)
+                if (text.Contains(markdown))
                 {
-                    string backtickedParam = match.Groups["backtickedParam"].Value;
-                    string paramName = match.Groups["paramName"].Value;
-                    if (ReservedKeywords.Any(x => x == paramName))
-                    {
-                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<see langword=\"{paramName}\" />");
-                    }
-                    else if (api.Params.Any(x => x.Name == paramName))
-                    {
-                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<paramref name=\"{paramName}\" />");
-                    }
-                    else if (api.TypeParams.Any(x => x.Name == paramName))
-                    {
-                        remarks = Regex.Replace(remarks, $"{backtickedParam}", $"<typeparamref name=\"{paramName}\" />");
-                    }
+                    return true;
                 }
-
-                remarks = ReplacePrimitiveTypes(remarks);
             }
-            return remarks;
+
+            return false;
+        }
+
+        /// <remarks><format type="text/markdown"><![CDATA[
+        /// ## Remarks
+        /// ]]></format></remarks>
+        private static SyntaxTriviaList GetFormattedRemarks(IDocsAPI api, SyntaxTriviaList leadingWhitespace)
+        {
+            string text = RemoveUnnecessaryMarkdown(api.Remarks);
+
+            XmlNodeSyntax contents;
+            if (ContainsUnconvertableMarkdown(text))
+            {
+                contents = GetTextAsFormatCData(text, leadingWhitespace);
+            }
+            else
+            {
+                text = GetRemarksWithXmlElements(text, api.Params, api.TypeParams);
+                contents = GetTextAsCommentedTokens(text, leadingWhitespace);
+            }
+
+            XmlElementSyntax xmlRemarks = SyntaxFactory.XmlRemarksElement(contents);
+            return GetXmlTrivia(xmlRemarks, leadingWhitespace);
+        }
+
+        private static XmlNodeSyntax GetTextAsFormatCData(string text, SyntaxTriviaList leadingWhitespace)
+        {
+            XmlTextSyntax remarks = GetTextAsCommentedTokens(text, leadingWhitespace, wrapWithNewLines: true);
+
+            XmlNameSyntax formatName = SyntaxFactory.XmlName("format");
+            XmlAttributeSyntax formatAttribute = SyntaxFactory.XmlTextAttribute("type", "text/markdown");
+            var formatAttributes = new SyntaxList<XmlAttributeSyntax>(formatAttribute);
+
+            var formatStart = SyntaxFactory.XmlElementStartTag(formatName, formatAttributes);
+            var formatEnd = SyntaxFactory.XmlElementEndTag(formatName);
+
+            XmlCDataSectionSyntax cdata = SyntaxFactory.XmlCDataSection(remarks.TextTokens);
+            var cdataList = new SyntaxList<XmlNodeSyntax>(cdata);
+
+            XmlElementSyntax contents = SyntaxFactory.XmlElement(formatStart, cdataList, formatEnd);
+
+            return contents;
+        }
+
+        private static string RemoveUnnecessaryMarkdown(string text)
+        {
+            text = Regex.Replace(text, @"<!\[CDATA\[(\r?\n)*[\t ]*", "");
+            text = Regex.Replace(text, @"\]\]>", "");
+            text = Regex.Replace(text, @"##[ ]?Remarks(\r?\n)*[\t ]*", "");
+            return text;
+        }
+
+        private static string GetRemarksWithXmlElements(string text, List<DocsParam> docsParams, List<DocsTypeParam> docsTypeParams)
+        {
+            text = Regex.Replace(text, @"(?<xref><xref\:(?<DocId>[a-zA-Z0-9_,\.\[\]\(\)`\{\}\@\+\*\&\^\#]+)(?<OverloadIndicator>%2A)?(?<extraVars>\?[a-zA-Z0-9_]+=[a-zA-Z0-9_]+)?>)", "<see cref=\"${DocId}\" />");
+
+            MatchCollection collection = Regex.Matches(text, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
+
+            foreach (Match match in collection)
+            {
+                string backtickedParam = match.Groups["backtickedParam"].Value;
+                string paramName = match.Groups["paramName"].Value;
+                if (ReservedKeywords.Any(x => x == paramName))
+                {
+                    text = Regex.Replace(text, $"{backtickedParam}", $"<see langword=\"{paramName}\" />");
+                }
+                else if (docsParams.Any(x => x.Name == paramName))
+                {
+                    text = Regex.Replace(text, $"{backtickedParam}", $"<paramref name=\"{paramName}\" />");
+                }
+                else if (docsTypeParams.Any(x => x.Name == paramName))
+                {
+                    text = Regex.Replace(text, $"{backtickedParam}", $"<typeparamref name=\"{paramName}\" />");
+                }
+            }
+
+            text = ReplacePrimitiveTypes(text);
+
+            return text;
         }
 
         private static string RemoveDocIdPrefixes(string text)

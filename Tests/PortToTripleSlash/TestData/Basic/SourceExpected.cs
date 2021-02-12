@@ -2,9 +2,26 @@
 
 namespace MyNamespace
 {
+    /// <summary>This is the MyEnum enum summary.</summary>
+    /// <remarks><format type="text/markdown"><![CDATA[
+    /// These are the <xref:MyNamespace.MyEnum> enum remarks. They contain an [!INCLUDE[MyInclude](~/includes/MyInclude.md)] which should prevent converting markdown to xml.
+    /// ]]></format></remarks>
+    public enum MyEnum
+    {
+        /// <summary>This is the MyEnumValue0 member summary. There is no public modifier.</summary>
+        MyEnumValue0 = 0,
+
+        /// <summary>This is the MyEnumValue1 member summary. There is no public modifier.</summary>
+        MyEnumValue1 = 1
+    }
+
     /// <summary>This is the MyType class summary.</summary>
-    /// <remarks>These are the MyType class remarks.
-    /// Multiple lines.</remarks>
+    /// <remarks><format type="text/markdown"><![CDATA[
+    /// These are the MyType class remarks.
+    /// Multiple lines.
+    /// > [!NOTE]
+    /// > This note should prevent converting markdown to xml.
+    /// ]]></format></remarks>
     public class MyType
     {
         /// <summary>This is the MyType constructor summary.</summary>
@@ -47,10 +64,10 @@ namespace MyNamespace
         /// <param name="param1">This is the MyIntMethod param1 summary.</param>
         /// <param name="param2">This is the MyIntMethod param2 summary.</param>
         /// <returns>This is the MyIntMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
-        /// <remarks>These are the MyIntMethod remarks.
-        /// Multiple lines.
-        /// Mentions the <paramref name="param1" />, the <see cref="System.ArgumentNullException" /> and the <paramref name="param2" />.
-        /// There are also a <see langword="true" /> and a <see langword="null" />.</remarks>
+        /// <remarks><format type="text/markdown"><![CDATA[
+        /// These are the MyIntMethod remarks.
+        /// There is a hyperlink, which should prevent the conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
+        /// ]]></format></remarks>
         /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyIntMethod. It mentions the <paramref name="param1" />.</exception>
         /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyIntMethod.</exception>
         public int MyIntMethod(int param1, int param2)
@@ -90,7 +107,9 @@ namespace MyNamespace
         /// <param name="param1">This is the MyTypeParamMethod parameter param1.</param>
         /// <typeparam name="T">This is the MyTypeParamMethod typeparam T.</typeparam>
         /// <remarks>This is a reference to the typeparam <typeparamref name="T" />.
-        /// This is a reference to the parameter <paramref name="param1" />.</remarks>
+        /// This is a reference to the parameter <paramref name="param1" />.
+        /// Mentions the <paramref name="param1" /> and an <see cref="System.ArgumentNullException" />.
+        /// There are also a <see langword="true" /> and a <see langword="null" />.</remarks>
         public void MyTypeParamMethod<T>(int param1)
         {
         }
@@ -99,6 +118,10 @@ namespace MyNamespace
         /// <param name="sender">This is the sender parameter.</param>
         /// <param name="e">This is the e parameter.</param>
         /// <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
+        /// <remarks><format type="text/markdown"><![CDATA[
+        /// These are the <xref:MyNamespace.MyType.MyDelegate`1> remarks. There is a code example, which should prevent converting markdown to xml:
+        /// [!code-csharp[MyExample](~/samples/snippets/example.cs)]
+        /// ]]></format></remarks>
         /// <seealso cref="System.Delegate"/>
         /// <altmember cref="System.Delegate"/>
         /// <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>
@@ -111,6 +134,7 @@ namespace MyNamespace
         /// <param name="value1">The first type to add.</param>
         /// <param name="value2">The second type to add.</param>
         /// <returns>The added types.</returns>
+        /// <remarks>These are the <see cref="MyNamespace.MyType.op_Addition(MyNamespace.MyType,MyNamespace.MyType)" /> remarks. They are in plain xml and should be transferred unmodified.</remarks>
         public static MyType operator +(MyType value1, MyType value2)
         {
             return value1;

@@ -8,7 +8,18 @@
     <param name="e">This is the e parameter.</param>
     <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
     <summary>This is the MyDelegate summary.</summary>
-    <remarks>To be added.</remarks>
+    <remarks>
+      <format type="text/markdown">
+  <![CDATA[
+
+## Remarks
+
+These are the <xref:MyNamespace.MyType.MyDelegate`1> remarks. There is a code example, which should prevent converting markdown to xml:
+
+[!code-csharp[MyExample](~/samples/snippets/example.cs)]
+
+      ]]></format>
+    </remarks>
     <altmember cref="T:System.Delegate" />
     <seealso cref="T:System.Delegate" />
     <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>

@@ -405,23 +405,47 @@ Options:
 
             ");
             Warning(@"
-    tl;dr: To port from IntelliSense xmls to DOcs, specify these parameters:
+    TL;DR:
 
-        -Docs <path>
-        -IntelliSense <path1>[,<path2>,...,<pathN>]
-        -IncludedAssemblies <namespace1>[,<namespace2>,...<namespaceN>]
+    To port from IntelliSense xmls to Docs xmls, specify these parameters:
+
+        -Direction ToDocs
+        -Docs <pathToDocsXmlFolder>
+        -IntelliSense <pathToArtifactsFolder1>[,<pathToArtifactsFolder2>,...,<pathToArtifactsFolderN>]
+        -IncludedAssemblies <assembly1>[,<assembly2>,...<assemblyN>]
+        -IncludedNamespaces <namespace1>[,<namespace2>,...,<namespaceN>]
         -Save true
 
-    Example:
-        DocsPortingTool \
-            -Docs D:\dotnet-api-docs\xml \
-            -IntelliSense D:\runtime\artifacts\bin\System.IO.FileSystem\ \
-            -IncludedAssemblies System.IO.FileSystem,System.Runtime.Intrinsics \
-            -Save true
+        Example:
+            DocsPortingTool \
+                -Direction ToDocs \
+                -Docs D:\dotnet-api-docs\xml \
+                -IntelliSense D:\runtime\artifacts\bin\System.IO.FileSystem\ \
+                -IncludedAssemblies System.IO.FileSystem \
+                -IncludedNamespaces System.IO \
+                -Save true
+
+    To port from Docs xmls to triple slash comments, specify these parameters:
+
+        -Direction ToTripleSlash
+        -CsProj <pathToCsproj>
+        -Docs <pathToDocsXmlFolder>
+        -IncludedAssemblies <assembly1>[,<assembly2>,...,<assemblyN>]
+        -IncludedNamespaces <namespace1>[,<namespace2>,...,<namespaceN>]
+        -Save true
+
+        Example:
+            DocsPortingTool \
+                -Direction ToTripleSlash \
+                -CsProj D:\runtime\src\libraries\System.IO.Compression.Brotli\src\System.IO.Compression.Brotli.csproj \
+                -Docs D:\dotnet-api-docs\xml \
+                -IncludedAssemblies System.IO.Compression.Brotli \
+                -IncludedNamespaces System.IO.Compression \
+                -Save true
 ");
             Magenta(@"
     Note:
-        If the names of your assemblies differ from the namespaces wheres your APIs live, specify the -IncludedNamespaces argument too.
+        If the assembly and the namespace is exactly the same, you can skip the -IncludedNamespaces argument.
 
             ");
         }

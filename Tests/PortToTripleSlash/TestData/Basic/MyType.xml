@@ -6,16 +6,19 @@
   <Docs>
     <summary>This is the MyType class summary.</summary>
     <remarks>
-      <format type="text/markdown"><![CDATA[
+      <format type="text/markdown">
+  <![CDATA[
 
 ## Remarks
 
-These are the MyType class remarks.
+These are the <xref:MyNamespace.MyType> class remarks.
 
 Multiple lines.
 
 > [!NOTE]
-> This note should prevent converting markdown to xml.
+> This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
+
+This text is not a note. It has a <xref:MyNamespace.MyType> that should be xml and outside the cdata.
 
       ]]></format>
     </remarks>
@@ -76,6 +79,19 @@ There is a primitive type <xref:System.Int32> here.
 
 Multiple lines.
 
+## Example
+
+This example section has a header in singular.
+
+```cs
+MyType t = new MyType();
+```
+```vb
+Dim t = New MyType()
+```
+```cpp
+MyType t = MyType();
+```
           ]]></format>
         </remarks>
       </Docs>
@@ -98,7 +114,11 @@ Multiple lines.
 
 These are the MyIntMethod remarks.
 
-There is a hyperlink, which should prevent the conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
+Here is a random snippet, NOT preceded by the examples header.
+
+[!code-cpp[MyExample](~/samples/snippets/example.cpp)]
+
+There is a hyperlink, which should still allow conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
 
           ]]></format>
         </remarks>

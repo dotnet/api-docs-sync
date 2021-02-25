@@ -16,12 +16,13 @@ namespace MyNamespace
     }
 
     /// <summary>This is the MyType class summary.</summary>
-    /// <remarks><format type="text/markdown"><![CDATA[
-    /// These are the MyType class remarks.
+    /// <remarks>These are the <see cref="MyNamespace.MyType" /> class remarks.
     /// Multiple lines.
+    /// <format type="text/markdown"><![CDATA[
     /// > [!NOTE]
-    /// > This note should prevent converting markdown to xml.
-    /// ]]></format></remarks>
+    /// > This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
+    /// ]]></format>
+    /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside the cdata.</remarks>
     public class MyType
     {
         /// <summary>This is the MyType constructor summary.</summary>
@@ -58,16 +59,28 @@ namespace MyNamespace
         /// <remarks>These are the MyField remarks.
         /// There is a primitive type <see cref="int" /> here.
         /// Multiple lines.</remarks>
+        /// <example>This example section has a header in singular.
+        /// <code class="lang-cs">
+        /// MyType t = new MyType();
+        /// </code>
+        /// <code class="lang-vb">
+        /// Dim t = New MyType()
+        /// </code>
+        /// <code class="lang-cpp">
+        /// MyType t = MyType();
+        /// </code></example>
         public int MyField = 1;
 
         /// <summary>This is the MyIntMethod summary.</summary>
         /// <param name="param1">This is the MyIntMethod param1 summary.</param>
         /// <param name="param2">This is the MyIntMethod param2 summary.</param>
         /// <returns>This is the MyIntMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
-        /// <remarks><format type="text/markdown"><![CDATA[
-        /// These are the MyIntMethod remarks.
-        /// There is a hyperlink, which should prevent the conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
-        /// ]]></format></remarks>
+        /// <remarks>These are the MyIntMethod remarks.
+        /// Here is a random snippet, NOT preceded by the examples header.
+        /// <format type="text/markdown"><![CDATA[
+        /// [!code-cpp[MyExample](~/samples/snippets/example.cpp)]
+        /// ]]></format>
+        /// There is a hyperlink, which should still allow conversion from markdown to xml: <a href="http://github.com/dotnet/runtime">MyHyperlink</a>.</remarks>
         /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyIntMethod. It mentions the <paramref name="param1" />.</exception>
         /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyIntMethod.</exception>
         public int MyIntMethod(int param1, int param2)
@@ -118,10 +131,15 @@ namespace MyNamespace
         /// <param name="sender">This is the sender parameter.</param>
         /// <param name="e">This is the e parameter.</param>
         /// <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
-        /// <remarks><format type="text/markdown"><![CDATA[
-        /// These are the <xref:MyNamespace.MyType.MyDelegate`1> remarks. There is a code example, which should prevent converting markdown to xml:
-        /// [!code-csharp[MyExample](~/samples/snippets/example.cs)]
-        /// ]]></format></remarks>
+        /// <remarks>These are the <see cref="MyNamespace.MyType.MyDelegate`1" /> remarks. There is a code example, which should be moved to its own examples section:</remarks>
+        /// <example>Here is some text in the examples section. There is an <see cref="MyNamespace.MyType.MyDelegate`1" /> that should be converted to xml.
+        /// The snippet links below should be inserted in markdown.
+        /// <format type="text/markdown"><![CDATA[
+        /// [!code-csharp[MyExample#1](~/samples/snippets/example.cs)]
+        /// [!code-vb[MyExample#2](~/samples/snippets/example.vb)]
+        /// [!code-cpp[MyExample#3](~/samples/snippets/example.cpp)]
+        /// ]]></format>
+        /// This text should be outside the cdata in xml: <see cref="MyNamespace.MyType" />.</example>
         /// <seealso cref="System.Delegate"/>
         /// <altmember cref="System.Delegate"/>
         /// <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>

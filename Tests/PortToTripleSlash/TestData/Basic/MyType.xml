@@ -16,7 +16,7 @@ These are the <xref:MyNamespace.MyType> class remarks.
 Multiple lines.
 
 > [!NOTE]
-> This note should prevent converting markdown to xml.
+> This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
 
 This text is not a note. It has a <xref:MyNamespace.MyType> that should be xml and outside the cdata.
 

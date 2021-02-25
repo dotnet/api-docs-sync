@@ -20,7 +20,7 @@ namespace MyNamespace
     /// Multiple lines.
     /// <format type="text/markdown"><![CDATA[
     /// > [!NOTE]
-    /// > This note should prevent converting markdown to xml.
+    /// > This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
     /// ]]></format>
     /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside the cdata.</remarks>
     public class MyType

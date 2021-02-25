@@ -794,7 +794,7 @@ namespace Libraries.RoslynTripleSlash
                     {
                         updatedRemarks += WrapCodeIncludes(splitted, ref n);
                     }
-                    // When example is found, everything is considered part of examples
+                    // When an example is found, everything after the header is considered part of that section
                     else if (line.Contains("## Example"))
                     {
                         n++;
@@ -814,11 +814,10 @@ namespace Libraries.RoslynTripleSlash
                     }
                     else
                     {
-                        updatedRemarks += Environment.NewLine + line;
+                        updatedRemarks += ReplaceMarkdownWithXmlElements(Environment.NewLine + line, api.Params, api.TypeParams);
                     }
                 }
 
-                updatedRemarks = ReplaceMarkdownWithXmlElements(updatedRemarks, api.Params, api.TypeParams);
                 contents = GetTextAsCommentedTokens(updatedRemarks, leadingWhitespace);
             }
 

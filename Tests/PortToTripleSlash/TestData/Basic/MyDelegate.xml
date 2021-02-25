@@ -14,9 +14,13 @@
 
 ## Remarks
 
-These are the <xref:MyNamespace.MyType.MyDelegate`1> remarks. There is a code example, which should prevent converting markdown to xml:
+These are the <xref:MyNamespace.MyType.MyDelegate`1> remarks. There is a code example, which should be moved to its own examples section:
 
-[!code-csharp[MyExample](~/samples/snippets/example.cs)]
+## Examples
+
+[!code-csharp[MyExample#1](~/samples/snippets/example.cs)]
+[!code-vb[MyExample#2](~/samples/snippets/example.vb)]
+[!code-cpp[MyExample#3](~/samples/snippets/example.cpp)]
 
       ]]></format>
     </remarks>

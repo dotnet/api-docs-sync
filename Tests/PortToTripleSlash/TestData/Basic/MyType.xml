@@ -76,6 +76,19 @@ There is a primitive type <xref:System.Int32> here.
 
 Multiple lines.
 
+## Example
+
+This example section has a header in singular.
+
+```cs
+MyType t = new MyType();
+```
+```vb
+Dim t = New MyType()
+```
+```cpp
+MyType t = MyType();
+```
           ]]></format>
         </remarks>
       </Docs>
@@ -98,7 +111,7 @@ Multiple lines.
 
 These are the MyIntMethod remarks.
 
-There is a hyperlink, which should prevent the conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
+There is a hyperlink, which should still allow conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
 
           ]]></format>
         </remarks>

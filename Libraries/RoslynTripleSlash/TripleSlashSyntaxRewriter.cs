@@ -90,8 +90,29 @@ namespace Libraries.RoslynTripleSlash
     {
         private static readonly string[] ReservedKeywords = new[] { "abstract", "async", "await", "false", "null", "sealed", "static", "true", "virtual" };
 
-        private static readonly string[] UnconvertableMarkdownStrings =
-            new[] { "](http", "](/", "[!code-cpp", "[!code-csharp", "[!code-vb", "[!INCLUDE", "[!NOTE]", "[!IMPORTANT]", "```cs", "```cpp", "```vb", "```visualbasic" };
+        private static readonly string[] MarkdownUnconvertableStrings = new[] { "](~/includes", "[!INCLUDE", "[!NOTE]", "[!IMPORTANT]" };
+
+        private static readonly string[] MarkdownCodeIncludes = new[] { "[!code-cpp", "[!code-csharp", "[!code-vb", };
+
+        private static readonly string[] MarkdownExamples = new[] { "## Examples", "## Example" };
+
+        private static readonly string ValidRegexChars = @"A-Za-z0-9\-\._~:\/#\[\]@!\$&'\(\)\*\+,;%`";
+        private static readonly string ValidExtraChars = @"\?=";
+
+        private static readonly string RegexMarkdownXrefPattern = @"(?<xref><xref\:(?<DocId>[" + ValidRegexChars + @"]+)(?<extraVars>\?[" + ValidRegexChars + @"]+=[" + ValidRegexChars + @"]+)?>)";
+        private static readonly string RegexXmlSeeCrefReplacement = "<see cref=\"${DocId}\" />";
+
+        private static readonly string RegexMarkdownXrefOverloadPattern = @"(?<xref><xref\:(?<DocId>[" + ValidRegexChars + @"]+)%2[aA](?<extraVars>\?[" + ValidRegexChars + @"]+=[" + ValidRegexChars + @"]+)?>)";
+        private static readonly string RegexXmlSeeCrefOverloadReplacement = "<see cref=\"O:${DocId}\" />";
+
+        private static readonly string RegexMarkdownLinkPattern = @"\[(?<linkValue>.+)\]\((?<linkURL>(http|www)[" + ValidRegexChars + ValidExtraChars + @"]+)\)";
+        private static readonly string RegexHtmlLinkReplacement = "<a href=\"${linkURL}\">${linkValue}</a>";
+
+        private static readonly string RegexMarkdownCodeStartPattern = @"```(?<language>(cs|csharp|cpp|vb|visualbasic))(?<spaces>\s+)";
+        private static readonly string RegexXmlCodeStartReplacement = "<code class=\"lang-${language}\">${spaces}";
+
+        private static readonly string RegexMarkdownCodeEndPattern = @"```(?<spaces>\s+)";
+        private static readonly string RegexXmlCodeEndReplacement = "</code>${spaces}";
 
         private static readonly Dictionary<string, string> PrimitiveTypes = new()
         {
@@ -703,39 +724,58 @@ namespace Libraries.RoslynTripleSlash
             return GetXmlTrivia(element, leadingWhitespace);
         }
 
-        private static bool ContainsUnconvertableMarkdown(string text)
-        {
-            foreach (string markdown in UnconvertableMarkdownStrings)
-            {
-                if (text.Contains(markdown))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <remarks><format type="text/markdown"><![CDATA[
-        /// ## Remarks
-        /// ]]></format></remarks>
         private static SyntaxTriviaList GetFormattedRemarks(IDocsAPI api, SyntaxTriviaList leadingWhitespace)
         {
-            string text = RemoveUnnecessaryMarkdown(api.Remarks);
+            string remarks = RemoveUnnecessaryMarkdown(api.Remarks);
+            string example = string.Empty;
 
             XmlNodeSyntax contents;
-            if (ContainsUnconvertableMarkdown(text))
+            if (remarks.ContainsStrings(MarkdownUnconvertableStrings))
             {
-                contents = GetTextAsFormatCData(text, leadingWhitespace);
+                contents = GetTextAsFormatCData(remarks, leadingWhitespace);
             }
             else
             {
-                text = GetRemarksWithXmlElements(text, api.Params, api.TypeParams);
-                contents = GetTextAsCommentedTokens(text, leadingWhitespace);
+                int index = remarks.IndexOf("## Example");
+                if (index != -1)
+                {
+                    example = remarks[index..];
+                    remarks = remarks.Substring(0, index);
+                    example = example.RemoveSubstrings(MarkdownExamples);
+                }
+
+                remarks = ReplaceMarkdownWithXmlElements(remarks, api.Params, api.TypeParams);
+                contents = GetTextAsCommentedTokens(remarks, leadingWhitespace);
             }
 
-            XmlElementSyntax xmlRemarks = SyntaxFactory.XmlRemarksElement(contents);
-            return GetXmlTrivia(xmlRemarks, leadingWhitespace);
+            XmlElementSyntax remarksXml = SyntaxFactory.XmlRemarksElement(contents);
+            SyntaxTriviaList result = GetXmlTrivia(remarksXml, leadingWhitespace);
+
+            if (!string.IsNullOrWhiteSpace(example))
+            {
+                SyntaxTriviaList exampleTriviaList = GetFormattedExamples(api, example, leadingWhitespace);
+                result = result.AddRange(exampleTriviaList);
+            }
+
+            return result;
+        }
+
+        private static SyntaxTriviaList GetFormattedExamples(IDocsAPI api, string example, SyntaxTriviaList leadingWhitespace)
+        {
+            XmlNodeSyntax exampleContents;
+            if (example.ContainsStrings(MarkdownCodeIncludes))
+            {
+                exampleContents = GetTextAsFormatCData(example, leadingWhitespace);
+            }
+            else
+            {
+                example = ReplaceMarkdownWithXmlElements(example, api.Params, api.TypeParams);
+                exampleContents = GetTextAsCommentedTokens(example, leadingWhitespace);
+            }
+
+            XmlElementSyntax exampleXml = SyntaxFactory.XmlExampleElement(exampleContents);
+            SyntaxTriviaList exampleTriviaList = GetXmlTrivia(exampleXml, leadingWhitespace);
+            return exampleTriviaList;
         }
 
         private static XmlNodeSyntax GetTextAsFormatCData(string text, SyntaxTriviaList leadingWhitespace)
@@ -765,12 +805,23 @@ namespace Libraries.RoslynTripleSlash
             return text;
         }
 
-        private static string GetRemarksWithXmlElements(string text, List<DocsParam> docsParams, List<DocsTypeParam> docsTypeParams)
+        private static string ReplaceMarkdownWithXmlElements(string text, List<DocsParam> docsParams, List<DocsTypeParam> docsTypeParams)
         {
-            text = Regex.Replace(text, @"(?<xref><xref\:(?<DocId>[a-zA-Z0-9_,\.\[\]\(\)`\{\}\@\+\*\&\^\#]+)(?<OverloadIndicator>%2A)?(?<extraVars>\?[a-zA-Z0-9_]+=[a-zA-Z0-9_]+)?>)", "<see cref=\"${DocId}\" />");
+            // see crefs with overloads
+            text = Regex.Replace(text, RegexMarkdownXrefOverloadPattern, RegexXmlSeeCrefOverloadReplacement);
 
+            // see crefs
+            text = Regex.Replace(text, RegexMarkdownXrefPattern, RegexXmlSeeCrefReplacement);
+
+            // hyperlinks
+            text = Regex.Replace(text, RegexMarkdownLinkPattern, RegexHtmlLinkReplacement);
+
+            // code snippet
+            text = Regex.Replace(text, RegexMarkdownCodeStartPattern, RegexXmlCodeStartReplacement);
+            text = Regex.Replace(text, RegexMarkdownCodeEndPattern, RegexXmlCodeEndReplacement);
+
+            // langwords|parameters|typeparams
             MatchCollection collection = Regex.Matches(text, @"(?<backtickedParam>`(?<paramName>[a-zA-Z0-9_]+)`)");
-
             foreach (Match match in collection)
             {
                 string backtickedParam = match.Groups["backtickedParam"].Value;

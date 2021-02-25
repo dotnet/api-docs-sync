@@ -729,9 +729,9 @@ namespace Libraries.RoslynTripleSlash
 
         private static string WrapInRemarks(string acum)
         {
-            string wrapped = "\r\n<format type=\"text/markdown\"><![CDATA[\r\n";
+            string wrapped = Environment.NewLine + "<format type=\"text/markdown\"><![CDATA[" + Environment.NewLine;
             wrapped += acum;
-            wrapped += "\r\n]]></format>\r\n";
+            wrapped += Environment.NewLine + "]]></format>" + Environment.NewLine;
             return wrapped;
         }
 
@@ -766,7 +766,7 @@ namespace Libraries.RoslynTripleSlash
             }
             else
             {
-                string[] splitted = remarks.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+                string[] splitted = remarks.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
                 string updatedRemarks = string.Empty;
                 for (int n = 0; n < splitted.Length; n++)
                 {

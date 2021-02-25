@@ -22,7 +22,7 @@ namespace MyNamespace
     /// > [!NOTE]
     /// > This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
     /// ]]></format>
-    /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside the cdata.</remarks>
+    /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside <b>the cdata</b>.</remarks>
     public class MyType
     {
         /// <summary>This is the MyType constructor summary.</summary>

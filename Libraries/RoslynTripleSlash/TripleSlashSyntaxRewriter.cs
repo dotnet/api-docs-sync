@@ -108,6 +108,9 @@ namespace Libraries.RoslynTripleSlash
         private static readonly string RegexMarkdownXrefOverloadPattern = @"(?<xref><xref\:(?<DocId>[" + ValidRegexChars + @"]+)%2[aA](?<extraVars>\?[" + ValidRegexChars + @"]+=[" + ValidRegexChars + @"]+)?>)";
         private static readonly string RegexXmlSeeCrefOverloadReplacement = "<see cref=\"O:${DocId}\" />";
 
+        private static readonly string RegexMarkdownBoldPattern = @"\*\*(?<content>[A-Za-z0-9\-\._~:\/#\[\]@!\$&'\(\)\+,;%` ]+)\*\*";
+        private static readonly string RegexXmlBoldReplacement = @"<b>${content}</b>";
+
         private static readonly string RegexMarkdownLinkPattern = @"\[(?<linkValue>.+)\]\((?<linkURL>(http|www)[" + ValidRegexChars + ValidExtraChars + @"]+)\)";
         private static readonly string RegexHtmlLinkReplacement = "<a href=\"${linkURL}\">${linkValue}</a>";
 
@@ -879,6 +882,9 @@ namespace Libraries.RoslynTripleSlash
 
             // hyperlinks
             text = Regex.Replace(text, RegexMarkdownLinkPattern, RegexHtmlLinkReplacement);
+
+            // bold
+            text = Regex.Replace(text, RegexMarkdownBoldPattern, RegexXmlBoldReplacement);
 
             // code snippet
             text = Regex.Replace(text, RegexMarkdownCodeStartPattern, RegexXmlCodeStartReplacement);

@@ -18,7 +18,7 @@ Multiple lines.
 > [!NOTE]
 > This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
 
-This text is not a note. It has a <xref:MyNamespace.MyType> that should be xml and outside the cdata.
+This text is not a note. It has a <xref:MyNamespace.MyType> that should be xml and outside **the cdata**.
 
       ]]></format>
     </remarks>

@@ -90,11 +90,14 @@ namespace Libraries.RoslynTripleSlash
     {
         private static readonly string[] ReservedKeywords = new[] { "abstract", "async", "await", "false", "null", "sealed", "static", "true", "virtual" };
 
-        private static readonly string[] MarkdownUnconvertableStrings = new[] { "](~/includes", "[!INCLUDE", "[!NOTE]", "[!IMPORTANT]" };
+        private static readonly string[] MarkdownUnconvertableStrings = new[] { "](~/includes", "[!INCLUDE" };
 
         private static readonly string[] MarkdownCodeIncludes = new[] { "[!code-cpp", "[!code-csharp", "[!code-vb", };
 
         private static readonly string[] MarkdownExamples = new[] { "## Examples", "## Example" };
+
+        private static readonly string MarkdownNote = "[!NOTE]";
+        private static readonly string MarkdownImportant = "[!IMPORTANT]";
 
         private static readonly string ValidRegexChars = @"A-Za-z0-9\-\._~:\/#\[\]@!\$&'\(\)\*\+,;%`";
         private static readonly string ValidExtraChars = @"\?=";
@@ -437,14 +440,14 @@ namespace Libraries.RoslynTripleSlash
         }
 
         // Finds the last set of whitespace characters that are to the left of the public|protected keyword of the node.
-        private static SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node, bool skipModifiers = false)
+        private static SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node)
         {
             if (node is MemberDeclarationSyntax memberDeclaration)
             {
                 SyntaxTriviaList triviaList;
 
                 if ((memberDeclaration.Modifiers.FirstOrDefault(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.ProtectedKeyword)) is SyntaxToken modifier) &&
-                    !modifier.IsKind(SyntaxKind.None))
+                        !modifier.IsKind(SyntaxKind.None))
                 {
                     triviaList = modifier.LeadingTrivia;
                 }
@@ -724,8 +727,35 @@ namespace Libraries.RoslynTripleSlash
             return GetXmlTrivia(element, leadingWhitespace);
         }
 
+        private static string WrapInRemarks(string acum)
+        {
+            string wrapped = "\r\n<format type=\"text/markdown\"><![CDATA[\r\n";
+            wrapped += acum;
+            wrapped += "\r\n]]></format>\r\n";
+            return wrapped;
+        }
+
+        private static string WrapCodeIncludes(string[] splitted, ref int n)
+        {
+            string acum = string.Empty;
+            while (n < splitted.Length && splitted[n].ContainsStrings(MarkdownCodeIncludes))
+            {
+                acum += Environment.NewLine + splitted[n];
+                if ((n + 1) < splitted.Length && splitted[n + 1].ContainsStrings(MarkdownCodeIncludes))
+                {
+                    n++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return WrapInRemarks(acum);
+        }
+
         private static SyntaxTriviaList GetFormattedRemarks(IDocsAPI api, SyntaxTriviaList leadingWhitespace)
         {
+
             string remarks = RemoveUnnecessaryMarkdown(api.Remarks);
             string example = string.Empty;
 
@@ -736,16 +766,60 @@ namespace Libraries.RoslynTripleSlash
             }
             else
             {
-                int index = remarks.IndexOf("## Example");
-                if (index != -1)
+                string[] splitted = remarks.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+                string updatedRemarks = string.Empty;
+                for (int n = 0; n < splitted.Length; n++)
                 {
-                    example = remarks[index..];
-                    remarks = remarks.Substring(0, index);
-                    example = example.RemoveSubstrings(MarkdownExamples);
+                    string acum;
+                    string line = splitted[n];
+                    if (line.Contains(MarkdownImportant) || line.Contains(MarkdownNote))
+                    {
+                        acum = line;
+                        n++;
+                        while (n < splitted.Length && splitted[n].StartsWith(">"))
+                        {
+                            acum += Environment.NewLine + splitted[n];
+                            if ((n + 1) < splitted.Length && splitted[n + 1].StartsWith(">"))
+                            {
+                                n++;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        updatedRemarks += WrapInRemarks(acum);
+                    }
+                    else if (line.ContainsStrings(MarkdownCodeIncludes))
+                    {
+                        updatedRemarks += WrapCodeIncludes(splitted, ref n);
+                    }
+                    // When example is found, everything is considered part of examples
+                    else if (line.Contains("## Example"))
+                    {
+                        n++;
+                        while (n < splitted.Length)
+                        {
+                            line = splitted[n];
+                            if (line.ContainsStrings(MarkdownCodeIncludes))
+                            {
+                                example += WrapCodeIncludes(splitted, ref n);
+                            }
+                            else
+                            {
+                                example += Environment.NewLine + line;
+                            }
+                            n++;
+                        }
+                    }
+                    else
+                    {
+                        updatedRemarks += Environment.NewLine + line;
+                    }
                 }
 
-                remarks = ReplaceMarkdownWithXmlElements(remarks, api.Params, api.TypeParams);
-                contents = GetTextAsCommentedTokens(remarks, leadingWhitespace);
+                updatedRemarks = ReplaceMarkdownWithXmlElements(updatedRemarks, api.Params, api.TypeParams);
+                contents = GetTextAsCommentedTokens(updatedRemarks, leadingWhitespace);
             }
 
             XmlElementSyntax remarksXml = SyntaxFactory.XmlRemarksElement(contents);
@@ -762,17 +836,8 @@ namespace Libraries.RoslynTripleSlash
 
         private static SyntaxTriviaList GetFormattedExamples(IDocsAPI api, string example, SyntaxTriviaList leadingWhitespace)
         {
-            XmlNodeSyntax exampleContents;
-            if (example.ContainsStrings(MarkdownCodeIncludes))
-            {
-                exampleContents = GetTextAsFormatCData(example, leadingWhitespace);
-            }
-            else
-            {
-                example = ReplaceMarkdownWithXmlElements(example, api.Params, api.TypeParams);
-                exampleContents = GetTextAsCommentedTokens(example, leadingWhitespace);
-            }
-
+            example = ReplaceMarkdownWithXmlElements(example, api.Params, api.TypeParams);
+            XmlNodeSyntax exampleContents = GetTextAsCommentedTokens(example, leadingWhitespace);
             XmlElementSyntax exampleXml = SyntaxFactory.XmlExampleElement(exampleContents);
             SyntaxTriviaList exampleTriviaList = GetXmlTrivia(exampleXml, leadingWhitespace);
             return exampleTriviaList;

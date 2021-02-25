@@ -6,16 +6,19 @@
   <Docs>
     <summary>This is the MyType class summary.</summary>
     <remarks>
-      <format type="text/markdown"><![CDATA[
+      <format type="text/markdown">
+  <![CDATA[
 
 ## Remarks
 
-These are the MyType class remarks.
+These are the <xref:MyNamespace.MyType> class remarks.
 
 Multiple lines.
 
 > [!NOTE]
 > This note should prevent converting markdown to xml.
+
+This text is not a note. It has a <xref:MyNamespace.MyType> that should be xml and outside the cdata.
 
       ]]></format>
     </remarks>
@@ -110,6 +113,10 @@ MyType t = MyType();
 ## Remarks
 
 These are the MyIntMethod remarks.
+
+Here is a random snippet, NOT preceded by the examples header.
+
+[!code-cpp[MyExample](~/samples/snippets/example.cpp)]
 
 There is a hyperlink, which should still allow conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
 

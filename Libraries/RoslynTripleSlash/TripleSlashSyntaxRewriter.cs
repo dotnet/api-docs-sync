@@ -880,6 +880,12 @@ namespace Libraries.RoslynTripleSlash
             // see crefs
             text = Regex.Replace(text, RegexMarkdownXrefPattern, RegexXmlSeeCrefReplacement);
 
+            // commonly used url entities
+            text = Regex.Replace(text, @"%23", "#");
+            text = Regex.Replace(text, @"%28", "(");
+            text = Regex.Replace(text, @"%29", ")");
+            text = Regex.Replace(text, @"%2C", ",");
+
             // hyperlinks
             text = Regex.Replace(text, RegexMarkdownLinkPattern, RegexHtmlLinkReplacement);
 

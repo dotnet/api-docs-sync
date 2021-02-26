@@ -5,6 +5,7 @@ namespace MyNamespace
     /// <summary>This is the MyEnum enum summary.</summary>
     /// <remarks><format type="text/markdown"><![CDATA[
     /// These are the <xref:MyNamespace.MyEnum> enum remarks. They contain an [!INCLUDE[MyInclude](~/includes/MyInclude.md)] which should prevent converting markdown to xml.
+    /// URL entities: %23%28%2C%29 must remain unconverted.
     /// ]]></format></remarks>
     public enum MyEnum
     {
@@ -17,6 +18,7 @@ namespace MyNamespace
 
     /// <summary>This is the MyType class summary.</summary>
     /// <remarks>These are the <see cref="MyNamespace.MyType" /> class remarks.
+    /// URL entities: #(),.
     /// Multiple lines.
     /// <format type="text/markdown"><![CDATA[
     /// > [!NOTE]

@@ -96,8 +96,7 @@ namespace Libraries.RoslynTripleSlash
 
         private static readonly string[] MarkdownExamples = new[] { "## Examples", "## Example" };
 
-        private static readonly string MarkdownNote = "[!NOTE]";
-        private static readonly string MarkdownImportant = "[!IMPORTANT]";
+        private static readonly string[] MarkdownHeaders = new[] { "[!NOTE]", "[!IMPORTANT]", "[!TIP]" };
 
         private static readonly string ValidRegexChars = @"A-Za-z0-9\-\._~:\/#\[\]@!\$&'\(\)\*\+,;%`";
         private static readonly string ValidExtraChars = @"\?=";
@@ -793,7 +792,7 @@ namespace Libraries.RoslynTripleSlash
                 {
                     string acum;
                     string line = splitted[n];
-                    if (line.Contains(MarkdownImportant) || line.Contains(MarkdownNote))
+                    if (line.ContainsStrings(MarkdownHeaders))
                     {
                         acum = line;
                         n++;

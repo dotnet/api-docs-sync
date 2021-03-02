@@ -38,14 +38,17 @@ For reference, here are a couple of assemblies that have been addressed:
     > - `dotnet-api-docs\xml\System.IO.Compression\ZipFile.xml`.
     > - `dotnet-api-docs\xml\System.IO.Compression\ZipFileExtensions.xml`.
 
-4. Scroll through the whole file and look for any lengthy remarks.
+4. Scroll through the whole file and look for any lengthy remarks or remarks that contain code snippets.
 
-    We are considering a remarks section "lengthy" if it occupies more than half of the screen, particularly if you imagine it in triple slash comments on top of an API in source code.
+    A remarks section is considered "lengthy" if it occupies more than half of the screen, particularly if you imagine it in triple slash comments on top of an API in source code.
+
+    A code snippet is an API usage example wrapped by three backticks and the language name.
 
     > Example:
     >
     > - The `ZipFile.xml` file has lengthy remarks in the main type section at the top, and in the `Open` method section.
     > - The `ZipFileExtensions.xml` file has lengthy remarks in the main type class section.
+    > - The `ZipFile.xml` file has several sections with example files linked as hyperlinks (`[!code-csharp[name](~/samples/path/to/file.cs)]`): Those can stay.
 
 5. Cut the remarks text (**exclude** the `<format>` and `CDATA` tags) and move it to a new file named with this structure.
 
@@ -67,6 +70,8 @@ For reference, here are a couple of assemblies that have been addressed:
         - ``MyMethod`2.md``
 
     > Example: Refer to the `*.md` files in this PR: [dotnet/dotnet-api-docs/pull/5363/files](https://github.com/dotnet/dotnet-api-docs/pull/5363/files)
+
+  Alternatively, if the remarks are short, but there is a code snippet, you can move just the snippet and link it as a code file with the format `[!code-csharp[name](~/samples/path/to/file.cs)]` or `[code-vb[name]](~/samples/path/to/file.vb)`.
 
 6. In the xml file, where the remarks used to be, add an `INCLUDE` markdown element that points to the newly created file, making sure it is still wrapped by the `<format>` and `CDATA` tags.
 
@@ -132,7 +137,7 @@ For reference, here are a couple of assemblies that have been addressed:
 
     g. Sometimes you will see `#ctor` being used to refer to a constructor method, which is correct in `xrefs`, but incorrect in see `crefs`. Simply change `#ctor` to the actual constructor name.
 
-    h. The tool is capable of converting most markdown to xml when needed, but it may miss a few difficult cases. Make sure to find any unexpected markdown in xml sections (not wrapped by `<format>` and `CDATA`) and convert them to the appropriate xml tag. The elements that the tool will never convert to xml, and will preserve as markdown, are: `[!INCLUDE]`, `[!NOTE]`, `[!IMPORTANT]`.
+    h. The tool is capable of converting most markdown to xml when needed, but it may miss a few difficult cases. Make sure to find any unexpected markdown in xml sections (not wrapped by `<format>` and `CDATA`) and convert them to the appropriate xml tag. The elements that the tool will never convert to xml, and will preserve as markdown, are: `[!INCLUDE]`, `[!NOTE]`, `[!IMPORTANT]`, `[!TIP]`.
 
     i. The tool should be able to preserve double slash comments if they were placed on top of a public API, and will add the new triple slash comments separately. Make sure to verify that no important information is lost, especially the kind that is directed to developers/maintainers.
 

@@ -71,7 +71,9 @@ For reference, here are a couple of assemblies that have been addressed:
 
     > Example: Refer to the `*.md` files in this PR: [dotnet/dotnet-api-docs/pull/5363/files](https://github.com/dotnet/dotnet-api-docs/pull/5363/files)
 
-  Alternatively, if the remarks are short, but there is a code snippet, you can move just the snippet and link it as a code file with the format `[!code-csharp[name](~/samples/path/to/file.cs)]` or `[code-vb[name]](~/samples/path/to/file.vb)`.
+    Alternatively, if the remarks are short, but there is a code snippet, you can move just the snippet and link it as a code file with the format `[!code-csharp[name](~/samples/path/to/file.cs)]` or `[code-vb[name]](~/samples/path/to/file.vb)`. Example:
+      - Correct: [This is a code example](https://github.com/dotnet/dotnet-api-docs/blob/4610b30468d94ae2e387312f9caeeb88216dd111/xml/System.IO.Compression/ZipFile.xml#L74-L75) properly linked as an external file.
+      - Incorrect: [This is a code snippet](https://github.com/dotnet/dotnet-api-docs/blob/dc599c5db9e3464765b4e8c319bc22e525f4eebf/xml/ns-System.Diagnostics.PerformanceData.xml#L157-L238) that will have to be moved to its own file.
 
 6. In the xml file, where the remarks used to be, add an `INCLUDE` markdown element that points to the newly created file, making sure it is still wrapped by the `<format>` and `CDATA` tags.
 

@@ -445,25 +445,43 @@ namespace Libraries.RoslynTripleSlash
         // Finds the last set of whitespace characters that are to the left of the public|protected keyword of the node.
         private static SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node)
         {
+            SyntaxTriviaList triviaList = GetLeadingTrivia(node);
+
+            if (triviaList.Any() &&
+                triviaList.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia)) is SyntaxTrivia last)
+            {
+                return new(last);
+            }
+
+            return new();
+        }
+
+        private static SyntaxTriviaList GetLeadingDoubleSlashComments(SyntaxNode node)
+        {
+            SyntaxTriviaList triviaList = GetLeadingTrivia(node);
+
+            if (triviaList.Any() &&
+                triviaList.FirstOrDefault(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia)) is SyntaxTrivia last)
+            {
+                return new(last);
+            }
+
+            return new();
+        }
+
+        private static SyntaxTriviaList GetLeadingTrivia(SyntaxNode node)
+        {
             if (node is MemberDeclarationSyntax memberDeclaration)
             {
-                SyntaxTriviaList triviaList;
-
                 if ((memberDeclaration.Modifiers.FirstOrDefault(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.ProtectedKeyword)) is SyntaxToken modifier) &&
                         !modifier.IsKind(SyntaxKind.None))
                 {
-                    triviaList = modifier.LeadingTrivia;
-                }
-                else
-                {
-                    triviaList = node.GetLeadingTrivia();
+                    return modifier.LeadingTrivia;
                 }
 
-                if (triviaList.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia)) is SyntaxTrivia last)
-                {
-                    return new(last);
-                }
+                return node.GetLeadingTrivia();
             }
+
             return new();
         }
 

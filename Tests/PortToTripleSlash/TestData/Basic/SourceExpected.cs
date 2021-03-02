@@ -7,6 +7,7 @@ namespace MyNamespace
     /// These are the <xref:MyNamespace.MyEnum> enum remarks. They contain an [!INCLUDE[MyInclude](~/includes/MyInclude.md)] which should prevent converting markdown to xml.
     /// URL entities: %23%28%2C%29 must remain unconverted.
     /// ]]></format></remarks>
+    // Original MyEnum enum comments with information for maintainers, must stay.
     public enum MyEnum
     {
         /// <summary>This is the MyEnumValue0 member summary. There is no public modifier.</summary>
@@ -25,14 +26,16 @@ namespace MyNamespace
     /// > This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
     /// ]]></format>
     /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside <b>the cdata</b>.</remarks>
+    // Original MyType class comments with information for maintainers, must stay.
     public class MyType
     {
         /// <summary>This is the MyType constructor summary.</summary>
+        // Original MyType constructor double slash comments with information for maintainers, must stay.
         public MyType()
         {
         } /* Trailing comments should remain untouched */
 
-        // Original double slash comments. They should not be replaced (internal).
+        // Original double slash comments, must stay (internal method).
         internal MyType(int myProperty)
         {
             _myProperty = myProperty;
@@ -145,6 +148,7 @@ namespace MyNamespace
         /// <seealso cref="System.Delegate"/>
         /// <altmember cref="System.Delegate"/>
         /// <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>
+        // Original MyDelegate delegate comments with information for maintainers, must stay.
         public delegate void MyDelegate<T>(object sender, T e);
 
         /// <summary>This is the MyEvent summary.</summary>
@@ -155,6 +159,7 @@ namespace MyNamespace
         /// <param name="value2">The second type to add.</param>
         /// <returns>The added types.</returns>
         /// <remarks>These are the <see cref="MyNamespace.MyType.op_Addition(MyNamespace.MyType,MyNamespace.MyType)" /> remarks. They are in plain xml and should be transferred unmodified.</remarks>
+        // Original operator + method comments with information for maintainers, must stay.
         public static MyType operator +(MyType value1, MyType value2)
         {
             return value1;

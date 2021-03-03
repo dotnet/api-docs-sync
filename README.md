@@ -13,7 +13,7 @@ If an API is already documented in dotnet-api-docs, it will be ignored and skipp
 
     A) To port from IntelliSense xmls to Docs xmls, specify these parameters:
 
-    ```
+    ```cmd
         -Direction ToDocs
         -Docs <pathToDocsXmlFolder>
         -IntelliSense <pathToArtifactsFolder1>[,<pathToArtifactsFolder2>,...,<pathToArtifactsFolderN>]
@@ -23,7 +23,8 @@ If an API is already documented in dotnet-api-docs, it will be ignored and skipp
     ```
 
     Example:
-    ```
+
+    ```cmd
         DocsPortingTool \
             -Direction ToDocs \
             -Docs D:\dotnet-api-docs\xml \
@@ -35,24 +36,22 @@ If an API is already documented in dotnet-api-docs, it will be ignored and skipp
 
     B) To port from Docs xmls to triple slash comments, specify these parameters:
 
-    ```
+    ```cmd
         -Direction ToTripleSlash
         -CsProj <pathToCsproj>
         -Docs <pathToDocsXmlFolder>
         -IncludedAssemblies <assembly1>[,<assembly2>,...,<assemblyN>]
         -IncludedNamespaces <namespace1>[,<namespace2>,...,<namespaceN>]
-        -Save true
     ```
 
     Example:
-    ```
+    ```cmd
     DocsPortingTool \
         -Direction ToTripleSlash \
         -CsProj D:\runtime\src\libraries\System.IO.Compression.Brotli\src\System.IO.Compression.Brotli.csproj \
         -Docs D:\dotnet-api-docs\xml \
         -IncludedAssemblies System.IO.Compression.Brotli \
         -IncludedNamespaces System.IO.Compression \
-        -Save true
     ```
 
 ### Install as dotnet tool
@@ -112,7 +111,7 @@ Options:
                                                     Usage example:
                                                         -IncludedAssemblies System.IO,System.Runtime
 
-                                                    IMPORTANT: 
+                                                    IMPORTANT:
                                                     Namespaces usually match the assembly name. There are some exceptions, like with types that live in
                                                     the System.Runtime assembly. For those cases, make sure to also specify the -IncludedNamespaces argument.
 
@@ -122,7 +121,7 @@ Options:
                                                         > Runtime:   %SourceRepos%\runtime\src\libraries\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj
                                                         > CoreCLR:   %SourceRepos%\runtime\src\coreclr\src\System.Private.CoreLib\System.Private.CoreLib.csproj
                                                         > WPF:       %SourceRepos%\wpf\src\Microsoft.DotNet.Wpf\src\<AssemblyOrNamespace>\<AssemblyOrNamespace>.csproj
-                                                        > WinForms:  %SourceRepos%\winforms\src\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj  
+                                                        > WinForms:  %SourceRepos%\winforms\src\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj
                                                         > WCF:       %SourceRepos%\wcf\src\<AssemblyOrNamespace>\
                                                     Usage example:
                                                         -SourceCode ""%SourceRepos%\runtime\src\libraries\System.IO.FileSystem\"",%SourceRepos%\runtime\src\coreclr\src\System.Private.CoreLib\

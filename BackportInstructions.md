@@ -72,9 +72,7 @@ For reference, here are a couple of assemblies that have been addressed:
 
     > Example:
     >
-    > `<format type="text/markdown"><![CDATA[
-  [!INCLUDE[remarks](~/includes/remarks/<Assembly>/<Type>/<ApiName>.md)]
-  ]]></format>`
+    > `<format type="text/markdown"><![CDATA[ [!INCLUDE[remarks](~/includes/remarks/<Assembly>/<Type>/<ApiName>.md)] ]]></format>`
     >
     > Refer to the `*.xml` files in this PR: [dotnet/dotnet-api-docs/pull/5363/files](https://github.com/dotnet/dotnet-api-docs/pull/5363/files)
 
@@ -86,20 +84,24 @@ For reference, here are a couple of assemblies that have been addressed:
       DocsPortingTool.exe \
       -CsProj %SourceRepos%\runtime\src\libraries\<Assembly>\src\<Assembly>.csproj \
       -Docs %SourceRepos%\dotnet-api-docs\xml \
-      -Save true \
       -Direction ToTripleSlash \
-      -IncludedAssemblies <XmlFolderNameInDotnetApiDocs> \
-      -IncludedNamespaces <NamespaceUsedByTheApis>
+      -IncludedAssemblies <AssemblyName1>[,<AssemblyName2>,...,<AssemblyNameN>] \
+      -IncludedNamespaces <namespace1>[,<namespace2>,...,<namespaceN>]
     ```
 
-    Note:  If the tool fails to port, you may have to do an initial basic build of the runtime repo: `./build.cmd clr+libs`
+    Note: If the tool fails to port, you may have to do an initial basic build of the runtime repo: `./build.cmd clr+libs`
+
+     ### Important
+
+      - Don't pass `System.Private.CoreLib.csproj` to the `-CsProj` argument! If your assembly owns APIs that live inside `System.Private.CoreLib`, the tool should be smart enough to find them in that among the referenced projects of your assembly.
 
     > Example:
+    >
     > - The assembly is `Compression.ZipFile`.
     > - The fullname of the APIs in this assembly use the namespace `System.IO.Compression`, so use that as the included namespace.
     > - `%SourceRepos%` refers to the root folder of all your cloned GitHub repos. In this example it's `D:\`.
 
-    ```
+    ```cmd
       DocsPortingTool.exe \
       -CsProj D:\runtime\src\libraries\System.IO.Compression.ZipFile\src\System.IO.Compression.ZipFile.csproj \
       -Docs D:\dotnet-api-docs\xml \
@@ -111,7 +113,7 @@ For reference, here are a couple of assemblies that have been addressed:
 
 9. After backporting, you will have to fix some things the tool can't fix:
 
-    a. MS Docs supports using `<see cref="DocId" /> `elements that point to method overloads, but triple slash comments don’t support this yet (see [existing csharplang issue](https://github.com/dotnet/csharplang/issues/320)). When the tool ports these, it has no way of knowing if a cref is referencing a method overload, so your runtime project will fail with **CS0419**: "`Ambiguous reference in cref attribute`". Fix it by adding the prefix `O:` to the cref DocId, to indicate an overload.
+    a. MS Docs supports using `<see cref="DocId" />`elements that point to method overloads, but triple slash comments don’t support this yet (see [existing csharplang issue](https://github.com/dotnet/csharplang/issues/320)). When the tool ports these, it has no way of knowing if a cref is referencing a method overload, so your runtime project will fail with **CS0419**: "`Ambiguous reference in cref attribute`". Fix it by adding the prefix `O:` to the cref DocId, to indicate an overload.
 
     b. You may encounter `<param name="parameterName" />` elements that point to parameters in the signature that do not exist, causing error **CS1572**: "`XML comment has a param tag but there is no parameter by that name`". In some cases, you will notice that the next parameter will have a very similar or identical description. This means that a parameter had that name in a particular version, and was then renamed in a newer version. To fix this, remove the `<param>` that does not exist anymore (if you see duplicate descriptions), or rename the param to the correct name (if you don't find a param with a duplicate description).
 

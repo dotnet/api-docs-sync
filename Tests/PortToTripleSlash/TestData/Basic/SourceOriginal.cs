@@ -13,10 +13,11 @@ namespace MyNamespace
     // Original MyType class comments with information for maintainers, must stay.
     public class MyType
     {
+        // Original MyType constructor double slash comments on top of triple slash, with information for maintainers, must stay but after triple slash.
         /// <summary>
         /// Original triple slash comments. They should be replaced.
         /// </summary>
-        // Original MyType constructor double slash comments with information for maintainers, must stay.
+        // Original MyType constructor double slash comments on bottom of triple slash, with information for maintainers, must stay.
         public MyType()
         {
         } /* Trailing comments should remain untouched */
@@ -38,7 +39,8 @@ namespace MyNamespace
         /// <summary>
         /// Original triple slash comments. They should be replaced.
         /// </summary>
-        // Original double slash comments. They should be replaced.
+        // Original MyProperty property double slash comments with information for maintainers, must stay.
+        // This particular example has two rows of double slash comments and both should stay.
         public int MyProperty
         {
             get { return _myProperty; /* Internal comments should remain untouched. */ }

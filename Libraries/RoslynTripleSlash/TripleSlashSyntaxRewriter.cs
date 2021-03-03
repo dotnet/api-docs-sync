@@ -297,7 +297,6 @@ namespace Libraries.RoslynTripleSlash
                 return node;
             }
 
-            
             SyntaxTriviaList summary = GetSummary(type, leadingWhitespace);
             SyntaxTriviaList remarks = GetRemarks(type, leadingWhitespace);
             SyntaxTriviaList parameters = GetParameters(type, leadingWhitespace);
@@ -414,11 +413,15 @@ namespace Libraries.RoslynTripleSlash
 
         private static SyntaxNode GetNodeWithTrivia(SyntaxTriviaList leadingWhitespace, SyntaxNode node, params SyntaxTriviaList[] trivias)
         {
+            SyntaxTriviaList leadingDoubleSlashComments = GetLeadingDoubleSlashComments(node, leadingWhitespace);
+
             SyntaxTriviaList finalTrivia = new();
             foreach (SyntaxTriviaList t in trivias)
             {
                 finalTrivia = finalTrivia.AddRange(t);
             }
+            finalTrivia = finalTrivia.AddRange(leadingDoubleSlashComments);
+
             if (finalTrivia.Count > 0)
             {
                 finalTrivia = finalTrivia.AddRange(leadingWhitespace);
@@ -455,17 +458,24 @@ namespace Libraries.RoslynTripleSlash
             return new();
         }
 
-        private static SyntaxTriviaList GetLeadingDoubleSlashComments(SyntaxNode node)
+        private static SyntaxTriviaList GetLeadingDoubleSlashComments(SyntaxNode node, SyntaxTriviaList leadingWhitespace)
         {
             SyntaxTriviaList triviaList = GetLeadingTrivia(node);
 
-            if (triviaList.Any() &&
-                triviaList.FirstOrDefault(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia)) is SyntaxTrivia last)
+            SyntaxTriviaList doubleSlashComments = new();
+
+            foreach (SyntaxTrivia trivia in triviaList)
             {
-                return new(last);
+                if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                {
+                    doubleSlashComments = doubleSlashComments
+                                            .AddRange(leadingWhitespace)
+                                            .Add(trivia)
+                                            .Add(SyntaxFactory.CarriageReturnLineFeed);
+                }
             }
 
-            return new();
+            return doubleSlashComments;
         }
 
         private static SyntaxTriviaList GetLeadingTrivia(SyntaxNode node)

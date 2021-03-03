@@ -121,7 +121,7 @@ Options:
                                                         > Runtime:   %SourceRepos%\runtime\src\libraries\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj
                                                         > CoreCLR:   %SourceRepos%\runtime\src\coreclr\src\System.Private.CoreLib\System.Private.CoreLib.csproj
                                                         > WPF:       %SourceRepos%\wpf\src\Microsoft.DotNet.Wpf\src\<AssemblyOrNamespace>\<AssemblyOrNamespace>.csproj
-                                                        > WinForms:  %SourceRepos%\winforms\src\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj
+                                                        > WinForms:  %SourceRepos%\winforms\src\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj  
                                                         > WCF:       %SourceRepos%\wcf\src\<AssemblyOrNamespace>\
                                                     Usage example:
                                                         -SourceCode ""%SourceRepos%\runtime\src\libraries\System.IO.FileSystem\"",%SourceRepos%\runtime\src\coreclr\src\System.Private.CoreLib\
@@ -260,7 +260,8 @@ Options:
                                                         -PrintUndoc true
 
     -Save                       bool            Default is false (does not save changes).
-                                                Whether you want to save the changes in the dotnet-api-docs xml files.
+                                                When using -Direction ToDocs, indicates whether you want to save the Docs xml file changes.
+                                                When using -Direction ToTripleSlash, this parameter is always true, so don't specify it.
                                                     Usage example:
                                                         -Save true
 

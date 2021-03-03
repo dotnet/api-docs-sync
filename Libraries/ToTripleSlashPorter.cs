@@ -413,7 +413,7 @@ namespace Libraries
                     }
                 }
 
-                if (allMsgs.Count > 1)
+                if (allMsgs.Count > 0)
                 {
                     Log.Error($"Diagnostic messages found in {stepName}:");
                     foreach (string msg in allMsgs)

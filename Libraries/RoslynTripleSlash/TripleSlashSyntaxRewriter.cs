@@ -88,6 +88,8 @@ namespace Libraries.RoslynTripleSlash
     */
     internal class TripleSlashSyntaxRewriter : CSharpSyntaxRewriter
     {
+        #region Private members
+
         private static readonly string[] ReservedKeywords = new[] { "abstract", "async", "await", "false", "null", "sealed", "static", "true", "virtual" };
 
         private static readonly string[] MarkdownUnconvertableStrings = new[] { "](~/includes", "[!INCLUDE" };
@@ -141,6 +143,8 @@ namespace Libraries.RoslynTripleSlash
 
         private DocsCommentsContainer DocsComments { get; }
         private SemanticModel Model { get; }
+
+        #endregion
 
         public TripleSlashSyntaxRewriter(DocsCommentsContainer docsComments, SemanticModel model) : base(visitIntoStructuredTrivia: true)
         {

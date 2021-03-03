@@ -162,16 +162,16 @@ namespace Libraries
             int n = 0;
             foreach (Location location in symbol.Locations)
             {
+                string path = location.SourceTree != null ? location.SourceTree.FilePath : location.ToString();
                 if (IsLocationTreeInCompilationTrees(location, projectInfo.Compilation))
                 {
-                    string path = location.SourceTree != null ? location.SourceTree.FilePath : location.ToString();
                     Log.Info($"Symbol '{symbol.Name}' found in location '{path}'.");
                     var info = new LocationInformation(docsType, location, projectInfo.Compilation);
                     AddToResolvedSymbols(info);
                 }
                 else
                 {
-                    Log.Info(false, $"Symbol '{symbol.Name}' not found in locations of project '{location}'.");
+                    Log.Info(false, $"Symbol '{symbol.Name}' not found in locations of project '{path}'.");
                     if (n < symbol.Locations.Count())
                     {
                         Log.Info(false, " Trying the next location...");

@@ -180,8 +180,9 @@ namespace Libraries
                 string projectNamespace = Path.GetFileNameWithoutExtension(projectPath);
 
                 // Skip looking in projects whose namespace that were explicitly excluded or not explicitly included
-                if (Config.ExcludedNamespaces.Any(x => x.StartsWith(projectNamespace)) ||
-                    !Config.IncludedNamespaces.Any(x => x.StartsWith(projectNamespace)))
+                if (projectNamespace.ToUpperInvariant() != "SYSTEM.PRIVATE.CORELIB" &&
+                    (Config.ExcludedNamespaces.Any(x => x.StartsWith(projectNamespace)) ||
+                    !Config.IncludedNamespaces.Any(x => x.StartsWith(projectNamespace))))
                 {
                     Log.Info($"Skipping project '{projectPath}'...");
                     continue;

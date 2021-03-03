@@ -6,11 +6,14 @@
   <Docs>
     <summary>This is the MyEnum enum summary.</summary>
     <remarks>
-      <format type="text/markdown"><![CDATA[
+      <format type="text/markdown">
+  <![CDATA[
 
 ## Remarks
 
 These are the <xref:MyNamespace.MyEnum> enum remarks. They contain an [!INCLUDE[MyInclude](~/includes/MyInclude.md)] which should prevent converting markdown to xml.
+
+URL entities: %23%28%2C%29 must remain unconverted.
 
       ]]></format>
     </remarks>

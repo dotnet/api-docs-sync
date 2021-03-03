@@ -2,6 +2,7 @@
 
 namespace MyNamespace
 {
+    // Original MyEnum enum comments with information for maintainers, must stay.
     public enum MyEnum
     {
         MyEnumValue0 = 0,
@@ -9,16 +10,19 @@ namespace MyNamespace
         MyEnumValue1 = 1
     }
 
+    // Original MyType class comments with information for maintainers, must stay.
     public class MyType
     {
+        // Original MyType constructor double slash comments on top of triple slash, with information for maintainers, must stay but after triple slash.
         /// <summary>
         /// Original triple slash comments. They should be replaced.
         /// </summary>
+        // Original MyType constructor double slash comments on bottom of triple slash, with information for maintainers, must stay.
         public MyType()
         {
         } /* Trailing comments should remain untouched */
 
-        // Original double slash comments. They should not be replaced (internal).
+        // Original double slash comments, must stay (internal method).
         internal MyType(int myProperty)
         {
             _myProperty = myProperty;
@@ -35,7 +39,8 @@ namespace MyNamespace
         /// <summary>
         /// Original triple slash comments. They should be replaced.
         /// </summary>
-        // Original double slash comments. They should be replaced.
+        // Original MyProperty property double slash comments with information for maintainers, must stay.
+        // This particular example has two rows of double slash comments and both should stay.
         public int MyProperty
         {
             get { return _myProperty; /* Internal comments should remain untouched. */ }
@@ -70,10 +75,12 @@ namespace MyNamespace
         {
         }
 
+        // Original MyDelegate delegate comments with information for maintainers, must stay.
         public delegate void MyDelegate<T>(object sender, T e);
 
         public event MyDelegate MyEvent;
 
+        // Original operator + method comments with information for maintainers, must stay.
         public static MyType operator +(MyType value1, MyType value2)
         {
             return value1;

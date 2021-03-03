@@ -96,8 +96,7 @@ namespace Libraries.RoslynTripleSlash
 
         private static readonly string[] MarkdownExamples = new[] { "## Examples", "## Example" };
 
-        private static readonly string MarkdownNote = "[!NOTE]";
-        private static readonly string MarkdownImportant = "[!IMPORTANT]";
+        private static readonly string[] MarkdownHeaders = new[] { "[!NOTE]", "[!IMPORTANT]", "[!TIP]" };
 
         private static readonly string ValidRegexChars = @"A-Za-z0-9\-\._~:\/#\[\]@!\$&'\(\)\*\+,;%`";
         private static readonly string ValidExtraChars = @"\?=";
@@ -107,6 +106,9 @@ namespace Libraries.RoslynTripleSlash
 
         private static readonly string RegexMarkdownXrefOverloadPattern = @"(?<xref><xref\:(?<DocId>[" + ValidRegexChars + @"]+)%2[aA](?<extraVars>\?[" + ValidRegexChars + @"]+=[" + ValidRegexChars + @"]+)?>)";
         private static readonly string RegexXmlSeeCrefOverloadReplacement = "<see cref=\"O:${DocId}\" />";
+
+        private static readonly string RegexMarkdownBoldPattern = @"\*\*(?<content>[A-Za-z0-9\-\._~:\/#\[\]@!\$&'\(\)\+,;%` ]+)\*\*";
+        private static readonly string RegexXmlBoldReplacement = @"<b>${content}</b>";
 
         private static readonly string RegexMarkdownLinkPattern = @"\[(?<linkValue>.+)\]\((?<linkURL>(http|www)[" + ValidRegexChars + ValidExtraChars + @"]+)\)";
         private static readonly string RegexHtmlLinkReplacement = "<a href=\"${linkURL}\">${linkValue}</a>";
@@ -295,7 +297,6 @@ namespace Libraries.RoslynTripleSlash
                 return node;
             }
 
-            
             SyntaxTriviaList summary = GetSummary(type, leadingWhitespace);
             SyntaxTriviaList remarks = GetRemarks(type, leadingWhitespace);
             SyntaxTriviaList parameters = GetParameters(type, leadingWhitespace);
@@ -412,11 +413,15 @@ namespace Libraries.RoslynTripleSlash
 
         private static SyntaxNode GetNodeWithTrivia(SyntaxTriviaList leadingWhitespace, SyntaxNode node, params SyntaxTriviaList[] trivias)
         {
+            SyntaxTriviaList leadingDoubleSlashComments = GetLeadingDoubleSlashComments(node, leadingWhitespace);
+
             SyntaxTriviaList finalTrivia = new();
             foreach (SyntaxTriviaList t in trivias)
             {
                 finalTrivia = finalTrivia.AddRange(t);
             }
+            finalTrivia = finalTrivia.AddRange(leadingDoubleSlashComments);
+
             if (finalTrivia.Count > 0)
             {
                 finalTrivia = finalTrivia.AddRange(leadingWhitespace);
@@ -442,25 +447,50 @@ namespace Libraries.RoslynTripleSlash
         // Finds the last set of whitespace characters that are to the left of the public|protected keyword of the node.
         private static SyntaxTriviaList GetLeadingWhitespace(SyntaxNode node)
         {
+            SyntaxTriviaList triviaList = GetLeadingTrivia(node);
+
+            if (triviaList.Any() &&
+                triviaList.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia)) is SyntaxTrivia last)
+            {
+                return new(last);
+            }
+
+            return new();
+        }
+
+        private static SyntaxTriviaList GetLeadingDoubleSlashComments(SyntaxNode node, SyntaxTriviaList leadingWhitespace)
+        {
+            SyntaxTriviaList triviaList = GetLeadingTrivia(node);
+
+            SyntaxTriviaList doubleSlashComments = new();
+
+            foreach (SyntaxTrivia trivia in triviaList)
+            {
+                if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                {
+                    doubleSlashComments = doubleSlashComments
+                                            .AddRange(leadingWhitespace)
+                                            .Add(trivia)
+                                            .Add(SyntaxFactory.CarriageReturnLineFeed);
+                }
+            }
+
+            return doubleSlashComments;
+        }
+
+        private static SyntaxTriviaList GetLeadingTrivia(SyntaxNode node)
+        {
             if (node is MemberDeclarationSyntax memberDeclaration)
             {
-                SyntaxTriviaList triviaList;
-
                 if ((memberDeclaration.Modifiers.FirstOrDefault(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.ProtectedKeyword)) is SyntaxToken modifier) &&
                         !modifier.IsKind(SyntaxKind.None))
                 {
-                    triviaList = modifier.LeadingTrivia;
-                }
-                else
-                {
-                    triviaList = node.GetLeadingTrivia();
+                    return modifier.LeadingTrivia;
                 }
 
-                if (triviaList.LastOrDefault(t => t.IsKind(SyntaxKind.WhitespaceTrivia)) is SyntaxTrivia last)
-                {
-                    return new(last);
-                }
+                return node.GetLeadingTrivia();
             }
+
             return new();
         }
 
@@ -772,7 +802,7 @@ namespace Libraries.RoslynTripleSlash
                 {
                     string acum;
                     string line = splitted[n];
-                    if (line.Contains(MarkdownImportant) || line.Contains(MarkdownNote))
+                    if (line.ContainsStrings(MarkdownHeaders))
                     {
                         acum = line;
                         n++;
@@ -877,8 +907,17 @@ namespace Libraries.RoslynTripleSlash
             // see crefs
             text = Regex.Replace(text, RegexMarkdownXrefPattern, RegexXmlSeeCrefReplacement);
 
+            // commonly used url entities
+            text = Regex.Replace(text, @"%23", "#");
+            text = Regex.Replace(text, @"%28", "(");
+            text = Regex.Replace(text, @"%29", ")");
+            text = Regex.Replace(text, @"%2C", ",");
+
             // hyperlinks
             text = Regex.Replace(text, RegexMarkdownLinkPattern, RegexHtmlLinkReplacement);
+
+            // bold
+            text = Regex.Replace(text, RegexMarkdownBoldPattern, RegexXmlBoldReplacement);
 
             // code snippet
             text = Regex.Replace(text, RegexMarkdownCodeStartPattern, RegexXmlCodeStartReplacement);

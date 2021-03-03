@@ -5,7 +5,9 @@ namespace MyNamespace
     /// <summary>This is the MyEnum enum summary.</summary>
     /// <remarks><format type="text/markdown"><![CDATA[
     /// These are the <xref:MyNamespace.MyEnum> enum remarks. They contain an [!INCLUDE[MyInclude](~/includes/MyInclude.md)] which should prevent converting markdown to xml.
+    /// URL entities: %23%28%2C%29 must remain unconverted.
     /// ]]></format></remarks>
+    // Original MyEnum enum comments with information for maintainers, must stay.
     public enum MyEnum
     {
         /// <summary>This is the MyEnumValue0 member summary. There is no public modifier.</summary>
@@ -17,20 +19,24 @@ namespace MyNamespace
 
     /// <summary>This is the MyType class summary.</summary>
     /// <remarks>These are the <see cref="MyNamespace.MyType" /> class remarks.
+    /// URL entities: #(),.
     /// Multiple lines.
     /// <format type="text/markdown"><![CDATA[
     /// > [!NOTE]
     /// > This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
     /// ]]></format>
-    /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside the cdata.</remarks>
+    /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside <b>the cdata</b>.</remarks>
+    // Original MyType class comments with information for maintainers, must stay.
     public class MyType
     {
         /// <summary>This is the MyType constructor summary.</summary>
+        // Original MyType constructor double slash comments on top of triple slash, with information for maintainers, must stay but after triple slash.
+        // Original MyType constructor double slash comments on bottom of triple slash, with information for maintainers, must stay.
         public MyType()
         {
         } /* Trailing comments should remain untouched */
 
-        // Original double slash comments. They should not be replaced (internal).
+        // Original double slash comments, must stay (internal method).
         internal MyType(int myProperty)
         {
             _myProperty = myProperty;
@@ -48,6 +54,8 @@ namespace MyNamespace
         /// <value>This is the MyProperty value.</value>
         /// <remarks>These are the MyProperty remarks.
         /// Multiple lines and a reference to the field <see cref="MyNamespace.MyType.MyField" /> and the xref uses displayProperty, which should be ignored when porting.</remarks>
+        // Original MyProperty property double slash comments with information for maintainers, must stay.
+        // This particular example has two rows of double slash comments and both should stay.
         public int MyProperty
         {
             get { return _myProperty; /* Internal comments should remain untouched. */ }
@@ -143,6 +151,7 @@ namespace MyNamespace
         /// <seealso cref="System.Delegate"/>
         /// <altmember cref="System.Delegate"/>
         /// <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>
+        // Original MyDelegate delegate comments with information for maintainers, must stay.
         public delegate void MyDelegate<T>(object sender, T e);
 
         /// <summary>This is the MyEvent summary.</summary>
@@ -153,6 +162,7 @@ namespace MyNamespace
         /// <param name="value2">The second type to add.</param>
         /// <returns>The added types.</returns>
         /// <remarks>These are the <see cref="MyNamespace.MyType.op_Addition(MyNamespace.MyType,MyNamespace.MyType)" /> remarks. They are in plain xml and should be transferred unmodified.</remarks>
+        // Original operator + method comments with information for maintainers, must stay.
         public static MyType operator +(MyType value1, MyType value2)
         {
             return value1;

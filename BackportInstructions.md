@@ -78,11 +78,11 @@ For reference, here are a couple of assemblies that have been addressed:
 
 7. Submit a PR for dotnet-api-docs. Tag @carlossanlop, @gewarren and all the area pod co-owners.
 
-8. Clone [DocsPortingTool](https://github.com/carlossanlop/DocsPortingTool) and build it. You can also install it as a dotnet global tool (see instructions in [README](https://github.com/carlossanlop/DocsPortingTool/blob/master/README.md)). Run it using arguments that match the assembly you want to port:
+8. Clone [DocsPortingTool](https://github.com/carlossanlop/DocsPortingTool) and build it. You can also install it as a dotnet global tool (see instructions in [README](https://github.com/carlossanlop/DocsPortingTool/blob/master/README.md)). Run it using arguments that match the csproj you want to port:
 
     ```cmd
       DocsPortingTool.exe \
-      -CsProj %SourceRepos%\runtime\src\libraries\<Assembly>\src\<Assembly>.csproj \
+      -CsProj %SourceRepos%\runtime\src\libraries\<Assembly>\src\<ProjectName>.csproj \
       -Docs %SourceRepos%\dotnet-api-docs\xml \
       -Direction ToTripleSlash \
       -IncludedAssemblies <AssemblyName1>[,<AssemblyName2>,...,<AssemblyNameN>] \
@@ -97,8 +97,9 @@ For reference, here are a couple of assemblies that have been addressed:
 
     > Example:
     >
-    > - The assembly is `Compression.ZipFile`.
-    > - The fullname of the APIs in this assembly use the namespace `System.IO.Compression`, so use that as the included namespace.
+    > - The project is `System.IO.Compression.ZipFile.csproj`.
+    > - The assembly is `System.IO.Compression.ZipFile`.
+    > - The namespace of the APIs in that assembly is `System.IO.Compression`.
     > - `%SourceRepos%` refers to the root folder of all your cloned GitHub repos. In this example it's `D:\`.
 
     ```cmd

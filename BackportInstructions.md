@@ -16,6 +16,10 @@ For reference, here are a couple of assemblies that have been addressed:
 - System.IO.Compression.ZipFile ([backport PR](https://github.com/dotnet/runtime/pull/48633), [lengthy remarks PR](https://github.com/dotnet/dotnet-api-docs/pull/5363))
 - System.Diagnostics.Process ([backport PR](https://github.com/dotnet/runtime/pull/48137), [lengthy remarks PR](https://github.com/dotnet/dotnet-api-docs/pull/5360))
 
+## Requirements
+
+- [.NET 6.0 SDK](https://github.com/dotnet/installer#installers-and-binaries)
+
 ## Instructions
 
 1. Choose the assembly you are going to backport. It can be from any source code repo (Runtime, WPF, WinForms, WCF, etc.).
@@ -85,7 +89,15 @@ For reference, here are a couple of assemblies that have been addressed:
 
 7. Submit a PR for dotnet-api-docs. Tag @carlossanlop, @gewarren and all the area pod co-owners.
 
-8. Clone [DocsPortingTool](https://github.com/carlossanlop/DocsPortingTool) and build it. You can also install it as a dotnet global tool (see instructions in [README](https://github.com/carlossanlop/DocsPortingTool/blob/master/README.md)). Run it using arguments that match the csproj you want to port:
+8. Build your source code repo. If it's runtime, run these two commands:
+
+    ```
+    .\build.cmd clr+libs+libs.ref
+    
+    dotnet build .\src\libraries\System.Runtime.CompilerServices.Unsafe\src
+    ```
+
+9. Clone [DocsPortingTool](https://github.com/carlossanlop/DocsPortingTool) and build it. You can also install it as a dotnet global tool (see instructions in [README](https://github.com/carlossanlop/DocsPortingTool/blob/master/README.md)). Run it using arguments that match the csproj you want to port:
 
     ```cmd
       DocsPortingTool.exe \
@@ -95,8 +107,6 @@ For reference, here are a couple of assemblies that have been addressed:
       -IncludedAssemblies <AssemblyName1>[,<AssemblyName2>,...,<AssemblyNameN>] \
       -IncludedNamespaces <namespace1>[,<namespace2>,...,<namespaceN>]
     ```
-
-    Note: If the tool fails to port, you may have to do an initial basic build of the runtime repo: `./build.cmd clr+libs`
 
      ### Important
 
@@ -118,7 +128,7 @@ For reference, here are a couple of assemblies that have been addressed:
       -IncludedNamespaces System.IO.Compression
     ```
 
-9. After backporting, you will have to fix some things the tool can't fix:
+10. After backporting, you will have to fix some things the tool can't fix:
 
     a. MS Docs supports using `<see cref="DocId" />`elements that point to method overloads, but triple slash comments don’t support this yet (see [existing csharplang issue](https://github.com/dotnet/csharplang/issues/320)). When the tool ports these, it has no way of knowing if a cref is referencing a method overload, so your runtime project will fail with **CS0419**: "`Ambiguous reference in cref attribute`". Fix it by adding the prefix `O:` to the cref DocId, to indicate an overload.
 
@@ -150,17 +160,17 @@ For reference, here are a couple of assemblies that have been addressed:
   > - https://github.com/dotnet/runtime/pull/48633
   > - https://github.com/dotnet/runtime/pull/48137
 
-10. Open the `*.csproj` of your assembly's `src` folder, and add the `<GenerateDocumentationFile>true</GenerateDocumentationFile>` element to the first `<PropertyGroup>`, so documentation becomes mandatory for public APIs in this assembly from now on.
+11. Open the `*.csproj` of your assembly's `src` folder, and add the `<GenerateDocumentationFile>true</GenerateDocumentationFile>` element to the first `<PropertyGroup>`, so documentation becomes mandatory for public APIs in this assembly from now on.
 
-11. Build your project to find anything that may not be found visually.
+12. Build your project to find anything that may not be found visually.
 
-12. Submit a PR to your source code repo (in this case, dotnet/runtime). Tag @carlossanlop, @safern, @gewarren and all the area co-owners.
+13. Submit a PR to your source code repo (in this case, dotnet/runtime). Tag @carlossanlop, @safern, @gewarren and all the area co-owners.
 
     > **Important**: Every area owner is free to decide in which milestone they want to deliver their backported documentation.
 
-13. Open the main issue tracking the [New documentation process plan](https://github.com/dotnet/runtime/issues/44969), and a checkbox with your assembly's name to the "Bring documentation from Docs to triple slash" section. You will check the checkbox after merging.
+14. Open the main issue tracking the [New documentation process plan](https://github.com/dotnet/runtime/issues/44969), and a checkbox with your assembly's name to the "Bring documentation from Docs to triple slash" section. You will check the checkbox after merging.
 
-14. During review, make sure to:
+15. During review, make sure to:
 
     a. Verify that the backport did not replace any comments that were aimed to the code maintainers (information that API users wouldn't care about). If you find a case like this, make sure to bring those comments back as double slash comments (so they don't get sent back to MS Docs).
 

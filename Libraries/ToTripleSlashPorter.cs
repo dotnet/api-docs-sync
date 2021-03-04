@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text.RegularExpressions;
 
 namespace Libraries
 {
@@ -58,6 +59,17 @@ namespace Libraries
         private static readonly string _pathSrcCoreclr = Path.Combine("src", "coreclr");
 
         private static readonly string SystemPrivateCoreLib = "SYSTEM.PRIVATE.CORELIB";
+
+        private static readonly Dictionary<string, string> WorkspaceProperties = new() { { "RuntimeFlavor", "Mono" } };
+
+        private static readonly Dictionary<string,MSBuildWorkspace> Workspaces = new();
+        private static readonly Dictionary<string, MSBuildWorkspace> WorkspacesMono = new();
+
+        private static readonly Dictionary<string, Project> Projects = new();
+        private static readonly Dictionary<string, Compilation> Compilations = new();
+
+        private static readonly Dictionary<string, Project> ProjectsMono = new();
+        private static readonly Dictionary<string, Compilation> CompilationsMono = new();
 
         // If enabled via CLI arguments, a binlog file will be generated when running this tool.
         BinaryLogger? _binLogger = null;
@@ -209,9 +221,6 @@ namespace Libraries
                     }
                 }
 
-                // Can't reuse the existing Workspace or an exception is thrown saying we already have the project loaded in this workspace.
-                // Unfortunately, there is no way to retrieve a references project as a Project instance from the existing workspace.
-
                 if (TryFindSymbolInReferencedProject(projectPath, docsType.FullName, isMono: false, out ProjectInformation? projectInfo, out INamedTypeSymbol? symbol))
                 {
                     Log.Cyan($"Symbol '{docsType.FullName}' found in referenced project '{projectPath}'.");
@@ -220,10 +229,12 @@ namespace Libraries
                     Log.Info($"Looking for symbol '{symbol.Name}' in all locations of '{projectPath}'...");
                     AddSymbolLocationsToResolvedLocations(projectInfo, symbol, docsType);
 
+                    string monoProjectPath = Regex.Replace(projectPath, @"src(?<separator>[\\\/]{1})coreclr", "src${separator}mono");
+
                     // If the symbol was found in corelib, try to also find it in mono
                     if (projectNamespaceToUpper == SystemPrivateCoreLib &&
                         projectPath.Contains(_pathSrcCoreclr) &&
-                        TryFindSymbolInReferencedProject(projectPath, docsType.FullName, isMono: true, out ProjectInformation? monoProjectInfo, out INamedTypeSymbol? monoSymbol))
+                        TryFindSymbolInReferencedProject(monoProjectPath, docsType.FullName, isMono: true, out ProjectInformation? monoProjectInfo, out INamedTypeSymbol? monoSymbol))
                     {
                         Log.Info($"Symbol '{monoSymbol.Name}' was also found in Mono locations of project '{monoProjectInfo.Project.FilePath}'.");
                         AddSymbolLocationsToResolvedLocations(monoProjectInfo, monoSymbol, docsType);
@@ -273,7 +284,7 @@ namespace Libraries
             [NotNullWhen(returnValue: true)] out INamedTypeSymbol? symbol)
         {
             symbol = null;
-            return TryGetProjectInfo(projectPath, isMono: false, out pi) &&
+            return TryGetProjectInfo(projectPath, isMono: isMono, out pi) &&
                    TryGetNamedSymbol(pi.Compilation, apiFullName, out symbol);
         }
 
@@ -350,47 +361,119 @@ namespace Libraries
         // If any diagnostic error messages are captured after each step (workspace load, project load, compilation load), an exception is thrown.
         private ProjectInformation GetProjectInfo(string projectPath, bool isMono)
         {
-            var workspaceProperties = new Dictionary<string, string>();
-
-            // If project has implementations in mono,
-            // we need to port docs to mono-specific locations too
-            if (isMono)
-            {
-                workspaceProperties.Add("RuntimeFlavor", "Mono");
-            }
-
-            MSBuildWorkspace workspace;
-            try
-            {
-                workspace = MSBuildWorkspace.Create();
-                Log.Info("Created a workspace for '{0}'{1}.", projectPath, isMono ? " with RuntimeFlavor=Mono enabled" : "");
-            }
-            catch
-            {
-                Log.Error("The MSBuild directory was not found in PATH. Use '-MSBuild <directory>' to specify it.");
-                throw;
-            }
+            //MSBuildWorkspace workspace;
+            //try
+            //{
+            //    // If project has implementations in mono,
+            //    // we need to port docs to mono-specific locations too
+            //    if (isMono)
+            //    {
+            //        Dictionary<string, string> workspaceProperties = new()
+            //        {
+            //            { "RuntimeFlavor", "Mono" }
+            //        };
+            //        workspace = MSBuildWorkspace.Create(workspaceProperties);
+            //    }
+            //    else
+            //    {
+            //        workspace = MSBuildWorkspace.Create();
+            //    }
+            //    Log.Info("Created a workspace for '{0}'{1}.", projectPath, isMono ? " with RuntimeFlavor=Mono enabled" : "");
+            //}
+            //catch
+            //{
+            //    Log.Error("The MSBuild directory was not found in PATH. Use '-MSBuild <directory>' to specify it.");
+            //    throw;
+            //}
 
             // Prevents exception when trying to load C# projects that are not csproj
-            workspace.AssociateFileExtensionWithLanguage("ilproj", LanguageNames.CSharp);
 
-            CheckDiagnostics(workspace, $"MSBuildWorkspace.Create - isMono: {isMono}");
 
-            Project project = workspace.OpenProjectAsync(projectPath, msbuildLogger: BinLogger).Result
-                ?? throw new NullReferenceException($"Could not find the project: {projectPath}");
-            Log.Info($"Opened the project '{projectPath}'.");
+            MSBuildWorkspace workspace = GetOrAddWorkspace(
+                isMono ? WorkspacesMono : Workspaces,
+                isMono ? WorkspaceProperties : null,
+                projectPath);
 
-            CheckDiagnostics(workspace, $"workspace.OpenProjectAsync - {projectPath}");
+            Project project = GetOrAddProject(
+                workspace,
+                isMono ? ProjectsMono : Projects,
+                projectPath);
 
-            Compilation compilation = project.GetCompilationAsync().Result
-                ?? throw new NullReferenceException("The project's compilation was null.");
-            Log.Info($"Obtained the compilation for '{projectPath}'.");
-
-            CheckDiagnostics(workspace, $"project.GetCompilationAsync - {projectPath}");
+            Compilation compilation = GetOrAddCompilation(
+                workspace,
+                project,
+                isMono ? CompilationsMono : Compilations,
+                projectPath);
 
             var pd = new ProjectInformation(project, compilation, isMono);
 
             return pd;
+        }
+
+        private MSBuildWorkspace GetOrAddWorkspace(Dictionary<string, MSBuildWorkspace> workspaces, Dictionary<string, string>? properties, string projectPath)
+        {
+            MSBuildWorkspace workspace;
+
+            if (!workspaces.ContainsKey(projectPath))
+            {
+                if (properties == null)
+                {
+                    workspace = MSBuildWorkspace.Create();
+                }
+                else
+                {
+                    workspace = MSBuildWorkspace.Create(properties);
+                }
+                workspace.AssociateFileExtensionWithLanguage("ilproj", LanguageNames.CSharp);
+                CheckDiagnostics(workspace, $"MSBuildWorkspace.Create" + properties == null ? "" : " - Mono");
+                workspaces[projectPath] = workspace;
+            }
+            else
+            {
+                workspace = workspaces[projectPath];
+            }
+
+            return workspace;
+        }
+
+        private Project GetOrAddProject(MSBuildWorkspace workspace, Dictionary<string, Project> projects, string projectPath)
+        {
+            Project project;
+            if (!projects.ContainsKey(projectPath))
+            {
+                project = workspace.OpenProjectAsync(projectPath, msbuildLogger: BinLogger).Result
+                    ?? throw new NullReferenceException($"Could not find the project: {projectPath}");
+                Log.Info($"Opened the project '{projectPath}'.");
+
+                CheckDiagnostics(workspace, $"workspace.OpenProjectAsync - {projectPath}");
+
+                projects[projectPath] = project;
+            }
+            else
+            {
+                project = projects[projectPath];
+            }
+            return project;
+        }
+
+        private Compilation GetOrAddCompilation(MSBuildWorkspace workspace, Project project, Dictionary<string, Compilation> compilations, string projectPath)
+        {
+            Compilation compilation;
+            if (!compilations.ContainsKey(projectPath))
+            {
+                compilation = project.GetCompilationAsync().Result
+                    ?? throw new NullReferenceException("The project's compilation was null.");
+                Log.Info($"Obtained the compilation for '{projectPath}'.");
+
+                CheckDiagnostics(workspace, $"project.GetCompilationAsync - {projectPath}");
+
+                compilations[projectPath] = compilation;
+            }
+            else
+            {
+                compilation = compilations[projectPath];
+            }
+            return compilation;
         }
 
         // If the workspace captured any error diagnostic messages, prints all of them and then throws.

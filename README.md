@@ -3,14 +3,13 @@
 This tool finds and ports triple slash comments found in .NET repos but **do not yet exist** in the dotnet-api-docs repo.
 If an API is already documented in dotnet-api-docs, it will be ignored and skipped.
 
+Instructions to backport Docs to triple slash can be found [here](~/BackportingInstructions.md).
+
 ## Requirements
 
 - [.NET 6.0 SDK](https://github.com/dotnet/installer#installers-and-binaries)
 
 ## Instructions
-
-Instructions to backport Docs to triple slash can be found [here](~/BackportingInstructions.md).
-
 
 1. Build your source code repo. For example: dotnet/runtime, or dotnet/wpf, or dotnet/winforms, etc.
 2. Clone the docs repo (dotnet/dotnet-api-docs). No need to build it.

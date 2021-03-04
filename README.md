@@ -3,7 +3,7 @@
 This tool finds and ports triple slash comments found in .NET repos but **do not yet exist** in the dotnet-api-docs repo.
 If an API is already documented in dotnet-api-docs, it will be ignored and skipped.
 
-Instructions to backport Docs to triple slash can be found [here](~/BackportingInstructions.md).
+Instructions to backport Docs to triple slash can be found [here](BackportInstructions.md).
 
 ## Requirements
 

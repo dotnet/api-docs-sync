@@ -361,34 +361,6 @@ namespace Libraries
         // If any diagnostic error messages are captured after each step (workspace load, project load, compilation load), an exception is thrown.
         private ProjectInformation GetProjectInfo(string projectPath, bool isMono)
         {
-            //MSBuildWorkspace workspace;
-            //try
-            //{
-            //    // If project has implementations in mono,
-            //    // we need to port docs to mono-specific locations too
-            //    if (isMono)
-            //    {
-            //        Dictionary<string, string> workspaceProperties = new()
-            //        {
-            //            { "RuntimeFlavor", "Mono" }
-            //        };
-            //        workspace = MSBuildWorkspace.Create(workspaceProperties);
-            //    }
-            //    else
-            //    {
-            //        workspace = MSBuildWorkspace.Create();
-            //    }
-            //    Log.Info("Created a workspace for '{0}'{1}.", projectPath, isMono ? " with RuntimeFlavor=Mono enabled" : "");
-            //}
-            //catch
-            //{
-            //    Log.Error("The MSBuild directory was not found in PATH. Use '-MSBuild <directory>' to specify it.");
-            //    throw;
-            //}
-
-            // Prevents exception when trying to load C# projects that are not csproj
-
-
             MSBuildWorkspace workspace = GetOrAddWorkspace(
                 isMono ? WorkspacesMono : Workspaces,
                 isMono ? WorkspaceProperties : null,

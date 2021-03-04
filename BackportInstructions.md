@@ -113,7 +113,6 @@ For reference, here are a couple of assemblies that have been addressed:
       DocsPortingTool.exe \
       -CsProj D:\runtime\src\libraries\System.IO.Compression.ZipFile\src\System.IO.Compression.ZipFile.csproj \
       -Docs D:\dotnet-api-docs\xml \
-      -Save true \
       -Direction ToTripleSlash \
       -IncludedAssemblies System.IO.Compression.ZipFile \
       -IncludedNamespaces System.IO.Compression

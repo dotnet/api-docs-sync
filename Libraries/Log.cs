@@ -385,7 +385,8 @@ Options:
                                                         -PrintUndoc true
 
     -Save                       bool            Default is false (does not save changes).
-                                                Whether you want to save the changes in the dotnet-api-docs xml files.
+                                                When using -Direction ToDocs, indicates whether you want to save the Docs xml file changes.
+                                                When using -Direction ToTripleSlash, this parameter is always true, so don't specify it.
                                                     Usage example:
                                                         -Save true
 
@@ -432,7 +433,6 @@ Options:
         -Docs <pathToDocsXmlFolder>
         -IncludedAssemblies <assembly1>[,<assembly2>,...,<assemblyN>]
         -IncludedNamespaces <namespace1>[,<namespace2>,...,<namespaceN>]
-        -Save true
 
         Example:
             DocsPortingTool \
@@ -441,7 +441,6 @@ Options:
                 -Docs D:\dotnet-api-docs\xml \
                 -IncludedAssemblies System.IO.Compression.Brotli \
                 -IncludedNamespaces System.IO.Compression \
-                -Save true
 ");
             Magenta(@"
     Note:

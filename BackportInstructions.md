@@ -92,7 +92,7 @@ For reference, here are a couple of assemblies that have been addressed:
 8. Build your source code repo. If it's runtime, run these two commands:
 
     ```
-    .\build.cmd clr+libs+libs.ref
+    .\build.cmd libs
     
     dotnet build .\src\libraries\System.Runtime.CompilerServices.Unsafe\src
     ```

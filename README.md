@@ -3,6 +3,9 @@
 This tool finds and ports triple slash comments found in .NET repos but **do not yet exist** in the dotnet-api-docs repo.
 If an API is already documented in dotnet-api-docs, it will be ignored and skipped.
 
+## Known issues
+
+- There is a bug in .NET 6.0 Prev1 preventing the tool to work. If .NET 5.0 is your latest installed SDK, the tool should work fine. More info: https://github.com/carlossanlop/DocsPortingTool/issues/36
 
 ### Instructions
 

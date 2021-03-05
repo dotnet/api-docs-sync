@@ -25,7 +25,8 @@ namespace MyNamespace
     /// > [!NOTE]
     /// > This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
     /// ]]></format>
-    /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside <b>the cdata</b>.</remarks>
+    /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside <b>the cdata</b>.
+    /// Long xrefs one after the other: <see cref="System.IO.Pipelines.PipeWriter.FlushAsync(System.Threading.CancellationToken)" /> or <see cref="System.IO.Pipelines.PipeWriter.WriteAsync(System.ReadOnlyMemory{byte},System.Threading.CancellationToken)" /> should both be converted to crefs.</remarks>
     // Original MyType class comments with information for maintainers, must stay.
     public class MyType
     {
@@ -139,8 +140,8 @@ namespace MyNamespace
         /// <param name="sender">This is the sender parameter.</param>
         /// <param name="e">This is the e parameter.</param>
         /// <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
-        /// <remarks>These are the <see cref="MyNamespace.MyType.MyDelegate`1" /> remarks. There is a code example, which should be moved to its own examples section:</remarks>
-        /// <example>Here is some text in the examples section. There is an <see cref="MyNamespace.MyType.MyDelegate`1" /> that should be converted to xml.
+        /// <remarks>These are the <see cref="MyNamespace.MyType.MyDelegate{T}" /> remarks. There is a code example, which should be moved to its own examples section:</remarks>
+        /// <example>Here is some text in the examples section. There is an <see cref="MyNamespace.MyType.MyDelegate{T}" /> that should be converted to xml.
         /// The snippet links below should be inserted in markdown.
         /// <format type="text/markdown"><![CDATA[
         /// [!code-csharp[MyExample#1](~/samples/snippets/example.cs)]

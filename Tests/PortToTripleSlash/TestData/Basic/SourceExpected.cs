@@ -84,14 +84,14 @@ namespace MyNamespace
         /// <param name="param1">This is the MyIntMethod param1 summary.</param>
         /// <param name="param2">This is the MyIntMethod param2 summary.</param>
         /// <returns>This is the MyIntMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
+        /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyIntMethod. It mentions the <paramref name="param1" />.</exception>
+        /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyIntMethod.</exception>
         /// <remarks>These are the MyIntMethod remarks.
         /// Here is a random snippet, NOT preceded by the examples header.
         /// <format type="text/markdown"><![CDATA[
         /// [!code-cpp[MyExample](~/samples/snippets/example.cpp)]
         /// ]]></format>
         /// There is a hyperlink, which should still allow conversion from markdown to xml: <a href="http://github.com/dotnet/runtime">MyHyperlink</a>.</remarks>
-        /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyIntMethod. It mentions the <paramref name="param1" />.</exception>
-        /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyIntMethod.</exception>
         public int MyIntMethod(int param1, int param2)
         {
             // Internal comments should remain untouched.
@@ -99,16 +99,16 @@ namespace MyNamespace
         }
 
         /// <summary>This is the MyVoidMethod summary.</summary>
-        /// <remarks>These are the MyVoidMethod remarks.
-        /// Multiple lines.
-        /// Mentions the <see cref="System.ArgumentNullException" />.
-        /// Also mentions an overloaded method DocID: <see cref="MyNamespace.MyType.MyIntMethod" />.
-        /// And also mentions an overloaded method DocID with displayProperty which should be ignored when porting: <see cref="MyNamespace.MyType.MyIntMethod" />.</remarks>
         /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.</exception>
         /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyVoidMethod.
         /// -or-
         /// This is the second case.
         /// Empty newlines should be respected.</exception>
+        /// <remarks>These are the MyVoidMethod remarks.
+        /// Multiple lines.
+        /// Mentions the <see cref="System.ArgumentNullException" />.
+        /// Also mentions an overloaded method DocID: <see cref="MyNamespace.MyType.MyIntMethod" />.
+        /// And also mentions an overloaded method DocID with displayProperty which should be ignored when porting: <see cref="MyNamespace.MyType.MyIntMethod" />.</remarks>
         public void MyVoidMethod()
         {
         }
@@ -126,8 +126,8 @@ namespace MyNamespace
         }
 
         /// <summary>This is the MyTypeParamMethod summary.</summary>
-        /// <param name="param1">This is the MyTypeParamMethod parameter param1.</param>
         /// <typeparam name="T">This is the MyTypeParamMethod typeparam T.</typeparam>
+        /// <param name="param1">This is the MyTypeParamMethod parameter param1.</param>
         /// <remarks>This is a reference to the typeparam <typeparamref name="T" />.
         /// This is a reference to the parameter <paramref name="param1" />.
         /// Mentions the <paramref name="param1" /> and an <see cref="System.ArgumentNullException" />.
@@ -137,9 +137,9 @@ namespace MyNamespace
         }
 
         /// <summary>This is the MyDelegate summary.</summary>
+        /// <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
         /// <param name="sender">This is the sender parameter.</param>
         /// <param name="e">This is the e parameter.</param>
-        /// <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
         /// <remarks>These are the <see cref="MyNamespace.MyType.MyDelegate{T}" /> remarks. There is a code example, which should be moved to its own examples section:</remarks>
         /// <example>Here is some text in the examples section. There is an <see cref="MyNamespace.MyType.MyDelegate{T}" /> that should be converted to xml.
         /// The snippet links below should be inserted in markdown.

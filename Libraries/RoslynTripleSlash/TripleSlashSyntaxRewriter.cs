@@ -243,7 +243,7 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
 
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, value, remarks, exceptions, seealsos, altmembers, relateds);
+            return GetNodeWithTrivia(leadingWhitespace, node, summary, value, exceptions, remarks, seealsos, altmembers, relateds);
         }
 
         public override SyntaxNode? VisitRecordDeclaration(RecordDeclarationSyntax node)
@@ -308,7 +308,7 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList relateds = GetRelateds(type.Relateds, leadingWhitespace);
 
 
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, parameters, typeParameters, remarks, seealsos, altmembers, relateds);
+            return GetNodeWithTrivia(leadingWhitespace, node, summary, typeParameters, parameters, remarks, seealsos, altmembers, relateds);
         }
 
         private SyntaxNode? VisitBaseMethodDeclaration(BaseMethodDeclarationSyntax node)
@@ -332,7 +332,7 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
 
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, parameters, typeParameters, returns, remarks, exceptions, seealsos, altmembers, relateds);
+            return GetNodeWithTrivia(leadingWhitespace, node, summary, typeParameters, parameters, returns, exceptions, remarks, seealsos, altmembers, relateds);
         }
 
         private SyntaxNode? VisitMemberDeclaration(MemberDeclarationSyntax node)
@@ -351,7 +351,7 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
 
-            return GetNodeWithTrivia(leadingWhitespace, node, summary, remarks, exceptions, seealsos, altmembers, relateds);
+            return GetNodeWithTrivia(leadingWhitespace, node, summary, exceptions, remarks, seealsos, altmembers, relateds);
         }
 
         private SyntaxNode? VisitVariableDeclaration(BaseFieldDeclarationSyntax node)

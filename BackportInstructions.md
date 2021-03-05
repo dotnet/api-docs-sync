@@ -130,7 +130,7 @@ For reference, here are a couple of assemblies that have been addressed:
 
 10. After backporting, you will have to fix some things the tool can't fix:
 
-    a. MS Docs supports using `<see cref="DocId" />`elements that point to method overloads, but triple slash comments don’t support this yet (see [existing csharplang issue](https://github.com/dotnet/csharplang/issues/320)). When the tool ports these, it has no way of knowing if a cref is referencing a method overload, so your runtime project will fail with **CS0419**: "`Ambiguous reference in cref attribute`". Fix it by adding the prefix `O:` to the cref DocId, to indicate an overload.
+    a. MS Docs supports using `<see cref="DocId" />`elements that point to method overloads (no parenthesis), but triple slash comments don’t support this yet (see [existing csharplang issue](https://github.com/dotnet/csharplang/issues/320)). When the tool ports these, it has no way of knowing if a cref is referencing a method overload, so your project will fail with **CS0419**: "`Ambiguous reference in cref attribute`". Fix it by adding the prefix `O:` to the cref DocId, to indicate an overload.
 
     b. You may encounter `<param name="parameterName" />` elements that point to parameters in the signature that do not exist, causing error **CS1572**: "`XML comment has a param tag but there is no parameter by that name`". In some cases, you will notice that the next parameter will have a very similar or identical description. This means that a parameter had that name in a particular version, and was then renamed in a newer version. To fix this, remove the `<param>` that does not exist anymore (if you see duplicate descriptions), or rename the param to the correct name (if you don't find a param with a duplicate description).
 
@@ -138,7 +138,7 @@ For reference, here are a couple of assemblies that have been addressed:
 
     d. Some `<see cref="DocId" />` elements may point to APIs living in unreferenced assemblies. We don't want to add them as a dependency of the current project just to resolve the documentation problem, so instead of using `<see cref="DocId" />`, use `<see langword="DocId" />`.
 
-    e. Some markdown hyperlinks with the format `[Friendly text](URL)` may not be resolved by the tool (although most cases should be converted). If you find these in plain xml, convert them to `<a href="URL">Friendly text</a>`.
+    e. Some markdown hyperlinks with the format `[Friendly text](URL)` may not be detected by the tool to convert them to xml (although most cases should be converted). If you find these in plain xml, convert them to `<a href="URL">Friendly text</a>`.
 
     f. Some remarks have xrefs with normal characters converted to URL entities. The tool can convert URL entities back to normal characters. For example:
 
@@ -154,6 +154,8 @@ For reference, here are a couple of assemblies that have been addressed:
     h. The tool is capable of converting most markdown to xml when needed, but it may miss a few difficult cases. Make sure to find any unexpected markdown in xml sections (not wrapped by `<format>` and `CDATA`) and convert them to the appropriate xml tag. The elements that the tool will never convert to xml, and will preserve as markdown, are: `[!INCLUDE]`, `[!NOTE]`, `[!IMPORTANT]`, `[!TIP]`.
 
     i. The tool should be able to preserve double slash comments if they were placed on top of a public API, and will add the new triple slash comments separately. Make sure to verify that no important information is lost, especially the kind that is directed to developers/maintainers.
+
+    j. Docs repos indicate generic type parameters using `` `1 ``, `` `2 ``, etc., but in triple slash, they are represented with `{T}`, `{T, U}`, etc. The tool currently just converts them all to `{T}`, but it may not be the correct type parameter name or number of parameters, so make sure it's correct.
 
   > Examples: Refer to the following PRs:
   >

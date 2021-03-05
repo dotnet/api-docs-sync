@@ -100,14 +100,12 @@ namespace Libraries.RoslynTripleSlash
 
         private static readonly string[] MarkdownHeaders = new[] { "[!NOTE]", "[!IMPORTANT]", "[!TIP]" };
 
-        private static readonly string ValidRegexChars = @"A-Za-z0-9\-\._~:\/#\[\]@!\$&'\(\)\*\+,;%`";
+        private static readonly string ValidRegexChars = @"A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;`";
         private static readonly string ValidExtraChars = @"\?=";
 
-        private static readonly string RegexMarkdownXrefPattern = @"(?<xref><xref\:(?<DocId>[" + ValidRegexChars + @"]+)(?<extraVars>\?[" + ValidRegexChars + @"]+=[" + ValidRegexChars + @"]+)?>)";
-        private static readonly string RegexXmlSeeCrefReplacement = "<see cref=\"${DocId}\" />";
-
-        private static readonly string RegexMarkdownXrefOverloadPattern = @"(?<xref><xref\:(?<DocId>[" + ValidRegexChars + @"]+)%2[aA](?<extraVars>\?[" + ValidRegexChars + @"]+=[" + ValidRegexChars + @"]+)?>)";
-        private static readonly string RegexXmlSeeCrefOverloadReplacement = "<see cref=\"O:${DocId}\" />";
+        private static readonly string RegexDocIdPattern = @"(?<prefix>[A-Za-z]{1}:)?(?<docId>[" + ValidRegexChars + @"]+)(?<overload>%2[aA])?(?<extraVars>\?[" + ValidRegexChars + @"]+=[" + ValidRegexChars + @"]+)?";
+        private static readonly string RegexXmlCrefPattern = "cref=\"" + RegexDocIdPattern + "\"";
+        private static readonly string RegexMarkdownXrefPattern = @"(?<xref><xref:" + RegexDocIdPattern + ">)";
 
         private static readonly string RegexMarkdownBoldPattern = @"\*\*(?<content>[A-Za-z0-9\-\._~:\/#\[\]@!\$&'\(\)\+,;%` ]+)\*\*";
         private static readonly string RegexXmlBoldReplacement = @"<b>${content}</b>";
@@ -597,7 +595,8 @@ namespace Libraries.RoslynTripleSlash
         {
             if (!text.IsDocsEmpty())
             {
-                TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(RemoveDocIdPrefixes(cref)));
+                cref = RemoveCrefPrefix(cref);
+                TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
                 XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace);
                 XmlElementSyntax element = SyntaxFactory.XmlExceptionElement(crefSyntax, contents);
                 return GetXmlTrivia(element, leadingWhitespace);
@@ -622,7 +621,7 @@ namespace Libraries.RoslynTripleSlash
 
         private static SyntaxTriviaList GetSeeAlso(string cref, SyntaxTriviaList leadingWhitespace)
         {
-            cref = ReplacePrimitiveTypes(cref);
+            cref = RemoveCrefPrefix(cref);
             TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
             XmlEmptyElementSyntax element = SyntaxFactory.XmlSeeAlsoElement(crefSyntax);
             return GetXmlTrivia(element, leadingWhitespace);
@@ -644,7 +643,7 @@ namespace Libraries.RoslynTripleSlash
 
         private static SyntaxTriviaList GetAltMember(string cref, SyntaxTriviaList leadingWhitespace)
         {
-            cref = ReplacePrimitiveTypes(cref);
+            cref = RemoveCrefPrefix(cref);
             XmlAttributeSyntax attribute = SyntaxFactory.XmlTextAttribute("cref", cref);
             XmlEmptyElementSyntax emptyElement = SyntaxFactory.XmlEmptyElement(SyntaxFactory.XmlName(SyntaxFactory.Identifier("altmember")), new SyntaxList<XmlAttributeSyntax>(attribute));
             return GetXmlTrivia(emptyElement, leadingWhitespace);
@@ -691,7 +690,7 @@ namespace Libraries.RoslynTripleSlash
 
         private static XmlTextSyntax GetTextAsCommentedTokens(string text, SyntaxTriviaList leadingWhitespace, bool wrapWithNewLines = false)
         {
-            text = ReplacePrimitiveTypes(text);
+            text = CleanCrefs(text);
 
             // collapse newlines to a single one
             string whitespace = Regex.Replace(leadingWhitespace.ToFullString(), @"(\r?\n)+", "");
@@ -905,11 +904,7 @@ namespace Libraries.RoslynTripleSlash
 
         private static string ReplaceMarkdownWithXmlElements(string text, List<DocsParam> docsParams, List<DocsTypeParam> docsTypeParams)
         {
-            // see crefs with overloads
-            text = Regex.Replace(text, RegexMarkdownXrefOverloadPattern, RegexXmlSeeCrefOverloadReplacement);
-
-            // see crefs
-            text = Regex.Replace(text, RegexMarkdownXrefPattern, RegexXmlSeeCrefReplacement);
+            text = CleanXrefs(text);
 
             // commonly used url entities
             text = Regex.Replace(text, @"%23", "#");
@@ -947,30 +942,58 @@ namespace Libraries.RoslynTripleSlash
                 }
             }
 
-            text = ReplacePrimitiveTypes(text);
-
             return text;
         }
 
-        private static string RemoveDocIdPrefixes(string text)
+        // Removes the one letter prefix and the following colon, if found, from a cref.
+        private static string RemoveCrefPrefix(string cref)
         {
-            if (text.Length > 2 && text[1] == ':')
+            if (cref.Length > 2 && cref[1] == ':')
             {
-                return text[2..];
+                return cref[2..];
             }
-
-            text = Regex.Replace(text, @"cref=""[a-zA-Z]{1}\:", "cref=\"");
-
-            return text;
+            return cref;
         }
 
-        private static string ReplacePrimitiveTypes(string text)
+        private static string ReplacePrimitives(string text)
         {
-            text = RemoveDocIdPrefixes(text);
             foreach ((string key, string value) in PrimitiveTypes)
             {
                 text = Regex.Replace(text, key, value);
             }
+            return text;
+        }
+
+        private static string ReplaceDocId(Match m)
+        {
+            string docId = m.Groups["docId"].Value;
+            string overload = string.IsNullOrWhiteSpace(m.Groups["overload"].Value) ? "" : "O:";
+            docId = ReplacePrimitives(docId);
+            docId = Regex.Replace(docId, @"`\d", "{T}");
+            return overload + docId;
+        }
+
+        private static string CrefEvaluator(Match m)
+        {
+            string docId = ReplaceDocId(m);
+            return "cref=\"" + docId + "\"";
+        }
+
+        private static string CleanCrefs(string text)
+        {
+            text = Regex.Replace(text, RegexXmlCrefPattern, CrefEvaluator);
+            return text;
+        }
+
+        private static string XrefEvaluator(Match m)
+        {
+            string docId = ReplaceDocId(m);
+            return "<see cref=\"" + docId + "\" />";
+        }
+
+        private static string CleanXrefs(string text)
+        {
+            text = Regex.Replace(text, RegexMarkdownXrefPattern, XrefEvaluator);
             return text;
         }
 

@@ -22,6 +22,8 @@ Multiple lines.
 
 This text is not a note. It has a <xref:MyNamespace.MyType> that should be xml and outside **the cdata**.
 
+Long xrefs one after the other: <xref:System.IO.Pipelines.PipeWriter.FlushAsync(System.Threading.CancellationToken)> or <xref:System.IO.Pipelines.PipeWriter.WriteAsync(System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)> should both be converted to crefs.
+
       ]]></format>
     </remarks>
   </Docs>

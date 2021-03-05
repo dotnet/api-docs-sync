@@ -237,8 +237,8 @@ namespace Libraries.RoslynTripleSlash
 
             SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
             SyntaxTriviaList value = GetValue(member, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
             SyntaxTriviaList exceptions = GetExceptions(member.Exceptions, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
             SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
             SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
@@ -300,9 +300,9 @@ namespace Libraries.RoslynTripleSlash
             }
 
             SyntaxTriviaList summary = GetSummary(type, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(type, leadingWhitespace);
-            SyntaxTriviaList parameters = GetParameters(type, leadingWhitespace);
             SyntaxTriviaList typeParameters = GetTypeParameters(type, leadingWhitespace);
+            SyntaxTriviaList parameters = GetParameters(type, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(type, leadingWhitespace);
             SyntaxTriviaList seealsos = GetSeeAlsos(type.SeeAlsoCrefs, leadingWhitespace);
             SyntaxTriviaList altmembers = GetAltMembers(type.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(type.Relateds, leadingWhitespace);
@@ -323,11 +323,11 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
 
             SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
-            SyntaxTriviaList parameters = GetParameters(member, leadingWhitespace);
             SyntaxTriviaList typeParameters = GetTypeParameters(member, leadingWhitespace);
+            SyntaxTriviaList parameters = GetParameters(member, leadingWhitespace);
             SyntaxTriviaList returns = GetReturns(member, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
             SyntaxTriviaList exceptions = GetExceptions(member.Exceptions, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
             SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
             SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
@@ -345,8 +345,8 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
 
             SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
             SyntaxTriviaList exceptions = GetExceptions(member.Exceptions, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
             SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
             SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);

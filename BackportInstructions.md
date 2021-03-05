@@ -92,7 +92,7 @@ For reference, here are a couple of assemblies that have been addressed:
 8. Build your source code repo. If it's runtime, run this command:
 
     ```
-    .\build.cmd libs.ref+libs.src -allConfigurations
+    .\build.cmd libs && dotnet build .\src\libraries\System.Runtime.CompilerServices.Unsafe\src
     ```
 
 9. Clone [DocsPortingTool](https://github.com/carlossanlop/DocsPortingTool) and build it. You can also install it as a dotnet global tool (see instructions in [README](https://github.com/carlossanlop/DocsPortingTool/blob/master/README.md)). Run it using arguments that match the csproj you want to port:

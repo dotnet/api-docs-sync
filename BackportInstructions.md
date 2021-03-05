@@ -89,12 +89,10 @@ For reference, here are a couple of assemblies that have been addressed:
 
 7. Submit a PR for dotnet-api-docs. Tag @carlossanlop, @gewarren and all the area pod co-owners.
 
-8. Build your source code repo. If it's runtime, run these two commands:
+8. Build your source code repo. If it's runtime, run this command:
 
     ```
-    .\build.cmd libs
-    
-    dotnet build .\src\libraries\System.Runtime.CompilerServices.Unsafe\src
+    .\build.cmd libs.ref+libs.src -allConfigurations
     ```
 
 9. Clone [DocsPortingTool](https://github.com/carlossanlop/DocsPortingTool) and build it. You can also install it as a dotnet global tool (see instructions in [README](https://github.com/carlossanlop/DocsPortingTool/blob/master/README.md)). Run it using arguments that match the csproj you want to port:

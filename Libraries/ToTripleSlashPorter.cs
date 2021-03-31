@@ -145,7 +145,7 @@ namespace Libraries
             {
                 // If the symbol is not found in the current compilation, nothing to do - It means the Docs
                 // for APIs from an unrelated namespace were loaded for this compilation's assembly
-                if (!TryGetNamedSymbol(mainProjectInfo.Compilation, docsType.FullName, out INamedTypeSymbol? symbol))
+                if (!TryGetNamedSymbol(mainProjectInfo.Compilation, docsType.TypeName, out INamedTypeSymbol? symbol))
                 {
                     Log.Info($"Type symbol '{docsType.FullName}' not found in compilation for '{Config.CsProj.FullName}'.");
                     continue;
@@ -221,7 +221,7 @@ namespace Libraries
                     }
                 }
 
-                if (TryFindSymbolInReferencedProject(projectPath, docsType.FullName, isMono: false, out ProjectInformation? projectInfo, out INamedTypeSymbol? symbol))
+                if (TryFindSymbolInReferencedProject(projectPath, docsType.TypeName, isMono: false, out ProjectInformation? projectInfo, out INamedTypeSymbol? symbol))
                 {
                     Log.Cyan($"Symbol '{docsType.FullName}' found in referenced project '{projectPath}'.");
 
@@ -234,7 +234,7 @@ namespace Libraries
                     // If the symbol was found in corelib, try to also find it in mono
                     if (projectNamespaceToUpper == SystemPrivateCoreLib &&
                         projectPath.Contains(_pathSrcCoreclr) &&
-                        TryFindSymbolInReferencedProject(monoProjectPath, docsType.FullName, isMono: true, out ProjectInformation? monoProjectInfo, out INamedTypeSymbol? monoSymbol))
+                        TryFindSymbolInReferencedProject(monoProjectPath, docsType.TypeName, isMono: true, out ProjectInformation? monoProjectInfo, out INamedTypeSymbol? monoSymbol))
                     {
                         Log.Info($"Symbol '{monoSymbol.Name}' was also found in Mono locations of project '{monoProjectInfo.Project.FilePath}'.");
                         AddSymbolLocationsToResolvedLocations(monoProjectInfo, monoSymbol, docsType);

@@ -5,8 +5,11 @@ namespace Libraries.Tests
 {
     internal class PortToTripleSlashTestData : TestData
     {
-        private string TestDataRootDirPath => @"../../../PortToTripleSlash/TestData";
+        private const string SourceOriginal = "SourceOriginal.cs";
+        private const string SourceExpected = "SourceExpected.cs";
         private const string ProjectDirName = "Project";
+        private string TestDataRootDirPath => @"../../../PortToTripleSlash/TestData";
+
         private DirectoryInfo ProjectDir { get; set; }
         internal string ProjectFilePath { get; set; }
 
@@ -14,11 +17,9 @@ namespace Libraries.Tests
             TestDirectory tempDir,
             string testDataDir,
             string assemblyName,
-            string namespaceName,
-            string typeName)
+            string namespaceName)
         {
             Assert.False(string.IsNullOrWhiteSpace(assemblyName));
-            Assert.False(string.IsNullOrWhiteSpace(typeName));
 
             namespaceName = string.IsNullOrEmpty(namespaceName) ? assemblyName : namespaceName;
 
@@ -36,12 +37,12 @@ namespace Libraries.Tests
                 File.Copy(origin, destination);
             }
 
-            string originCsOriginal = Path.Combine(testDataPath, $"SourceOriginal.cs");
-            ActualFilePath = Path.Combine(ProjectDir.FullName, $"{typeName}.cs");
+            string originCsOriginal = Path.Combine(testDataPath, SourceOriginal);
+            ActualFilePath = Path.Combine(ProjectDir.FullName, SourceOriginal);
             File.Copy(originCsOriginal, ActualFilePath);
 
-            string originCsExpected = Path.Combine(testDataPath, $"SourceExpected.cs");
-            ExpectedFilePath = Path.Combine(tempDir.FullPath, $"SourceExpected.cs");
+            string originCsExpected = Path.Combine(testDataPath, SourceExpected);
+            ExpectedFilePath = Path.Combine(tempDir.FullPath, SourceExpected);
             File.Copy(originCsExpected, ExpectedFilePath);
 
             string originCsproj = Path.Combine(testDataPath, $"{assemblyName}.csproj");

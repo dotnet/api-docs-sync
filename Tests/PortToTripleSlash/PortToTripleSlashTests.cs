@@ -17,6 +17,12 @@ namespace Libraries.Tests
             PortToTripleSlash("Basic");
         }
 
+        [Fact]
+        public void Port_Generics()
+        {
+            PortToTripleSlash("Generics");
+        }
+
         private static void PortToTripleSlash(
             string testDataDir,
             bool save = true,

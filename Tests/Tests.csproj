@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="PortToTripleSlash\TestData\Generics\SourceExpected.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\Generics\SourceOriginal.cs" />
     <Compile Remove="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
     <Compile Remove="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
   </ItemGroup>
@@ -32,6 +34,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="PortToTripleSlash\TestData\Generics\MyAssembly.csproj" />
+    <None Include="PortToTripleSlash\TestData\Generics\SourceExpected.cs" />
+    <None Include="PortToTripleSlash\TestData\Generics\SourceOriginal.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\MyAssembly.csproj" />

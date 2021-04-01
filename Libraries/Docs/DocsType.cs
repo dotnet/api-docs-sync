@@ -10,6 +10,7 @@ namespace Libraries.Docs
     /// </summary>
     internal class DocsType : DocsAPI
     {
+        private string? _typeName;
         private string? _name;
         private string? _fullName;
         private string? _namespace;
@@ -30,6 +31,29 @@ namespace Libraries.Docs
         public XDocument XDoc { get; set; }
 
         public override bool Changed { get; set; }
+
+        public string TypeName
+        {
+            get
+            {
+                if (_typeName == null)
+                {
+                    // DocId uses ` notation for generic types, but it uses . for nested types
+                    // Name uses + for nested types, but it uses &lt;T&gt; for generic types
+                    // We need ` notation for generic types and + notation for nested types
+                    // Only filename gives us that format, but we have to prepend the namespace
+                    if (DocId.Contains('`') || Name.Contains('+'))
+                    {
+                        _typeName = Namespace + "." + System.IO.Path.GetFileNameWithoutExtension(FilePath);
+                    }
+                    else
+                    {
+                        _typeName = FullName;
+                    }
+                }
+                return _typeName;
+            }
+        }
 
         public string Name
         {

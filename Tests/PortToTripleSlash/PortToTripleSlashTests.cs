@@ -17,22 +17,26 @@ namespace Libraries.Tests
             PortToTripleSlash("Basic");
         }
 
+        [Fact]
+        public void Port_Generics()
+        {
+            PortToTripleSlash("Generics");
+        }
+
         private static void PortToTripleSlash(
             string testDataDir,
             bool save = true,
             bool skipInterfaceImplementations = true,
             string assemblyName = TestData.TestAssembly,
-            string namespaceName = TestData.TestNamespace,
-            string typeName = TestData.TestType)
+            string namespaceName = TestData.TestNamespace)
         {
             using TestDirectory tempDir = new();
 
             PortToTripleSlashTestData testData = new(
                 tempDir,
                 testDataDir,
-                assemblyName: assemblyName,
-                namespaceName: namespaceName,
-                typeName: typeName);
+                assemblyName,
+                namespaceName);
 
             Configuration c = new()
             {

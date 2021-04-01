@@ -1,0 +1,9 @@
+﻿<Type Name="MyGenericType&lt;T&gt;+Enumerator" FullName="MyNamespace.MyGenericType&lt;T&gt;+Enumerator">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyGenericType`1.Enumerator" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>This is the MyGenericType{T}.Enumerator class summary.</summary>
+  </Docs>
+</Type>

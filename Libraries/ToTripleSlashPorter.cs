@@ -491,20 +491,23 @@ namespace Libraries
         // Loads the external VS instance using the correct MSBuild dependency, which differs from the one used by this process.
         public static VisualStudioInstance LoadVSInstance()
         {
-            // Loading the 6.0.0-preview instance leads to errors in unit tests
-            // This works around it by choosing the latest stable SDK
             var vsBuildInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
-            var latestStable = vsBuildInstances.Where(b => !b.MSBuildPath.Contains("-preview")).OrderByDescending(b => b.Version).First();
+
+            // https://github.com/carlossanlop/DocsPortingTool/issues/69
+            // Prefer the latest stable instance if there is one
+            var instance = vsBuildInstances
+                .Where(b => !b.MSBuildPath.Contains("-preview")).OrderByDescending(b => b.Version).FirstOrDefault() ??
+                vsBuildInstances.First();
 
             // Unit tests execute this multiple times
             // Ensure we only register once
             if (MSBuildLocator.CanRegister)
             {
-                RegisterAssemblyLoader(latestStable.MSBuildPath);
-                MSBuildLocator.RegisterInstance(latestStable);
+                RegisterAssemblyLoader(instance.MSBuildPath);
+                MSBuildLocator.RegisterInstance(instance);
             }
 
-            return latestStable;
+            return instance;
         }
 
         // Register an assembly loader that will load assemblies with higher version than what was requested.

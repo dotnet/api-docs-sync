@@ -3,6 +3,7 @@
 namespace MyNamespace
 {
     /// <summary>This is the MyGenericType{T} class summary.</summary>
+    /// <remarks>Contains the nested class <see cref="MyNamespace.MyGenericType{T}.Enumerator" />.</remarks>
     // Original MyGenericType<T> class comments with information for maintainers, must stay.
     public class MyGenericType<T>
     {

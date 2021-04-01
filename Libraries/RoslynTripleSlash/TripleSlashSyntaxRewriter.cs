@@ -100,17 +100,18 @@ namespace Libraries.RoslynTripleSlash
 
         private static readonly string[] MarkdownHeaders = new[] { "[!NOTE]", "[!IMPORTANT]", "[!TIP]" };
 
-        private static readonly string ValidRegexChars = @"A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;`";
+        // Note that we need to support generics that use the ` literal as well as the escaped %60
+        private static readonly string ValidRegexChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;]|(%60|`)\d+";
         private static readonly string ValidExtraChars = @"\?=";
 
-        private static readonly string RegexDocIdPattern = @"(?<prefix>[A-Za-z]{1}:)?(?<docId>[" + ValidRegexChars + @"]+)(?<overload>%2[aA])?(?<extraVars>\?[" + ValidRegexChars + @"]+=[" + ValidRegexChars + @"]+)?";
+        private static readonly string RegexDocIdPattern = @"(?<prefix>[A-Za-z]{1}:)?(?<docId>(" + ValidRegexChars + @")+)(?<overload>%2[aA])?(?<extraVars>\?(" + ValidRegexChars + @")+=(" + ValidRegexChars + @")+)?";
         private static readonly string RegexXmlCrefPattern = "cref=\"" + RegexDocIdPattern + "\"";
         private static readonly string RegexMarkdownXrefPattern = @"(?<xref><xref:" + RegexDocIdPattern + ">)";
 
         private static readonly string RegexMarkdownBoldPattern = @"\*\*(?<content>[A-Za-z0-9\-\._~:\/#\[\]@!\$&'\(\)\+,;%` ]+)\*\*";
         private static readonly string RegexXmlBoldReplacement = @"<b>${content}</b>";
 
-        private static readonly string RegexMarkdownLinkPattern = @"\[(?<linkValue>.+)\]\((?<linkURL>(http|www)[" + ValidRegexChars + ValidExtraChars + @"]+)\)";
+        private static readonly string RegexMarkdownLinkPattern = @"\[(?<linkValue>.+)\]\((?<linkURL>(http|www)(" + ValidRegexChars + "|" + ValidExtraChars + @")+)\)";
         private static readonly string RegexHtmlLinkReplacement = "<a href=\"${linkURL}\">${linkValue}</a>";
 
         private static readonly string RegexMarkdownCodeStartPattern = @"```(?<language>(cs|csharp|cpp|vb|visualbasic))(?<spaces>\s+)";
@@ -969,6 +970,7 @@ namespace Libraries.RoslynTripleSlash
             string docId = m.Groups["docId"].Value;
             string overload = string.IsNullOrWhiteSpace(m.Groups["overload"].Value) ? "" : "O:";
             docId = ReplacePrimitives(docId);
+            docId = Regex.Replace(docId, @"%60", "`");
             docId = Regex.Replace(docId, @"`\d", "{T}");
             return overload + docId;
         }

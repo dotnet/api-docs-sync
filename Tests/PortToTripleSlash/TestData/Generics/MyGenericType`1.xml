@@ -5,5 +5,12 @@
   </AssemblyInfo>
   <Docs>
     <summary>This is the MyGenericType{T} class summary.</summary>
+    <remarks>
+      <format type="text/markdown">
+  <![CDATA[
+## Remarks
+Contains the nested class <xref:MyNamespace.MyGenericType%601.Enumerator>.
+      ]]></format>
+    </remarks>
   </Docs>
 </Type>

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -100,8 +101,8 @@ namespace Libraries.RoslynTripleSlash
 
         private static readonly string[] MarkdownHeaders = new[] { "[!NOTE]", "[!IMPORTANT]", "[!TIP]" };
 
-        // Note that we need to support generics that use the ` literal as well as the escaped %60
-        private static readonly string ValidRegexChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;]|(%60|`)\d+";
+        // Note that we need to support generics that use the ` literal as well as any url encoded character
+        private static readonly string ValidRegexChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;]|`\d+|%\w{2}";
         private static readonly string ValidExtraChars = @"\?=";
 
         private static readonly string RegexDocIdPattern = @"(?<prefix>[A-Za-z]{1}:)?(?<docId>(" + ValidRegexChars + @")+)(?<overload>%2[aA])?(?<extraVars>\?(" + ValidRegexChars + @")+=(" + ValidRegexChars + @")+)?";
@@ -970,8 +971,42 @@ namespace Libraries.RoslynTripleSlash
             string docId = m.Groups["docId"].Value;
             string overload = string.IsNullOrWhiteSpace(m.Groups["overload"].Value) ? "" : "O:";
             docId = ReplacePrimitives(docId);
-            docId = Regex.Replace(docId, @"%60", "`");
-            docId = Regex.Replace(docId, @"`\d", "{T}");
+            docId = System.Net.WebUtility.UrlDecode(docId);
+
+            // Strip '*' character from the tail end of DocId names
+            docId = Regex.Replace(docId, @"\*$", "");
+
+            // Map DocId generic parameters to Xml Doc generic parameters
+            // need to support both single and double backtick syntax
+            const string GenericParameterPattern = @"`{1,2}([\d+])";
+            int genericParameterArity = 0;
+            docId = Regex.Replace(docId, GenericParameterPattern, MapDocIdGenericParameterToXmlDocGenericParameter);
+            string MapDocIdGenericParameterToXmlDocGenericParameter(Match match)
+            {
+                int index = int.Parse(match.Groups[1].Value);
+
+                if (genericParameterArity == 0)
+                {
+                    // this is the first match that declares the generic parameter arity of the method
+                    // e.g. GenericMethod``3 ---> GenericMethod{T1,T2,T3}(...);
+                    Debug.Assert(index > 0);
+                    genericParameterArity = index;
+                    return WrapInCurlyBrackets(string.Join(",", Enumerable.Range(0, index).Select(CreateGenericParameterName)));
+                }
+
+                // Subsequent matches are references to generic parameters in the method signature,
+                // e.g. GenericMethod{T1,T2,T3}(..., List{``1} parameter, ...); ---> List{T2} parameter
+                return CreateGenericParameterName(index);
+
+                // NB this naming scheme does not map to the exact generic parameter names,
+                // however this is still accepted by intellisense and backporters can rename
+                // manually with the help of tooling.
+                string CreateGenericParameterName(int index)
+                    => genericParameterArity == 1 ? "T" : $"T{index + 1}";
+
+                static string WrapInCurlyBrackets(string input) => $"{{{input}}}";
+            }
+
             return overload + docId;
         }
 

@@ -11,4 +11,16 @@ namespace MyNamespace
         // Original MyGenericType<T>.Enumerator class comments with information for maintainers, must stay.
         public class Enumerator { }
     }
+
+    /// <summary>This is the MyGenericType static class summary.</summary>
+    public static class MyGenericType
+    {
+        /// <summary>Projects each element into a new form.</summary>
+        /// <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+        /// <typeparam name="TResult">The type of the value returned by <paramref name="selector" />.</typeparam>
+        /// <param name="source">A sequence of values to invoke a transform function on.</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <remarks>Here's a reference to <see cref="MyNamespace.MyGenericType.Select{T1,T2}(MyNamespace.MyGenericType{T1},System.Func{T1,T2})" />.</remarks>
+        public static MyGenericType<TResult> Select<TSource, TResult>(this MyGenericType<TSource> source, Func<TSource, TResult> selector) => null;
+    }
 }

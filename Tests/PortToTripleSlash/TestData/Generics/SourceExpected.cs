@@ -21,6 +21,7 @@ namespace MyNamespace
         /// <param name="source">A sequence of values to invoke a transform function on.</param>
         /// <param name="selector">A transform function to apply to each element.</param>
         /// <remarks>Here's a reference to <see cref="MyNamespace.MyGenericType.Select{T1,T2}(MyNamespace.MyGenericType{T1},System.Func{T1,T2})" />.</remarks>
+        /// <altmember cref="System.Linq.Enumerable.Any{T}(System.Collections.Generic.IEnumerable{T},System.Func{T,System.Boolean})"/>
         public static MyGenericType<TResult> Select<TSource, TResult>(this MyGenericType<TSource> source, Func<TSource, TResult> selector) => null;
     }
 }

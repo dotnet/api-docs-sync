@@ -15,6 +15,7 @@
         <typeparam name="TResult">The type of the value returned by <paramref name="selector" />.</typeparam>
         <param name="source">A sequence of values to invoke a transform function on.</param>
         <param name="selector">A transform function to apply to each element.</param>
+        <altmember cref="System.Linq.Enumerable.Any``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean})"/>
         <remarks>
           <format type="text/markdown">
             <![CDATA[

@@ -646,6 +646,7 @@ namespace Libraries.RoslynTripleSlash
         private static SyntaxTriviaList GetAltMember(string cref, SyntaxTriviaList leadingWhitespace)
         {
             cref = RemoveCrefPrefix(cref);
+            cref = MapDocIdGenericsToCrefGenerics(cref);
             XmlAttributeSyntax attribute = SyntaxFactory.XmlTextAttribute("cref", cref);
             XmlEmptyElementSyntax emptyElement = SyntaxFactory.XmlEmptyElement(SyntaxFactory.XmlName(SyntaxFactory.Identifier("altmember")), new SyntaxList<XmlAttributeSyntax>(attribute));
             return GetXmlTrivia(emptyElement, leadingWhitespace);
@@ -978,11 +979,17 @@ namespace Libraries.RoslynTripleSlash
                 docId = docId[..^1];
             }
 
+            return MapDocIdGenericsToCrefGenerics(docId);
+        }
+
+        private static string MapDocIdGenericsToCrefGenerics(string docId)
+        {
             // Map DocId generic parameters to Xml Doc generic parameters
             // need to support both single and double backtick syntax
             const string GenericParameterPattern = @"`{1,2}([\d+])";
             int genericParameterArity = 0;
-            docId = Regex.Replace(docId, GenericParameterPattern, MapDocIdGenericParameterToXmlDocGenericParameter);
+            return Regex.Replace(docId, GenericParameterPattern, MapDocIdGenericParameterToXmlDocGenericParameter);
+
             string MapDocIdGenericParameterToXmlDocGenericParameter(Match match)
             {
                 int index = int.Parse(match.Groups[1].Value);
@@ -1008,8 +1015,6 @@ namespace Libraries.RoslynTripleSlash
 
                 static string WrapInCurlyBrackets(string input) => $"{{{input}}}";
             }
-
-            return docId;
         }
 
         private static string CrefEvaluator(Match m)

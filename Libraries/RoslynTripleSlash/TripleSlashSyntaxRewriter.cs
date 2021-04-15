@@ -970,16 +970,18 @@ namespace Libraries.RoslynTripleSlash
         private static string ReplaceDocId(Match m)
         {
             string docId = m.Groups["docId"].Value;
+            string? prefix = m.Groups["prefix"].Value == "O:" ? "O:" : null;
             docId = ReplacePrimitives(docId);
             docId = System.Net.WebUtility.UrlDecode(docId);
 
             // Strip '*' character from the tail end of DocId names
             if (docId.EndsWith('*'))
             {
+                prefix = "O:";
                 docId = docId[..^1];
             }
 
-            return MapDocIdGenericsToCrefGenerics(docId);
+            return prefix + MapDocIdGenericsToCrefGenerics(docId);
         }
 
         private static string MapDocIdGenericsToCrefGenerics(string docId)

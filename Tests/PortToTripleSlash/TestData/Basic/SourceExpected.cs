@@ -107,8 +107,8 @@ namespace MyNamespace
         /// <remarks>These are the MyVoidMethod remarks.
         /// Multiple lines.
         /// Mentions the <see cref="System.ArgumentNullException" />.
-        /// Also mentions an overloaded method DocID: <see cref="MyNamespace.MyType.MyIntMethod" />.
-        /// And also mentions an overloaded method DocID with displayProperty which should be ignored when porting: <see cref="MyNamespace.MyType.MyIntMethod" />.</remarks>
+        /// Also mentions an overloaded method DocID: <see cref="O:MyNamespace.MyType.MyIntMethod" />.
+        /// And also mentions an overloaded method DocID with displayProperty which should be ignored when porting: <see cref="O:MyNamespace.MyType.MyIntMethod" />.</remarks>
         public void MyVoidMethod()
         {
         }

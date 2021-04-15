@@ -105,7 +105,7 @@ namespace Libraries.RoslynTripleSlash
         private static readonly string ValidRegexChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;]|`\d+|%\w{2}";
         private static readonly string ValidExtraChars = @"\?=";
 
-        private static readonly string RegexDocIdPattern = @"(?<prefix>[A-Za-z]{1}:)?(?<docId>(" + ValidRegexChars + @")+)(?<overload>%2[aA])?(?<extraVars>\?(" + ValidRegexChars + @")+=(" + ValidRegexChars + @")+)?";
+        private static readonly string RegexDocIdPattern = @"(?<prefix>[A-Za-z]{1}:)?(?<docId>(" + ValidRegexChars + @")+)?(?<extraVars>\?(" + ValidRegexChars + @")+=(" + ValidRegexChars + @")+)?";
         private static readonly string RegexXmlCrefPattern = "cref=\"" + RegexDocIdPattern + "\"";
         private static readonly string RegexMarkdownXrefPattern = @"(?<xref><xref:" + RegexDocIdPattern + ">)";
 
@@ -969,12 +969,14 @@ namespace Libraries.RoslynTripleSlash
         private static string ReplaceDocId(Match m)
         {
             string docId = m.Groups["docId"].Value;
-            string overload = string.IsNullOrWhiteSpace(m.Groups["overload"].Value) ? "" : "O:";
             docId = ReplacePrimitives(docId);
             docId = System.Net.WebUtility.UrlDecode(docId);
 
             // Strip '*' character from the tail end of DocId names
-            docId = Regex.Replace(docId, @"\*$", "");
+            if (docId.EndsWith('*'))
+            {
+                docId = docId[..^1];
+            }
 
             // Map DocId generic parameters to Xml Doc generic parameters
             // need to support both single and double backtick syntax
@@ -1007,7 +1009,7 @@ namespace Libraries.RoslynTripleSlash
                 static string WrapInCurlyBrackets(string input) => $"{{{input}}}";
             }
 
-            return overload + docId;
+            return docId;
         }
 
         private static string CrefEvaluator(Match m)

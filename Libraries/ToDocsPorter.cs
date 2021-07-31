@@ -61,12 +61,12 @@ namespace Libraries
         {
             Log.Info("Looking for IntelliSense xml comments that can be ported...");
 
-            foreach (DocsType dTypeToUpdate in DocsComments.Types)
+            foreach (DocsType dTypeToUpdate in DocsComments.Types.Values)
             {
                 PortMissingCommentsForType(dTypeToUpdate);
             }
 
-            foreach (DocsMember dMemberToUpdate in DocsComments.Members)
+            foreach (DocsMember dMemberToUpdate in DocsComments.Members.Values)
             {
                 PortMissingCommentsForMember(dMemberToUpdate);
             }
@@ -75,8 +75,7 @@ namespace Libraries
         // Tries to find an IntelliSense xml element from which to port documentation for the specified Docs type.
         private void PortMissingCommentsForType(DocsType dTypeToUpdate)
         {
-            IntelliSenseXmlMember? tsTypeToPort = IntelliSenseXmlComments.Members.FirstOrDefault(x => x.Name == dTypeToUpdate.DocIdEscaped);
-            if (tsTypeToPort != null)
+            if (IntelliSenseXmlComments.Members.TryGetValue(dTypeToUpdate.DocIdEscaped, out IntelliSenseXmlMember? tsTypeToPort))
             {
                 if (tsTypeToPort.Name == dTypeToUpdate.DocIdEscaped)
                 {
@@ -98,7 +97,7 @@ namespace Libraries
         private void PortMissingCommentsForMember(DocsMember dMemberToUpdate)
         {
             string docId = dMemberToUpdate.DocIdEscaped;
-            IntelliSenseXmlMember? tsMemberToPort = IntelliSenseXmlComments.Members.FirstOrDefault(x => x.Name == docId);
+            IntelliSenseXmlComments.Members.TryGetValue(docId, out IntelliSenseXmlMember? tsMemberToPort);
             TryGetEIIMember(dMemberToUpdate, out DocsMember? interfacedMember);
 
             if (tsMemberToPort != null || interfacedMember != null)
@@ -149,7 +148,7 @@ namespace Libraries
                 string interfacedMemberDocId = member.ImplementsInterfaceMember;
                 if (!string.IsNullOrEmpty(interfacedMemberDocId))
                 {
-                    interfacedMember = DocsComments.Members.FirstOrDefault(x => x.DocId == interfacedMemberDocId);
+                    DocsComments.Members.TryGetValue(interfacedMemberDocId, out interfacedMember);
                     return interfacedMember != null;
                 }
             }
@@ -761,7 +760,7 @@ namespace Libraries
 
                 Log.Info("Undocumented APIs:");
 
-                foreach (DocsType docsType in DocsComments.Types)
+                foreach (DocsType docsType in DocsComments.Types.Values)
                 {
                     bool undocAPI = false;
                     if (docsType.Summary.IsDocsEmpty())
@@ -772,7 +771,7 @@ namespace Libraries
                     }
                 }
 
-                foreach (DocsMember member in DocsComments.Members)
+                foreach (DocsMember member in DocsComments.Members.Values)
                 {
                     bool undocMember = false;
 

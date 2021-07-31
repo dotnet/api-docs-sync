@@ -39,7 +39,7 @@ namespace Libraries.IntelliSenseXml
         private XDocument? xDoc = null;
 
         // The IntelliSense xml files do not separate types from members, like ECMA xml files do - Everything is a member.
-        public List<IntelliSenseXmlMember> Members = new List<IntelliSenseXmlMember>();
+        public Dictionary<string, IntelliSenseXmlMember> Members = new();
 
         public IntelliSenseXmlCommentsContainer(Configuration config)
         {
@@ -113,7 +113,7 @@ namespace Libraries.IntelliSenseXml
                                 !Config.ExcludedNamespaces.Any(excluded => member.Namespace.StartsWith(excluded))))
                         {
                             totalAdded++;
-                            Members.Add(member);
+                            Members.TryAdd(member.Name, member); // is it OK this encounters duplicates?
                         }
                     }
                 }

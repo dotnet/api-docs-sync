@@ -24,23 +24,23 @@ namespace Libraries.Docs
                 return XETypeParameter.Element("Constraints");
             }
         }
-        private List<string>? _constraintsParamterAttributes;
+        private List<string>? _constraintsParameterAttributes;
         public List<string> ConstraintsParameterAttributes
         {
             get
             {
-                if (_constraintsParamterAttributes == null)
+                if (_constraintsParameterAttributes == null)
                 {
                     if (Constraints != null)
                     {
-                        _constraintsParamterAttributes = Constraints.Elements("ParameterAttribute").Select(x => XmlHelper.GetNodesInPlainText(x)).ToList();
+                        _constraintsParameterAttributes = Constraints.Elements("ParameterAttribute").Select(x => XmlHelper.GetNodesInPlainText(x)).ToList();
                     }
                     else
                     {
-                        _constraintsParamterAttributes = new List<string>();
+                        _constraintsParameterAttributes = new List<string>();
                     }
                 }
-                return _constraintsParamterAttributes;
+                return _constraintsParameterAttributes;
             }
         }
 

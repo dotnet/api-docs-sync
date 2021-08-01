@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks.Dataflow;
 
 namespace Libraries
@@ -12,28 +13,60 @@ namespace Libraries
         public static async Task StartAsync()
         {
             ConsoleColor initialForeground = Console.ForegroundColor;
+            ConsoleColor foreground = initialForeground; // cheaper than reading it each time
+
+            StringBuilder combined = new();
+
+            bool unwrittenBlob = false;
+            (ConsoleColor color, string msg, object[]? args) blob = new ((ConsoleColor)(-1), "", null); // compiler can't figure out we won't use this
+
+            Stopwatch sw = Stopwatch.StartNew();
 
             while (await bufferWrite.OutputAvailableAsync())
             {
-                (ConsoleColor, string, object[]) t = await bufferWrite.ReceiveAsync();
+                while (unwrittenBlob || await bufferWrite.OutputAvailableAsync())
+                {
+                    if (unwrittenBlob && foreground != blob.color)
+                    {
+                        Console.ForegroundColor = blob.color;
+                        foreground = blob.color;
+                    }
 
-                if (t.Item1 != (ConsoleColor)(-1))
-                {
-                    if (Console.ForegroundColor != t.Item1)
-                        Console.ForegroundColor = t.Item1;
+                    if (!unwrittenBlob)
+                    {
+                        blob = await bufferWrite.ReceiveAsync();
+
+                        if (blob.color != (ConsoleColor)(-1) && foreground != blob.color)
+                        {
+                            unwrittenBlob = true; // New color - emit what we have
+                            break;
+                        }
+                    }
+
+                    if (blob.args == null)
+                    {
+                        combined.Append(blob.msg);
+                    }
+                    else
+                    {
+                        combined.AppendFormat(blob.msg, blob.args);
+                    }
+
+                    unwrittenBlob = false;
+
+                    if (sw.ElapsedMilliseconds > 1000)
+                        break;
                 }
 
-                if (t.Item3 == null)
-                {
-                    Console.Write(t.Item2);
-                }
-                else
-                {
-                    Console.Write(t.Item2, t.Item3);
-                }
+                sw.Restart();
+
+                Console.Write(combined);
+
+                combined = combined.Length < ushort.MaxValue ? combined.Clear() : new StringBuilder();
             }
 
-            Console.ForegroundColor = initialForeground;
+            if (foreground != initialForeground)
+                Console.ForegroundColor = initialForeground;
         }
 
         public static void Finished()

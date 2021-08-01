@@ -85,11 +85,6 @@ namespace Libraries.IntelliSenseXml
 
         private void LoadFile(FileInfo fileInfo, bool printSuccess)
         {
-            if (!fileInfo.Exists)
-            {
-                throw new Exception($"The IntelliSense xml file does not exist: {fileInfo.FullName}");
-            }
-
             xDoc = XDocument.Load(fileInfo.FullName);
 
             if (TryGetAssemblyName(xDoc, fileInfo.FullName, out string? assembly))

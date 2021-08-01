@@ -174,11 +174,6 @@ namespace Libraries.Docs
 
         private void LoadFile(FileInfo fileInfo)
         {
-            if (!fileInfo.Exists)
-            {
-                throw new Exception($"Docs xml file does not exist: {fileInfo.FullName}");
-            }
-
             xDoc = XDocument.Load(fileInfo.FullName);
 
             if (IsXmlMalformed(xDoc, fileInfo.FullName))

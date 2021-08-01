@@ -1,47 +1,56 @@
 ﻿#nullable enable
 using System;
+using System.Diagnostics;
+using System.Threading.Tasks.Dataflow;
 
 namespace Libraries
 {
-    internal class Log
+    public static class Log
     {
-        private static void WriteLine(string format, params object[]? args)
+        private static BufferBlock<(ConsoleColor, string, object[]?)> bufferWrite = new();
+
+        public static async Task StartAsync()
         {
-            if (args == null || args.Length == 0)
+            ConsoleColor initialForeground = Console.ForegroundColor;
+
+            while (await bufferWrite.OutputAvailableAsync())
             {
-                Console.WriteLine(format);
+                (ConsoleColor, string, object[]) t = await bufferWrite.ReceiveAsync();
+
+                if (t.Item1 != (ConsoleColor)(-1))
+                {
+                    if (Console.ForegroundColor != t.Item1)
+                        Console.ForegroundColor = t.Item1;
+                }
+
+                if (t.Item3 == null)
+                {
+                    Console.Write(t.Item2);
+                }
+                else
+                {
+                    Console.Write(t.Item2, t.Item3);
+                }
             }
-            else
-            {
-                Console.WriteLine(format, args);
-            }
+
+            Console.ForegroundColor = initialForeground;
         }
 
-        private static void Write(string format, params object[]? args)
+        public static void Finished()
         {
-            if (args == null || args.Length == 0)
-            {
-                Console.Write(format);
-            }
-            else
-            {
-                Console.Write(format, args);
-            }
+            bufferWrite.Complete();
         }
 
         public static void Print(bool endline, ConsoleColor foregroundColor, string format, params object[]? args)
         {
-            ConsoleColor initialColor = Console.ForegroundColor;
-            Console.ForegroundColor = foregroundColor;
             if (endline)
             {
-                WriteLine(format, args);
+                bufferWrite.Post((foregroundColor, format + Environment.NewLine, args));
             }
             else
             {
-                Write(format, args);
+                bufferWrite.Post((foregroundColor, format, args));
             }
-            Console.ForegroundColor = initialColor;
         }
 
         public static void Info(string format)
@@ -174,7 +183,7 @@ namespace Libraries
 
         public static void Line()
         {
-            Console.WriteLine();
+            Print(endline: true, (ConsoleColor)(-1), "", null);
         }
 
         public delegate void PrintHelpFunction();

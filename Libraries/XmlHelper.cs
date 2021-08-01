@@ -239,13 +239,9 @@ namespace Libraries
 
         private static string RemoveUndesiredEndlines(string value)
         {
-            Regex regex = new Regex(@"((?'undesiredEndlinePrefix'[^\.\:])(\r\n)+[ \t]*)");
-            string newValue = value;
-            if (regex.IsMatch(value))
-            {
-                newValue = regex.Replace(value, @"${undesiredEndlinePrefix} ");
-            }
-            return newValue.Trim();
+            value = Regex.Replace(value, @"((?'undesiredEndlinePrefix'[^\.\:])(\r\n)+[ \t]*)", @"${undesiredEndlinePrefix} ");
+
+            return value.Trim();
         }
 
         private static string SubstituteRemarksRegexPatterns(string value)

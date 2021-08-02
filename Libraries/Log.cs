@@ -49,7 +49,6 @@ namespace Libraries
                     if (blob.args == null)
                     {
                         combined.Append(blob.msg);
-
                     }
                     else
                     {

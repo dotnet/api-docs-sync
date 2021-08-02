@@ -130,6 +130,16 @@ namespace Libraries
             {
                 throw new Exception("A null element was passed when attempting to retrieve the nodes in plain text.");
             }
+
+            // string.Join("", element.Nodes()) is very slow.
+            //
+            // The following is twice as fast (although still slow)
+            // but does not produce the same spacing. That may be OK.
+            //
+            //using var reader = element.CreateReader();
+            //reader.MoveToContent();
+            //return reader.ReadInnerXml().Trim();
+
             return string.Join("", element.Nodes()).Trim();
         }
 

@@ -139,9 +139,16 @@ namespace Libraries.IntelliSenseXml
                 Log.Error($"The XDocument was null: {fileName}");
                 return true;
             }
+
             if (xDoc.Root == null)
             {
                 Log.Error($"The IntelliSense xml file does not contain a root element: {fileName}");
+                return true;
+            }
+
+            if (xDoc.Root.Name == "linker" || xDoc.Root.Name == "FileList")
+            {
+                // This is a linker suppression file or a framework list
                 return true;
             }
 

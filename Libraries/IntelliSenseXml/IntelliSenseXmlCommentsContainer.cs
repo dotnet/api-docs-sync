@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 /*
@@ -85,7 +86,15 @@ namespace Libraries.IntelliSenseXml
 
         private void LoadFile(FileInfo fileInfo, bool printSuccess)
         {
-            xDoc = XDocument.Load(fileInfo.FullName);
+            try
+            {
+                xDoc = XDocument.Load(fileInfo.FullName);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(string.Format("Failed to load '{0}'. {1}", fileInfo.FullName, ex.ToString()));
+                return;
+            }
 
             if (TryGetAssemblyName(xDoc, fileInfo.FullName, out string? assembly))
             {

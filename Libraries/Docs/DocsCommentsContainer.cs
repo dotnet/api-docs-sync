@@ -174,7 +174,15 @@ namespace Libraries.Docs
 
         private void LoadFile(FileInfo fileInfo)
         {
-            xDoc = XDocument.Load(fileInfo.FullName);
+            try
+            {
+                xDoc = XDocument.Load(fileInfo.FullName);
+            }
+            catch(Exception ex)
+            {
+                Log.Error(string.Format("Failed to load '{0}'. {1}", fileInfo.FullName, ex.ToString()));
+                return;
+            }
 
             if (IsXmlMalformed(xDoc, fileInfo.FullName))
             {

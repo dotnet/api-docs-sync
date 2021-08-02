@@ -178,8 +178,8 @@ namespace Libraries.Docs
             {
                 // docs repo uses code page 1252
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                StreamReader sw = new(fileInfo.FullName, Encoding.GetEncoding(1252));
-                xDoc = XDocument.Load(sw);
+                StreamReader sr = new(fileInfo.FullName, Encoding.GetEncoding(1252));
+                xDoc = XDocument.Load(sr);
             }
             catch(Exception ex)
             {

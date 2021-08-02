@@ -21,7 +21,7 @@ namespace Libraries
             StringBuilder combined = new(65_536);
 
             bool unwrittenBlob = false;
-            (ConsoleColor color, string msg, object[]? args) blob = new ((ConsoleColor)(-1), "", null); // compiler can't figure out we won't use this
+            (ConsoleColor color, string msg, object[]? args) blob = new((ConsoleColor)(-1), "", null); // compiler can't figure out we won't use this
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 

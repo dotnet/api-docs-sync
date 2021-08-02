@@ -390,7 +390,7 @@ namespace Libraries.RoslynTripleSlash
                 string? docId = symbol.GetDocumentationCommentId();
                 if (!string.IsNullOrWhiteSpace(docId))
                 {
-                    member = DocsComments.Members.FirstOrDefault(m => m.DocId == docId);
+                    DocsComments.Members.TryGetValue(docId, out member);
                 }
             }
 
@@ -404,7 +404,7 @@ namespace Libraries.RoslynTripleSlash
             string? docId = symbol.GetDocumentationCommentId();
             if (!string.IsNullOrWhiteSpace(docId))
             {
-                type = DocsComments.Types.FirstOrDefault(t => t.DocId == docId);
+                DocsComments.Types.TryGetValue(docId, out type);
             }
 
             return type != null;

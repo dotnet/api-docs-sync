@@ -14,8 +14,8 @@ namespace Libraries.Docs
 
         private XDocument? xDoc = null;
 
-        public readonly List<DocsType> Types = new List<DocsType>();
-        public readonly List<DocsMember> Members = new List<DocsMember>();
+        public readonly Dictionary<string, DocsType> Types = new();
+        public readonly Dictionary<string, DocsMember> Members = new();
 
         public DocsCommentsContainer(Configuration config)
         {
@@ -51,7 +51,7 @@ namespace Libraries.Docs
             Encoding encoding = Encoding.GetEncoding(1252); // Preserves original xml encoding from Docs repo
 
             List<string> savedFiles = new List<string>();
-            foreach (var type in Types.Where(x => x.Changed))
+            foreach (var type in Types.Values.Where(x => x.Changed))
             {
                 Log.Warning(false, $"Saving changes for {type.FilePath}:");
 
@@ -237,7 +237,7 @@ namespace Libraries.Docs
             if (add)
             {
                 int totalMembersAdded = 0;
-                Types.Add(docsType);
+                Types.TryAdd(docsType.DocId, docsType); // is it OK this encounters duplicates?
 
                 if (XmlHelper.TryGetChildElement(xDoc.Root!, "Members", out XElement? xeMembers) && xeMembers != null)
                 {
@@ -245,7 +245,7 @@ namespace Libraries.Docs
                     {
                         DocsMember member = new DocsMember(fileInfo.FullName, docsType, xeMember);
                         totalMembersAdded++;
-                        Members.Add(member);
+                        Members.TryAdd(member.DocId, member); // is it OK this encounters duplicates?
                     }
                 }
 

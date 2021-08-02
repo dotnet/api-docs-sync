@@ -141,7 +141,7 @@ namespace Libraries
             // Load and store the main project
             ProjectInformation mainProjectInfo = GetProjectInfo(Config.CsProj!.FullName, isMono: false);
 
-            foreach (DocsType docsType in DocsComments.Types)
+            foreach (DocsType docsType in DocsComments.Types.Values)
             {
                 // If the symbol is not found in the current compilation, nothing to do - It means the Docs
                 // for APIs from an unrelated namespace were loaded for this compilation's assembly

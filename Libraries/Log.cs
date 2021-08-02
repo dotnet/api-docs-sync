@@ -12,15 +12,18 @@ namespace Libraries
 
         public static async Task StartAsync()
         {
+            using FileStream fs = new(Path.GetTempFileName(), FileMode.Open);
+            using StreamWriter sw = new(fs);
+
             ConsoleColor initialForeground = Console.ForegroundColor;
             ConsoleColor foreground = initialForeground; // cheaper than reading it each time
 
-            StringBuilder combined = new();
+            StringBuilder combined = new(65_536);
 
             bool unwrittenBlob = false;
             (ConsoleColor color, string msg, object[]? args) blob = new ((ConsoleColor)(-1), "", null); // compiler can't figure out we won't use this
 
-            Stopwatch sw = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
             while (await bufferWrite.OutputAvailableAsync())
             {
@@ -46,6 +49,7 @@ namespace Libraries
                     if (blob.args == null)
                     {
                         combined.Append(blob.msg);
+
                     }
                     else
                     {
@@ -54,19 +58,22 @@ namespace Libraries
 
                     unwrittenBlob = false;
 
-                    if (sw.ElapsedMilliseconds > 1000)
+                    if (stopwatch.ElapsedMilliseconds > 1000)
                         break;
                 }
 
-                sw.Restart();
+                stopwatch.Restart();
 
                 Console.Write(combined);
+                sw.Write(combined);
 
-                combined = combined.Length < ushort.MaxValue ? combined.Clear() : new StringBuilder();
+                combined = combined.Length < 65_536 ? combined.Clear() : new StringBuilder();
             }
 
             if (foreground != initialForeground)
                 Console.ForegroundColor = initialForeground;
+
+            Console.WriteLine("Written log to {0}", fs.Name);
         }
 
         public static void Finished()

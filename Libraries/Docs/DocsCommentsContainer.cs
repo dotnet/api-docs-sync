@@ -86,7 +86,7 @@ namespace Libraries.Docs
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e.Message);
+                    Log.Error("Failed to write to {0}. {1}", type.FilePath, e.Message);
                     Log.Line();
                     Log.Error(e.StackTrace ?? string.Empty);
                     if (e.InnerException != null)

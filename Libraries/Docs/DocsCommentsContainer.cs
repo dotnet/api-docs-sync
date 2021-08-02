@@ -183,7 +183,7 @@ namespace Libraries.Docs
             }
             catch(Exception ex)
             {
-                Log.Error(string.Format("Failed to load '{0}'. {1}", fileInfo.FullName, ex.ToString()));
+                Log.Error($"Failed to load '{fileInfo.FullName}'. {ex.ToString()}");
                 return;
             }
 

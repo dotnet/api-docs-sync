@@ -2,13 +2,13 @@
 using System;
 using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks.Dataflow;
+using System.Threading.Channels;
 
 namespace Libraries
 {
     public static class Log
     {
-        private static BufferBlock<(ConsoleColor, string, object[]?)> bufferWrite = new();
+        private static Channel<(ConsoleColor, string, object[]?)> channel = Channel.CreateUnbounded<(ConsoleColor, string, object[]?)>();
 
         public static async Task StartAsync()
         {
@@ -25,9 +25,9 @@ namespace Libraries
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            while (await bufferWrite.OutputAvailableAsync())
+            while (await channel.Reader.WaitToReadAsync())
             {
-                while (unwrittenBlob || await bufferWrite.OutputAvailableAsync())
+                while (unwrittenBlob || await channel.Reader.WaitToReadAsync())
                 {
                     if (unwrittenBlob && foreground != blob.color)
                     {
@@ -37,7 +37,7 @@ namespace Libraries
 
                     if (!unwrittenBlob)
                     {
-                        blob = await bufferWrite.ReceiveAsync();
+                        blob = await channel.Reader.ReadAsync();
 
                         if (blob.color != (ConsoleColor)(-1) && foreground != blob.color)
                         {
@@ -77,18 +77,18 @@ namespace Libraries
 
         public static void Finished()
         {
-            bufferWrite.Complete();
+            channel.Writer.Complete();
         }
 
         public static void Print(bool endline, ConsoleColor foregroundColor, string format, params object[]? args)
         {
             if (endline)
             {
-                bufferWrite.Post((foregroundColor, format + Environment.NewLine, args));
+                channel.Writer.WriteAsync((foregroundColor, format + Environment.NewLine, args));
             }
             else
             {
-                bufferWrite.Post((foregroundColor, format, args));
+                channel.Writer.WriteAsync((foregroundColor, format, args));
             }
         }
 

@@ -186,9 +186,8 @@ namespace Libraries
                     Log.Info(false, $"Symbol '{symbol.Name}' not found in locations of project '{path}'.");
                     if (n < symbol.Locations.Count())
                     {
-                        Log.Info(false, " Trying the next location...");
+                        Log.Info(true, " Trying the next location...");
                     }
-                    Console.WriteLine();
                 }
                 n++;
             }
@@ -245,9 +244,8 @@ namespace Libraries
                     Log.Info(false, $"Symbol for '{docsType.FullName}' not found in referenced project '{projectPath}'.");
                     if (n < projectReferences.Count())
                     {
-                        Log.Info(false, $" Trying the next project...");
+                        Log.Info(true, $" Trying the next project...");
                     }
-                    Console.WriteLine();
                 }
                 n++;
             }

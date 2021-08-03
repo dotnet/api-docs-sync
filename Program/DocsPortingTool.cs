@@ -1,13 +1,15 @@
 ﻿#nullable enable
 using Libraries;
 using System;
+using System.Threading.Tasks;
 
 namespace DocsPortingTool
 {
     class DocsPortingTool
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
+            Task loggingTask = Log.StartAsync();
             Configuration config = Configuration.GetCLIArgumentsForDocsPortingTool(args);
             switch (config.Direction)
             {
@@ -25,6 +27,9 @@ namespace DocsPortingTool
                 default:
                     throw new ArgumentOutOfRangeException($"Unrecognized porting direction: {config.Direction}");
             }
+
+            Log.Finished();
+            await loggingTask;
         }
     }
 }

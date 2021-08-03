@@ -1,47 +1,97 @@
 ﻿#nullable enable
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 
 namespace Libraries
 {
-    internal class Log
+    public static class Log
     {
-        private static void WriteLine(string format, params object[]? args)
+        private static Channel<(ConsoleColor, string, object[]?)> channel = Channel.CreateUnbounded<(ConsoleColor, string, object[]?)>();
+
+        public static async Task StartAsync()
         {
-            if (args == null || args.Length == 0)
+            using FileStream fs = new(Path.GetTempFileName(), FileMode.Open);
+            using StreamWriter sw = new(fs);
+
+            ConsoleColor initialForeground = Console.ForegroundColor;
+            ConsoleColor foreground = initialForeground; // cheaper than reading it each time
+
+            StringBuilder combined = new(65_536);
+
+            bool unwrittenBlob = false;
+            (ConsoleColor color, string msg, object[]? args) blob = new((ConsoleColor)(-1), "", null); // compiler can't figure out we won't use this
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            while (await channel.Reader.WaitToReadAsync())
             {
-                Console.WriteLine(format);
+                while (unwrittenBlob || await channel.Reader.WaitToReadAsync())
+                {
+                    if (unwrittenBlob && foreground != blob.color)
+                    {
+                        Console.ForegroundColor = blob.color;
+                        foreground = blob.color;
+                    }
+
+                    if (!unwrittenBlob)
+                    {
+                        blob = await channel.Reader.ReadAsync();
+
+                        if (blob.color != (ConsoleColor)(-1) && foreground != blob.color)
+                        {
+                            unwrittenBlob = true; // New color - emit what we have
+                            break;
+                        }
+                    }
+
+                    if (blob.args == null)
+                    {
+                        combined.Append(blob.msg);
+                    }
+                    else
+                    {
+                        combined.AppendFormat(blob.msg, blob.args);
+                    }
+
+                    unwrittenBlob = false;
+
+                    if (stopwatch.ElapsedMilliseconds > 1000)
+                        break;
+                }
+
+                stopwatch.Restart();
+
+                Console.Write(combined);
+                sw.Write(combined);
+
+                combined = combined.Length < 65_536 ? combined.Clear() : new StringBuilder();
             }
-            else
-            {
-                Console.WriteLine(format, args);
-            }
+
+            if (foreground != initialForeground)
+                Console.ForegroundColor = initialForeground;
+
+            Console.WriteLine("Written log to {0}", fs.Name);
         }
 
-        private static void Write(string format, params object[]? args)
+        public static void Finished()
         {
-            if (args == null || args.Length == 0)
-            {
-                Console.Write(format);
-            }
-            else
-            {
-                Console.Write(format, args);
-            }
+            channel.Writer.Complete();
         }
 
         public static void Print(bool endline, ConsoleColor foregroundColor, string format, params object[]? args)
         {
-            ConsoleColor initialColor = Console.ForegroundColor;
-            Console.ForegroundColor = foregroundColor;
             if (endline)
             {
-                WriteLine(format, args);
+                channel.Writer.WriteAsync((foregroundColor, format + Environment.NewLine, args));
             }
             else
             {
-                Write(format, args);
+                channel.Writer.WriteAsync((foregroundColor, format, args));
             }
-            Console.ForegroundColor = initialColor;
         }
 
         public static void Info(string format)
@@ -174,7 +224,7 @@ namespace Libraries
 
         public static void Line()
         {
-            Console.WriteLine();
+            Print(endline: true, (ConsoleColor)(-1), "", null);
         }
 
         public delegate void PrintHelpFunction();

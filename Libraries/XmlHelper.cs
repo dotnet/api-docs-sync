@@ -130,6 +130,16 @@ namespace Libraries
             {
                 throw new Exception("A null element was passed when attempting to retrieve the nodes in plain text.");
             }
+
+            // string.Join("", element.Nodes()) is very slow.
+            //
+            // The following is twice as fast (although still slow)
+            // but does not produce the same spacing. That may be OK.
+            //
+            //using var reader = element.CreateReader();
+            //reader.MoveToContent();
+            //return reader.ReadInnerXml().Trim();
+
             return string.Join("", element.Nodes()).Trim();
         }
 
@@ -239,13 +249,9 @@ namespace Libraries
 
         private static string RemoveUndesiredEndlines(string value)
         {
-            Regex regex = new Regex(@"((?'undesiredEndlinePrefix'[^\.\:])(\r\n)+[ \t]*)");
-            string newValue = value;
-            if (regex.IsMatch(value))
-            {
-                newValue = regex.Replace(value, @"${undesiredEndlinePrefix} ");
-            }
-            return newValue.Trim();
+            value = Regex.Replace(value, @"((?'undesiredEndlinePrefix'[^\.\:])(\r\n)+[ \t]*)", @"${undesiredEndlinePrefix} ");
+
+            return value.Trim();
         }
 
         private static string SubstituteRemarksRegexPatterns(string value)

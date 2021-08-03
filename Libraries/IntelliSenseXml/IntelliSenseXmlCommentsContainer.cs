@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 /*
@@ -85,12 +86,15 @@ namespace Libraries.IntelliSenseXml
 
         private void LoadFile(FileInfo fileInfo, bool printSuccess)
         {
-            if (!fileInfo.Exists)
+            try
             {
-                throw new Exception($"The IntelliSense xml file does not exist: {fileInfo.FullName}");
+                xDoc = XDocument.Load(fileInfo.FullName);
             }
-
-            xDoc = XDocument.Load(fileInfo.FullName);
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to load '{fileInfo.FullName}'. {ex}");
+                return;
+            }
 
             if (TryGetAssemblyName(xDoc, fileInfo.FullName, out string? assembly))
             {
@@ -135,9 +139,16 @@ namespace Libraries.IntelliSenseXml
                 Log.Error($"The XDocument was null: {fileName}");
                 return true;
             }
+
             if (xDoc.Root == null)
             {
                 Log.Error($"The IntelliSense xml file does not contain a root element: {fileName}");
+                return true;
+            }
+
+            if (xDoc.Root.Name == "linker" || xDoc.Root.Name == "FileList")
+            {
+                // This is a linker suppression file or a framework list
                 return true;
             }
 

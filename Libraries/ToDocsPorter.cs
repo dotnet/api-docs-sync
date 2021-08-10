@@ -404,24 +404,27 @@ namespace Libraries
                         // When not found, it's a bug in Docs (param name not the same as source/ref), so need to ask the user to indicate correct name
                         if (tsParam == null)
                         {
-                            ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
-
+                            string msg;
                             if (tsMemberToPort.Params.Count() == 0)
                             {
-                                ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
-                                Log.Warning($"There were no IntelliSense xml comments for param '{dParam.Name}' in {dApiToUpdate.DocId}");
+                                msg = $"There were no IntelliSense xml comments for param {dParam.Name} in Member DocId {dApiToUpdate.DocId}"
+                                ProblematicAPIs.AddIfNotExists(msg);
+                                Log.Warning(msg);
                             }
                             else if (tsMemberToPort.Params.Count() != dApiToUpdate.Params.Count())
                             {
-                                ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
-                                Log.Warning($"The total number of params does not match between the IntelliSense and the Docs members: {dApiToUpdate.DocId}");
+                                msg = $"The total number of params does not match between IntelliSense and Docs members {dApiToUpdate.DocId}"
+                                ProblematicAPIs.AddIfNotExists(msg);
+                                Log.Warning(msg);
                             }
                             else
                             {
                                 created = TryPromptParam(dParam, tsMemberToPort, out IntelliSenseXmlParam? newTsParam);
                                 if (newTsParam == null)
                                 {
-                                    Log.Error($"  The param '{dParam.Name}' was not found in IntelliSense xml for {dApiToUpdate.DocId}.");
+                                    msg = $"The param {dParam.Name} was not found in IntelliSense xml for {dApiToUpdate.DocId}";
+                                    ProblematicAPIs.AddIfNotExists(msg);
+                                    Log.Error(msg);
                                 }
                                 else
                                 {
@@ -517,7 +520,7 @@ namespace Libraries
 
                     if (dTypeParam == null)
                     {
-                        ProblematicAPIs.AddIfNotExists($"TypeParam=[{tsTypeParam.Name}] in Member=[{dApiToUpdate.DocId}]");
+                        ProblematicAPIs.AddIfNotExists($"Can't find intellisense typeparam in docs: TypeParam=[{tsTypeParam.Name}] in Member=[{dApiToUpdate.DocId}]");
                         dTypeParam = dApiToUpdate.AddTypeParam(tsTypeParam.Name, XmlHelper.GetNodesInPlainText(tsTypeParam.XETypeParam));
                     }
 
@@ -572,7 +575,13 @@ namespace Libraries
                 // Bug: Sometimes a void return value shows up as not documented, skip those
                 if (dMemberToUpdate.ReturnType == "System.Void")
                 {
-                    ProblematicAPIs.AddIfNotExists($"Unexpected System.Void return value in Method=[{dMemberToUpdate.DocId}]");
+                    // It looks like this:
+                    // <ReturnValue>
+                    //  <ReturnType>System.Void</ReturnType>
+                    // </ReturnValue>
+                    //
+                    // As a Docs bug, it's not worth logging
+                    // ProblematicAPIs.AddIfNotExists($"Unexpected System.Void return value in Method=[{dMemberToUpdate.DocId}]");
                 }
                 else if (dMemberToUpdate.Returns.IsDocsEmpty() && !returns.IsDocsEmpty())
                 {

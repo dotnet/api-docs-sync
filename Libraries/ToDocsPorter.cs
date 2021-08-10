@@ -306,11 +306,9 @@ namespace Libraries
                         // When not found, it's a bug in Docs (param name not the same as source/ref), so need to ask the user to indicate correct name
                         if (tsParam == null)
                         {
-                            ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
-
                             if (tsMemberToPort.Params.Count() == 0)
                             {
-                                ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
+                                ProblematicAPIs.AddIfNotExists($"Can't find docs param in intellisense: Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
                                 Log.Warning($"  There were no IntelliSense xml comments for param '{dParam.Name}' in {dApiToUpdate.DocId}");
                             }
                             else
@@ -318,6 +316,7 @@ namespace Libraries
                                 created = TryPromptParam(dParam, tsMemberToPort, out IntelliSenseXmlParam? newTsParam);
                                 if (newTsParam == null)
                                 {
+                                    ProblematicAPIs.AddIfNotExists($"Can't find docs param in intellisense: Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
                                     Log.Error($"  The param '{dParam.Name}' was not found in IntelliSense xml for {dApiToUpdate.DocId}.");
                                 }
                                 else
@@ -418,7 +417,7 @@ namespace Libraries
                     bool created = false;
                     if (dTypeParam == null)
                     {
-                        ProblematicAPIs.AddIfNotExists($"TypeParam=[{tsTypeParam.Name}] in Member=[{dApiToUpdate.DocId}]");
+                        ProblematicAPIs.AddIfNotExists($"Can't find intellisense typeparam in docs: TypeParam=[{tsTypeParam.Name}] in Member=[{dApiToUpdate.DocId}]");
                         dTypeParam = dApiToUpdate.AddTypeParam(tsTypeParam.Name, XmlHelper.GetNodesInPlainText(tsTypeParam.XETypeParam));
                         created = true;
                     }
@@ -528,7 +527,13 @@ namespace Libraries
                 // Bug: Sometimes a void return value shows up as not documented, skip those
                 if (dMemberToUpdate.ReturnType == "System.Void")
                 {
-                    ProblematicAPIs.AddIfNotExists($"Unexpected System.Void return value in Method=[{dMemberToUpdate.DocId}]");
+                    // It looks like this:
+                    // <ReturnValue>
+                    //  <ReturnType>System.Void</ReturnType>
+                    // </ReturnValue>
+                    //
+                    // As a Docs bug, it's not worth logging
+                    // ProblematicAPIs.AddIfNotExists($"Unexpected System.Void return value in Method=[{dMemberToUpdate.DocId}]");
                 }
                 else if (tsMemberToPort != null && !tsMemberToPort.Returns.IsDocsEmpty())
                 {

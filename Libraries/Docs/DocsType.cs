@@ -202,6 +202,44 @@ namespace Libraries.Docs
             }
         }
 
+        /// <summary>
+        /// Only available when the type is a delegate.
+        /// </summary>
+        public override string ReturnType
+        {
+            get
+            {
+                XElement? xeReturnValue = XERoot.Element("ReturnValue");
+                if (xeReturnValue != null)
+                {
+                    return XmlHelper.GetChildElementValue(xeReturnValue, "ReturnType");
+                }
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Only available when the type is a delegate.
+        /// </summary>
+        public override string Returns
+        {
+            get
+            {
+                return (ReturnType != "System.Void") ? GetNodesInPlainText("returns") : string.Empty;
+            }
+            set
+            {
+                if (ReturnType != "System.Void")
+                {
+                    SaveFormattedAsXml("returns", value, addIfMissing: false);
+                }
+                else
+                {
+                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocIdEscaped}");
+                }
+            }
+        }
+
         public override string Remarks
         {
             get

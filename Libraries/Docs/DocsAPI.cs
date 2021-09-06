@@ -182,6 +182,8 @@ namespace Libraries.Docs
         }
 
         public abstract string Summary { get; set; }
+        public abstract string ReturnType { get; }
+        public abstract string Returns { get; set; }
 
         public abstract string Remarks { get; set; }
 

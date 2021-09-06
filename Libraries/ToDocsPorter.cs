@@ -83,6 +83,10 @@ namespace Libraries
                     TryPortMissingRemarksForAPI(dTypeToUpdate, tsTypeToPort, null, skipInterfaceRemarks: true);
                     TryPortMissingParamsForAPI(dTypeToUpdate, tsTypeToPort, null); // Some types, like delegates, have params
                     TryPortMissingTypeParamsForAPI(dTypeToUpdate, tsTypeToPort, null); // Type names ending with <T> have TypeParams
+                    if (dTypeToUpdate.BaseTypeName == "System.Delegate")
+                    {
+                        TryPortMissingMethodForMember(dTypeToUpdate, tsTypeToPort, null);
+                    }
                 }
 
                 if (dTypeToUpdate.Changed)
@@ -512,7 +516,7 @@ namespace Libraries
         }
 
         // Tries to document the passed method.
-        private void TryPortMissingMethodForMember(DocsMember dMemberToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
+        private void TryPortMissingMethodForMember(IDocsAPI dMemberToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
         {
             if (!Config.PortMemberReturns)
             {
@@ -879,12 +883,12 @@ namespace Libraries
                 Log.Success($"    - {api}");
             }
 
-            Log.Line();
-            Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
-            foreach (string api in ProblematicAPIs)
-            {
-                Log.Warning($"    - {api}");
-            }
+            //Log.Line();
+            //Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
+            //foreach (string api in ProblematicAPIs)
+            //{
+            //    Log.Warning($"    - {api}");
+            //}
 
             Log.Line();
             Log.Info($"Total added exceptions: {AddedExceptions.Count}");

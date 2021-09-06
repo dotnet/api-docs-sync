@@ -883,12 +883,12 @@ namespace Libraries
                 Log.Success($"    - {api}");
             }
 
-            //Log.Line();
-            //Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
-            //foreach (string api in ProblematicAPIs)
-            //{
-            //    Log.Warning($"    - {api}");
-            //}
+            Log.Line();
+            Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
+            foreach (string api in ProblematicAPIs)
+            {
+                Log.Warning($"    - {api}");
+            }
 
             Log.Line();
             Log.Info($"Total added exceptions: {AddedExceptions.Count}");

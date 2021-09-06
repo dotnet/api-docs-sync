@@ -88,7 +88,7 @@ namespace Libraries.Docs
             }
         }
 
-        public string ReturnType
+        public override string ReturnType
         {
             get
             {
@@ -101,7 +101,7 @@ namespace Libraries.Docs
             }
         }
 
-        public string Returns
+        public override string Returns
         {
             get
             {

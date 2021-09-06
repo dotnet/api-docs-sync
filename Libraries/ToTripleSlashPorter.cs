@@ -474,6 +474,7 @@ namespace Libraries
                         Log.Error(msg);
                     }
 
+                    Log.Finished();
                     throw new Exception("Diagnostic errors found.");
                 }
             }

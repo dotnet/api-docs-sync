@@ -237,7 +237,7 @@ namespace Libraries
 
         public static void Line()
         {
-            Print(endline: true, (ConsoleColor)(-1), "", null);
+            Print(endline: true, Console.ForegroundColor, "", null);
         }
 
         public delegate void PrintHelpFunction();

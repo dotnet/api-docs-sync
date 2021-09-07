@@ -317,6 +317,11 @@ namespace Libraries
                                 ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
                                 Log.Warning($"  There were no IntelliSense xml comments for param '{dParam.Name}' in {dApiToUpdate.DocId}");
                             }
+                            else if (tsMemberToPort.Params.Count() != dApiToUpdate.Params.Count())
+                            {
+                                ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
+                                Log.Warning($"  The total number of params does not match between the IntelliSense and the Docs members: {dApiToUpdate.DocId}");
+                            }
                             else
                             {
                                 created = TryPromptParam(dParam, tsMemberToPort, out IntelliSenseXmlParam? newTsParam);
@@ -628,7 +633,7 @@ namespace Libraries
                 Log.Error($"The param probably exists in code, but the exact name was not found in Docs. What would you like to do?");
                 Log.Warning("    0 - Exit program.");
                 Log.Info("    1 - Select the correct IntelliSense xml param from the existing ones.");
-                Log.Info("    2 - Ignore this param.");
+                Log.Info("    2 - Ignore this param and continue.");
                 Log.Warning("      Note:Make sure to double check the affected Docs file after the tool finishes executing.");
                 Log.Cyan(false, "Your answer [0,1,2]: ");
 
@@ -655,7 +660,8 @@ namespace Libraries
                                 {
                                     Log.Info($"IntelliSense xml params found in member '{tsMember.Name}':");
                                     Log.Warning("    0 - Exit program.");
-                                    int paramCounter = 1;
+                                    Log.Info("    1 - Ignore this param and continue.");
+                                    int paramCounter = 2;
                                     foreach (IntelliSenseXmlParam param in tsMember.Params)
                                     {
                                         Log.Info($"    {paramCounter} - {param.Name}");
@@ -679,9 +685,14 @@ namespace Libraries
                                         Log.Info("Goodbye!");
                                         Environment.Exit(0);
                                     }
+                                    else if (paramSelection == 1)
+                                    {
+                                        Log.Info("Skipping this param.");
+                                        break;
+                                    }
                                     else
                                     {
-                                        newTsParam = tsMember.Params[paramSelection - 1];
+                                        newTsParam = tsMember.Params[paramSelection - 2];
                                         Log.Success($"Selected: {newTsParam.Name}");
                                     }
                                 }

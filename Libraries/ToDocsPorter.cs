@@ -211,6 +211,14 @@ namespace Libraries
                 return;
             }
 
+            if (dApiToUpdate is DocsMember member &&
+                member.ParentType.BaseTypeName == "System.Enum" &&
+                member.MemberType == "Field")
+            {
+                // Avoid porting remarks for enums, they are not allowed in dotnet-api-docs (cause build warnings)
+                return;
+            }
+
             if (dApiToUpdate.Remarks.IsDocsEmpty())
             {
                 bool isEII = false;

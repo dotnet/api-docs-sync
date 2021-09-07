@@ -85,7 +85,7 @@ namespace Libraries
                     TryPortMissingTypeParamsForAPI(dTypeToUpdate, tsTypeToPort, null); // Type names ending with <T> have TypeParams
                     if (dTypeToUpdate.BaseTypeName == "System.Delegate")
                     {
-                        TryPortMissingMethodForMember(dTypeToUpdate, tsTypeToPort, null);
+                        TryPortMissingReturnsForMember(dTypeToUpdate, tsTypeToPort, null);
                     }
                 }
 
@@ -119,7 +119,7 @@ namespace Libraries
                 }
                 else if (dMemberToUpdate.MemberType == "Method")
                 {
-                    TryPortMissingMethodForMember(dMemberToUpdate, tsMemberToPort, interfacedMember);
+                    TryPortMissingReturnsForMember(dMemberToUpdate, tsMemberToPort, interfacedMember);
                 }
 
                 if (dMemberToUpdate.Changed)
@@ -515,8 +515,8 @@ namespace Libraries
             }
         }
 
-        // Tries to document the passed method.
-        private void TryPortMissingMethodForMember(IDocsAPI dMemberToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
+        // Tries to document the returns element of the specified API: it can be a Method Member, or a Delegate Type.
+        private void TryPortMissingReturnsForMember(IDocsAPI dMemberToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
         {
             if (!Config.PortMemberReturns)
             {

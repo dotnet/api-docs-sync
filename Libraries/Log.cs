@@ -332,10 +332,10 @@ Options:
                                                 Usage example:
                                                     -Direction ToTripleSlash
 
-    -DisablePrompts         bool                Default is false (prompts are disabled).
+    -DisablePrompts         bool                Default is true (prompts are disabled).
                                                 Avoids prompting the user for input to correct some particular errors.
                                                     Usage example:
-                                                        -DisablePrompts true
+                                                        -DisablePrompts false
 
     -ExceptionCollisionThreshold  int (0-100)   Default is 70 (If >=70% of words collide, the string is not ported).
                                                 Decides how sensitive the detection of existing exception strings should be.

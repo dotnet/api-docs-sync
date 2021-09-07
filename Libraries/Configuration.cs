@@ -77,7 +77,7 @@ namespace Libraries
         public PortingDirection Direction { get; set; } = PortingDirection.ToDocs;
         public List<DirectoryInfo> DirsIntelliSense { get; } = new List<DirectoryInfo>();
         public List<DirectoryInfo> DirsDocsXml { get; } = new List<DirectoryInfo>();
-        public bool DisablePrompts { get; set; } = false;
+        public bool DisablePrompts { get; set; } = true;
         public int ExceptionCollisionThreshold { get; set; } = 70;
         public HashSet<string> ExcludedAssemblies { get; } = new HashSet<string>();
         public HashSet<string> ExcludedNamespaces { get; } = new HashSet<string>();

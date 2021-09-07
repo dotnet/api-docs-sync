@@ -438,6 +438,11 @@ Options:
                                                     Usage example:
                                                         -PortTypeTypeParams false
 
+    -PrintSummaryDetails        bool            Default is false (does not print summary details).
+                                                Prints the list of APIs that got modified by the tool.
+                                                    Usage example:
+                                                        -PrintSummaryDetails true
+
     -PrintUndoc                 bool            Default is false (prints a basic summary).
                                                 Prints a detailed summary of all the docs APIs that are undocumented.
                                                     Usage example:

@@ -50,11 +50,10 @@ namespace Libraries
             }
 
             PortMissingComments();
-
+            DocsComments.Save();
             PrintUndocumentedAPIs();
             PrintSummary();
 
-            DocsComments.Save();
         }
 
         private void PortMissingComments()
@@ -315,12 +314,12 @@ namespace Libraries
                             if (tsMemberToPort.Params.Count() == 0)
                             {
                                 ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
-                                Log.Warning($"  There were no IntelliSense xml comments for param '{dParam.Name}' in {dApiToUpdate.DocId}");
+                                Log.Warning($"There were no IntelliSense xml comments for param '{dParam.Name}' in {dApiToUpdate.DocId}");
                             }
                             else if (tsMemberToPort.Params.Count() != dApiToUpdate.Params.Count())
                             {
                                 ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
-                                Log.Warning($"  The total number of params does not match between the IntelliSense and the Docs members: {dApiToUpdate.DocId}");
+                                Log.Warning($"The total number of params does not match between the IntelliSense and the Docs members: {dApiToUpdate.DocId}");
                             }
                             else
                             {
@@ -727,11 +726,14 @@ namespace Libraries
         /// <param name="docId">The API unique identifier.</param>
         private void PrintModifiedMember(string message, string docsFilePath, string docId)
         {
-            Log.Warning($"    File: {docsFilePath}");
-            Log.Warning($"        DocID: {docId}");
-            Log.Warning($"        {message}");
-            Log.Info("---------------------------------------------------");
-            Log.Line();
+            if (Config.PrintSummaryDetails)
+            {
+                Log.Warning($"    File: {docsFilePath}");
+                Log.Warning($"        DocID: {docId}");
+                Log.Warning($"        {message}");
+                Log.Info("---------------------------------------------------");
+                Log.Line();
+            }
         }
 
         // Prints all the undocumented APIs.
@@ -869,48 +871,65 @@ namespace Libraries
         private void PrintSummary()
         {
             Log.Line();
-            Log.Success("---------");
-            Log.Success("FINISHED!");
-            Log.Success("---------");
-
-            Log.Line();
             Log.Info($"Total modified files: {ModifiedFiles.Count}");
-            foreach (string file in ModifiedFiles)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Success($"    - {file}");
+                foreach (string file in ModifiedFiles)
+                {
+                    Log.Success($"    - {file}");
+                }
+                Log.Line();
             }
 
-            Log.Line();
             Log.Info($"Total modified types: {ModifiedTypes.Count}");
-            foreach (string type in ModifiedTypes)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Success($"    - {type}");
+                foreach (string type in ModifiedTypes)
+                {
+                    Log.Success($"    - {type}");
+                }
+                Log.Line();
             }
 
-            Log.Line();
             Log.Info($"Total modified APIs: {ModifiedAPIs.Count}");
-            foreach (string api in ModifiedAPIs)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Success($"    - {api}");
+                foreach (string api in ModifiedAPIs)
+                {
+                    Log.Success($"    - {api}");
+                }
             }
 
             Log.Line();
             Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
-            foreach (string api in ProblematicAPIs)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Warning($"    - {api}");
+                foreach (string api in ProblematicAPIs)
+                {
+                    Log.Warning($"    - {api}");
+                }
+                Log.Line();
             }
 
-            Log.Line();
             Log.Info($"Total added exceptions: {AddedExceptions.Count}");
-            foreach (string exception in AddedExceptions)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Success($"    - {exception}");
+                foreach (string exception in AddedExceptions)
+                {
+                    Log.Success($"    - {exception}");
+                }
+                Log.Line();
             }
 
-            Log.Line();
             Log.Info(false, "Total modified individual elements: ");
             Log.Success($"{TotalModifiedIndividualElements}");
+
+            Log.Line();
+            Log.Success("---------");
+            Log.Success("FINISHED!");
+            Log.Success("---------");
+            Log.Line();
+
         }
     }
 }

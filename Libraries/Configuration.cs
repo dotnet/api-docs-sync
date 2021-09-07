@@ -43,6 +43,7 @@ namespace Libraries
             PortTypeRemarks,
             PortTypeSummaries,
             PortTypeTypeParams, // TypeParams of a Type
+            PrintSummaryDetails,
             PrintUndoc,
             Save,
             SkipInterfaceImplementations,
@@ -103,6 +104,7 @@ namespace Libraries
         /// TypeParams of a Type.
         /// </summary>
         public bool PortTypeTypeParams { get; set; } = true;
+        public bool PrintSummaryDetails { get; set; } = false;
         public bool PrintUndoc { get; set; } = false;
         public bool Save { get; set; } = false;
         public bool SkipInterfaceImplementations { get; set; } = false;
@@ -462,6 +464,10 @@ namespace Libraries
                                     mode = Mode.PortTypeTypeParams;
                                     break;
 
+                                case "-PRINTSUMMARYDETAILS":
+                                    mode = Mode.PrintSummaryDetails;
+                                    break;
+
                                 case "-PRINTUNDOC":
                                     mode = Mode.PrintUndoc;
                                     break;
@@ -586,6 +592,13 @@ namespace Libraries
                     case Mode.PortTypeTypeParams: // TypeParams of a Type
                         {
                             config.PortTypeTypeParams = ParseOrExit(arg, "Port Type TypeParams");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PrintSummaryDetails:
+                        {
+                            config.PrintSummaryDetails = ParseOrExit(arg, "Print summary details");
                             mode = Mode.Initial;
                             break;
                         }

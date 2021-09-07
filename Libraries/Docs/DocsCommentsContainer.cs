@@ -52,7 +52,7 @@ namespace Libraries.Docs
             List<string> savedFiles = new();
             foreach (var type in Types.Values.Where(x => x.Changed))
             {
-                Log.Warning(false, $"Saving changes for {type.FilePath}:");
+                Log.Info(false, $"Saving changes for {type.FilePath} ... ");
 
                 try
                 {
@@ -82,7 +82,6 @@ namespace Libraries.Docs
                 catch (Exception e)
                 {
                     Log.Error("Failed to write to {0}. {1}", type.FilePath, e.Message);
-                    Log.Line();
                     Log.Error(e.StackTrace ?? string.Empty);
                     if (e.InnerException != null)
                     {
@@ -92,8 +91,6 @@ namespace Libraries.Docs
                         Log.Error(e.InnerException.StackTrace ?? string.Empty);
                     }
                 }
-
-                Log.Line();
             }
         }
 

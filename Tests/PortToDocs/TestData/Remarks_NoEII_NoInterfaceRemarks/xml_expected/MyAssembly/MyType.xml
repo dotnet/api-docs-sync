@@ -1,0 +1,50 @@
+﻿<Type Name="MyType" FullName="MyNamespace.MyType">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>System.Object</BaseTypeName>
+  </Base>
+  <Interfaces />
+  <Docs>
+    <summary>This is the type summary.</summary>
+    <remarks>
+      <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+These are the type remarks. They also have a cref link: <xref:MyNamespace.MyType.MyMethod()>.
+
+      ]]></format>
+    </remarks>
+  </Docs>
+  <Members>
+    <Member MemberName="MyMethod">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyMethod" />
+      <MemberType>Method</MemberType>
+      <Implements />
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>This is the method summary.</summary>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+These are the method remarks. They are pointing to a param: `myParam`.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>

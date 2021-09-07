@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace Libraries.Docs
@@ -20,17 +21,20 @@ namespace Libraries.Docs
         private List<DocsAttribute>? _attributes;
         private List<DocsTypeSignature>? _typesSignatures;
 
-        public DocsType(string filePath, XDocument xDoc, XElement xeRoot)
+        public DocsType(string filePath, XDocument xDoc, XElement xeRoot, Encoding encoding)
             : base(xeRoot)
         {
             FilePath = filePath;
             XDoc = xDoc;
+            FileEncoding = encoding;
             AssemblyInfos.AddRange(XERoot.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)));
         }
 
         public XDocument XDoc { get; set; }
 
         public override bool Changed { get; set; }
+
+        public Encoding FileEncoding { get; internal set; }
 
         public string TypeName
         {

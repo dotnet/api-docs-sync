@@ -53,7 +53,23 @@ namespace Libraries
         // considers an empty (undocumented) API element.
         public static readonly string ToBeAdded = "To be added.";
 
-        public static readonly string[] ForbiddenBinSubdirectories = new[] { "binplacePackages", "docs", "mscorlib", "native", "netfx", "netstandard", "pkg", "Product", "ref", "runtime", "shimsTargetRuntime", "testhost", "tests", "winrt" };
+        public static readonly string[] ForbiddenBinSubdirectories = new[] {
+            "binplacePackages",
+            "docs",
+            "externals",
+            "mscorlib",
+            "native",
+            "netfx",
+            "netstandard",
+            "pkg",
+            "Product",
+            "ref",
+            "runtime",
+            "shimsTargetRuntime",
+            "testhost",
+            "tests",
+            "winrt"
+        };
 
         public readonly string BinLogPath = "output.binlog";
         public bool BinLogger { get; private set; } = false;

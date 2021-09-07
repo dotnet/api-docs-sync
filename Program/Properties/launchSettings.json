@@ -1,14 +1,25 @@
 {
   "profiles": {
-    "Program": {
+    "ToTripleSlash": {
       "commandName": "Project",
-      "commandLineArgs": "-CsProj D:\\runtime\\src\\libraries\\System.Runtime.Intrinsics\\src\\System.Runtime.Intrinsics.csproj -Docs D:\\dotnet-api-docs\\xml -Direction ToTripleSlash -IncludedAssemblies System.Runtime.Intrinsics -IncludedNamespaces System.Runtime.Intrinsics",
+      "commandLineArgs": "-Direction ToTripleSlash -CsProj D:\\runtime\\src\\libraries\\System.Runtime.Intrinsics\\src\\System.Runtime.Intrinsics.csproj -Docs D:\\dotnet-api-docs\\xml -IncludedAssemblies System.Runtime.Intrinsics -IncludedNamespaces System.Runtime.Intrinsics",
       "environmentVariables": {
-        "DOCS_IOT": "D:\\iot\\artifacts\\bin",
         "DOCS_CORECLR": "D:\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\",
-        "DOCS_WINFORMS": "D:\\winforms\\artifacts\\bin\\",
+        "DOCS_RUNTIME": "D:\\runtime\\artifacts\\bin\\",
         "DOCS_WPF": "D:\\wpf\\.tools\\native\\bin\\dotnet-api-docs_netcoreapp3.0\\0.0.0.1\\_intellisense\\\\netcore-3.0\\",
-        "DOCS_RUNTIME": "D:\\runtime\\artifacts\\bin\\"
+        "DOCS_WINFORMS": "D:\\winforms\\artifacts\\bin\\",
+        "DOCS_IOT": "D:\\iot\\artifacts\\bin"
+      }
+    },
+    "ToDocs": {
+      "commandName": "Project",
+      "commandLineArgs": "-Direction ToDocs -Docs D:\\dotnet-api-docs\\xml -IntelliSense D:\\runtime\\artifacts\\bin -IncludedAssemblies System.Runtime -IncludedNamespaces System -IncludedTypes String -SkipInterfaceImplementations true -Save true",
+      "environmentVariables": {
+        "DOCS_CORECLR": "D:\\runtime\\artifacts\\bin\\coreclr\\Windows_NT.x64.Release\\IL\\",
+        "DOCS_RUNTIME": "D:\\runtime\\artifacts\\bin\\",
+        "DOCS_WPF": "D:\\wpf\\.tools\\native\\bin\\dotnet-api-docs_netcoreapp3.0\\0.0.0.1\\_intellisense\\\\netcore-3.0\\",
+        "DOCS_WINFORMS": "D:\\winforms\\artifacts\\bin\\",
+        "DOCS_IOT": "D:\\iot\\artifacts\\bin"
       }
     }
   }

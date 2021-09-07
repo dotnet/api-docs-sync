@@ -48,25 +48,20 @@ namespace Libraries.Docs
             }
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            Encoding encoding = Encoding.GetEncoding(1252); // Preserves original xml encoding from Docs repo
 
-            List<string> savedFiles = new List<string>();
+            List<string> savedFiles = new();
             foreach (var type in Types.Values.Where(x => x.Changed))
             {
                 Log.Warning(false, $"Saving changes for {type.FilePath}:");
 
                 try
                 {
-                    StreamReader sr = new StreamReader(type.FilePath);
-                    int x = sr.Read(); // Force the first read to be done so the encoding is detected
-                    sr.Close();
-
                     // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                    XmlWriterSettings xws = new XmlWriterSettings
+                    XmlWriterSettings xws = new()
                     {
+                        Encoding = type.FileEncoding,
                         OmitXmlDeclaration = true,
                         Indent = true,
-                        Encoding = encoding,
                         CheckCharacters = false
                     };
 
@@ -79,7 +74,7 @@ namespace Libraries.Docs
                     string fileData = File.ReadAllText(type.FilePath);
                     if (!fileData.EndsWith(Environment.NewLine))
                     {
-                        File.WriteAllText(type.FilePath, fileData + Environment.NewLine, encoding);
+                        File.WriteAllText(type.FilePath, fileData + Environment.NewLine, type.FileEncoding);
                     }
 
                     Log.Success(" [Saved]");
@@ -96,7 +91,6 @@ namespace Libraries.Docs
                         Log.Line();
                         Log.Error(e.InnerException.StackTrace ?? string.Empty);
                     }
-                    System.Threading.Thread.Sleep(1000);
                 }
 
                 Log.Line();
@@ -174,12 +168,16 @@ namespace Libraries.Docs
 
         private void LoadFile(FileInfo fileInfo)
         {
+            Encoding encoding;
             try
             {
-                // docs repo uses code page 1252
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                StreamReader sr = new(fileInfo.FullName, Encoding.GetEncoding(1252));
-                xDoc = XDocument.Load(sr);
+                using (StreamReader sr = new(fileInfo.FullName, detectEncodingFromByteOrderMarks: true))
+                {
+                    xDoc = XDocument.Load(sr);
+                    // Fall back to the most common codepage used in dotnet-api-docs xml files
+                    encoding = sr.CurrentEncoding ?? Encoding.GetEncoding(1252);
+                }
             }
             catch(Exception ex)
             {
@@ -192,7 +190,7 @@ namespace Libraries.Docs
                 return;
             }
 
-            DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root!);
+            DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root!, encoding);
 
             bool add = false;
             bool addedAsInterface = false;

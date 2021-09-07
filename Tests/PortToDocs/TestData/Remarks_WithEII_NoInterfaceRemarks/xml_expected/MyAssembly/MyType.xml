@@ -1,0 +1,101 @@
+﻿<Type Name="MyType" FullName="MyAssembly.MyType">
+  <TypeSignature Language="DocId" Value="T:MyAssembly.MyType" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>System.Object</BaseTypeName>
+  </Base>
+  <Interfaces>
+    <Interface>
+      <InterfaceName>System.IMyInterface</InterfaceName>
+    </Interface>
+  </Interfaces>
+  <Docs>
+    <summary>This is the type summary.</summary>
+    <remarks>
+      <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+These are the type remarks. They also have a cref link: <xref:MyAssembly.MyType.MyMethod()>.
+
+      ]]></format>
+    </remarks>
+  </Docs>
+  <Members>
+    <Member MemberName="MyMethod">
+      <MemberSignature Language="DocId" Value="M:MyAssembly.MyType.MyMethod" />
+      <MemberType>Method</MemberType>
+      <Implements />
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>This is the method summary.</summary>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+These are the method remarks. They are pointing to a param: `myParam`.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="MyInterfaceMethod">
+      <MemberSignature Language="DocId" Value="M:MyAssembly.MyType.MyInterfaceMethod" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.IMyInterface.MyInterfaceMethod</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.MyReturnType</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>Original interface method summary.</summary>
+        <returns>Original interface method returns.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="System.IMyInterface.MyInterfaceMethod">
+      <MemberSignature Language="DocId" Value="M:MyAssembly.MyType.System#IMyInterface#MyInterfaceMethod" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.IMyInterface.MyInterfaceMethod</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.MyReturnType</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>Original interface method summary.</summary>
+        <returns>Original interface method returns.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+This member is an explicit interface member implementation. It can be used only when the <xref:MyAssembly.MyType> instance is cast to an <xref:System.IMyInterface> interface.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>

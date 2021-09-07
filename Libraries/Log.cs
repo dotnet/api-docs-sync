@@ -365,6 +365,9 @@ Options:
                                                     Usage example:
                                                         -IncludedTypes FileStream,DirectoryInfo
 
+    -MaxLineLength          int (0-200)         Default is 0 (no line wrap).
+                                                Indicates whether triple slash comments must be wrapped once lines exceed the specificed length.
+
     -PortExceptionsExisting     bool            Default is false (does not find and append existing exceptions).
                                                 Enable or disable finding, porting and appending summaries from existing exceptions.
                                                 Setting this to true can result in a lot of noise because there is

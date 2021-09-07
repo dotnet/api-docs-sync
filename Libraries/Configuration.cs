@@ -31,6 +31,7 @@ namespace Libraries
             IncludedTypes,
             Initial,
             IntelliSense,
+            MaxLineLength,
             PortExceptionsExisting,
             PortExceptionsNew,
             PortMemberParams,
@@ -69,6 +70,7 @@ namespace Libraries
         public HashSet<string> IncludedAssemblies { get; } = new HashSet<string>();
         public HashSet<string> IncludedNamespaces { get; } = new HashSet<string>();
         public HashSet<string> IncludedTypes { get; } = new HashSet<string>();
+        public int MaxLineLength { get; set; } = 0;
         public bool PortExceptionsExisting { get; set; } = false;
         public bool PortExceptionsNew { get; set; } = true;
         public bool PortMemberParams { get; set; } = true;
@@ -398,6 +400,10 @@ namespace Libraries
                                     mode = Mode.IntelliSense;
                                     break;
 
+                                case "-MAXLINELENGTH":
+                                    mode = Mode.MaxLineLength;
+                                    break;
+
                                 case "-PORTEXCEPTIONSEXISTING":
                                     mode = Mode.PortExceptionsExisting;
                                     break;
@@ -485,6 +491,30 @@ namespace Libraries
                                 config.DirsIntelliSense.Add(dirInfo);
                                 Log.Info($"  -  {dirPath}");
                             }
+
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.MaxLineLength:
+                        {
+                            if (!int.TryParse(arg, out int value))
+                            {
+                                throw new Exception($"Invalid int value for 'Max line length' argument: {arg}");
+                            }
+                            else if (value < 0 || value > 200)
+                            {
+                                throw new Exception($"Value needs to be between 0 and 200: {value}");
+                            }
+
+                            config.MaxLineLength = value;
+
+                            Log.Cyan($"Max line length:");
+
+                            string extra = string.Empty;
+                            if (value == 0)
+                                extra = " (no line wrap)";
+                            Log.Info($" - {value}{extra}");
 
                             mode = Mode.Initial;
                             break;

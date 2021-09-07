@@ -242,15 +242,11 @@ namespace Libraries
 
         public delegate void PrintHelpFunction();
 
-        public static void PrintHelpAndError(string format, params object[]? args)
+        public static void ErrorAndExit(string format, params object[]? args)
         {
-            PrintHelp();
             Error(format, args);
-
-            if (args == null)
-                throw new Exception(format);
-            else
-                throw new Exception(string.Format(format, args));
+            Cyan("Use the -h|-help argument to view the usage instructions.");
+            Environment.Exit(-1);
         }
 
         public static void PrintHelp()

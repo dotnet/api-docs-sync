@@ -7,9 +7,9 @@ namespace DocsPortingTool
 {
     class DocsPortingTool
     {
-        public static async Task Main(string[] args)
+        public static void /*async Task*/ Main(string[] args)
         {
-            Task loggingTask = Log.StartAsync();
+            //Task loggingTask = Log.StartAsync();
             Configuration config = Configuration.GetCLIArgumentsForDocsPortingTool(args);
             switch (config.Direction)
             {
@@ -28,8 +28,8 @@ namespace DocsPortingTool
                     throw new ArgumentOutOfRangeException($"Unrecognized porting direction: {config.Direction}");
             }
 
-            Log.Finished();
-            await loggingTask;
+            //Log.Finished();
+            //await loggingTask;
         }
     }
 }

@@ -1,3 +1,5 @@
+using System.IO;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -114,7 +116,7 @@ namespace Libraries.Tests
             }
         }
 
-        private Configuration GetConfiguration(
+        private static Configuration GetConfiguration(
             bool disablePrompts = true,
             bool printUndoc = false,
             bool save = true,
@@ -137,11 +139,11 @@ namespace Libraries.Tests
                 SkipInterfaceRemarks = skipInterfaceRemarks
             };
 
-        private void PortToDocs(
+        private static void PortToDocs(
             string testName,
             Configuration c,
             string assemblyName = TestData.TestAssembly,
-            string? namespaceName = null) // Most namespaces have the same assembly name
+            string namespaceName = null) // Most namespaces have the same assembly name
         {
             using TestDirectory testDirectory = new();
 
@@ -176,13 +178,13 @@ namespace Libraries.Tests
 
             foreach (var expectedFile in expectedXmlFiles)
             {
-                FileInfo? actualFile = actualXmlFiles.FirstOrDefault(x =>
+                FileInfo actualFile = actualXmlFiles.FirstOrDefault(x =>
                     x.Name == expectedFile.Name &&
                     Path.GetFileName(x.DirectoryName) == Path.GetFileName(expectedFile.DirectoryName));
                 Assert.NotNull(actualFile);
 
                 string expectedText = File.ReadAllText(expectedFile.FullName);
-                string actualText = File.ReadAllText(actualFile!.FullName);
+                string actualText = File.ReadAllText(actualFile.FullName);
 
                 Assert.Equal(expectedText, actualText);
             }

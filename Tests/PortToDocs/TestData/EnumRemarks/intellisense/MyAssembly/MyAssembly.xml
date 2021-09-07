@@ -1,0 +1,16 @@
+﻿<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name="T:MyNamespace.MyEnum">
+      <summary>The summary of MyEnum.</summary>
+      <remarks>These are the enum remarks and it's fine if they are ported.</remarks>
+    </member>
+    <member name="F:MyNamespace.MyEnum.MyField">
+      <summary>The summary of MyEnum.MyField.</summary>
+      <remarks>These are field enum remarks that should not be ported.</remarks>
+    </member>
+  </members>
+</doc>

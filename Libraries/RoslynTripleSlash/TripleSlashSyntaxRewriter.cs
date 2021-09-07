@@ -142,11 +142,13 @@ namespace Libraries.RoslynTripleSlash
 
         private DocsCommentsContainer DocsComments { get; }
         private SemanticModel Model { get; }
+        private Configuration Config { get; }
 
         #endregion
 
-        public TripleSlashSyntaxRewriter(DocsCommentsContainer docsComments, SemanticModel model) : base(visitIntoStructuredTrivia: true)
+        public TripleSlashSyntaxRewriter(Configuration config, DocsCommentsContainer docsComments, SemanticModel model) : base(visitIntoStructuredTrivia: true)
         {
+            Config = config;
             DocsComments = docsComments;
             Model = model;
         }
@@ -239,7 +241,7 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
             SyntaxTriviaList value = GetValue(member, leadingWhitespace);
             SyntaxTriviaList exceptions = GetExceptions(member.Exceptions, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
+            SyntaxTriviaList remarks = Config.PortMemberRemarks ? GetRemarks(member, leadingWhitespace) : new();
             SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
             SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
@@ -303,7 +305,7 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList summary = GetSummary(type, leadingWhitespace);
             SyntaxTriviaList typeParameters = GetTypeParameters(type, leadingWhitespace);
             SyntaxTriviaList parameters = GetParameters(type, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(type, leadingWhitespace);
+            SyntaxTriviaList remarks = Config.PortTypeRemarks ? GetRemarks(type, leadingWhitespace) : new();
             SyntaxTriviaList seealsos = GetSeeAlsos(type.SeeAlsoCrefs, leadingWhitespace);
             SyntaxTriviaList altmembers = GetAltMembers(type.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(type.Relateds, leadingWhitespace);
@@ -328,7 +330,7 @@ namespace Libraries.RoslynTripleSlash
             SyntaxTriviaList parameters = GetParameters(member, leadingWhitespace);
             SyntaxTriviaList returns = GetReturns(member, leadingWhitespace);
             SyntaxTriviaList exceptions = GetExceptions(member.Exceptions, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
+            SyntaxTriviaList remarks = Config.PortMemberRemarks ? GetRemarks(member, leadingWhitespace) : new();
             SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
             SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
@@ -347,7 +349,7 @@ namespace Libraries.RoslynTripleSlash
 
             SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
             SyntaxTriviaList exceptions = GetExceptions(member.Exceptions, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
+            SyntaxTriviaList remarks = Config.PortMemberRemarks ? GetRemarks(member, leadingWhitespace) : new();
             SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
             SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
             SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
@@ -371,7 +373,7 @@ namespace Libraries.RoslynTripleSlash
                 SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
 
                 SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
-                SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
+                SyntaxTriviaList remarks = Config.PortMemberRemarks ? GetRemarks(member, leadingWhitespace) : new();
                 SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
                 SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
                 SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);

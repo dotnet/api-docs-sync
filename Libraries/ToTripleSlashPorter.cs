@@ -293,7 +293,7 @@ namespace Libraries
             foreach ((string filePath, LocationInformation info) in ResolvedLocations)
             {
                 Log.Info($"Porting docs for '{filePath}'...");
-                TripleSlashSyntaxRewriter rewriter = new(DocsComments, info.Model);
+                TripleSlashSyntaxRewriter rewriter = new(Config, DocsComments, info.Model);
                 SyntaxNode newRoot = rewriter.Visit(info.Tree.GetRoot())
                     ?? throw new NullReferenceException($"Returned null root node for {info.Api.FullName} in {info.Tree.FilePath}");
 

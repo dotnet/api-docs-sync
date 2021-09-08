@@ -282,6 +282,8 @@ namespace Libraries
                     updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
                 }
             }
+
+            updatedValue = Regex.Replace(updatedValue, @"[\r\n\t ]+\-[ ]?or[ ]?\-[\r\n\t ]+", "\r\n\r\n-or-\r\n\r\n");
             return updatedValue;
         }
 

@@ -191,7 +191,8 @@ namespace Libraries.Docs
         {
             XElement exception = new XElement("exception");
             exception.SetAttributeValue("cref", cref);
-            XmlHelper.AddChildFormattedAsXml(Docs, exception, value);
+            XmlHelper.SaveFormattedAsXml(exception, value, removeUndesiredEndlines: false);
+            Docs.Add(exception);
             Changed = true;
             return new DocsException(this, exception);
         }

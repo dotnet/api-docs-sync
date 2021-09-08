@@ -29,7 +29,19 @@
         <summary>This is the method summary.</summary>
         <remarks>To be added.</remarks>
         <exception cref="T:System.ArgumentNullException">This is the original text of ArgumentNullException thrown for MyMethod.</exception>
-        <exception cref="T:System.IndexOutOfRangeException">This is the original text of IndexOutOfRangeException thrown for MyMethod.</exception>
+        <exception cref="T:System.IndexOutOfRangeException">This is the original text of IndexOutOfRangeException thrown for MyMethod.
+
+-or-
+
+A proper alternative.
+
+-or-
+
+An improper alternative.
+
+-or-
+
+A somewhat proper alternative.</exception>
       </Docs>
     </Member>
   </Members>

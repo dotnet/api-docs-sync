@@ -43,6 +43,7 @@ namespace Libraries
             PortTypeRemarks,
             PortTypeSummaries,
             PortTypeTypeParams, // TypeParams of a Type
+            PrintSummaryDetails,
             PrintUndoc,
             Save,
             SkipInterfaceImplementations,
@@ -77,7 +78,7 @@ namespace Libraries
         public PortingDirection Direction { get; set; } = PortingDirection.ToDocs;
         public List<DirectoryInfo> DirsIntelliSense { get; } = new List<DirectoryInfo>();
         public List<DirectoryInfo> DirsDocsXml { get; } = new List<DirectoryInfo>();
-        public bool DisablePrompts { get; set; } = false;
+        public bool DisablePrompts { get; set; } = true;
         public int ExceptionCollisionThreshold { get; set; } = 70;
         public HashSet<string> ExcludedAssemblies { get; } = new HashSet<string>();
         public HashSet<string> ExcludedNamespaces { get; } = new HashSet<string>();
@@ -103,6 +104,7 @@ namespace Libraries
         /// TypeParams of a Type.
         /// </summary>
         public bool PortTypeTypeParams { get; set; } = true;
+        public bool PrintSummaryDetails { get; set; } = false;
         public bool PrintUndoc { get; set; } = false;
         public bool Save { get; set; } = false;
         public bool SkipInterfaceImplementations { get; set; } = false;
@@ -116,7 +118,7 @@ namespace Libraries
 
             if (args == null || args.Length == 0)
             {
-                Log.PrintHelpAndError("No arguments passed to the executable.");
+                Log.ErrorAndExit("No arguments passed to the executable.");
             }
 
             Configuration config = new Configuration();
@@ -235,7 +237,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.PrintHelpAndError("You must specify at least one assembly.");
+                                Log.ErrorAndExit("You must specify at least one assembly.");
                             }
 
                             mode = Mode.Initial;
@@ -257,7 +259,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.PrintHelpAndError("You must specify at least one namespace.");
+                                Log.ErrorAndExit("You must specify at least one namespace.");
                             }
 
                             mode = Mode.Initial;
@@ -279,7 +281,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.PrintHelpAndError("You must specify at least one type name.");
+                                Log.ErrorAndExit("You must specify at least one type name.");
                             }
 
                             mode = Mode.Initial;
@@ -301,7 +303,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.PrintHelpAndError("You must specify at least one assembly.");
+                                Log.ErrorAndExit("You must specify at least one assembly.");
                             }
 
                             mode = Mode.Initial;
@@ -323,7 +325,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.PrintHelpAndError("You must specify at least one namespace.");
+                                Log.ErrorAndExit("You must specify at least one namespace.");
                             }
 
                             mode = Mode.Initial;
@@ -345,7 +347,7 @@ namespace Libraries
                             }
                             else
                             {
-                                Log.PrintHelpAndError("You must specify at least one type name.");
+                                Log.ErrorAndExit("You must specify at least one type name.");
                             }
 
                             mode = Mode.Initial;
@@ -462,6 +464,10 @@ namespace Libraries
                                     mode = Mode.PortTypeTypeParams;
                                     break;
 
+                                case "-PRINTSUMMARYDETAILS":
+                                    mode = Mode.PrintSummaryDetails;
+                                    break;
+
                                 case "-PRINTUNDOC":
                                     mode = Mode.PrintUndoc;
                                     break;
@@ -479,7 +485,7 @@ namespace Libraries
                                     break;
 
                                 default:
-                                    Log.PrintHelpAndError($"Unrecognized argument: {arg}");
+                                    Log.ErrorAndExit($"Unrecognized argument: {arg}");
                                     break;
                             }
                             break;
@@ -590,6 +596,13 @@ namespace Libraries
                             break;
                         }
 
+                    case Mode.PrintSummaryDetails:
+                        {
+                            config.PrintSummaryDetails = ParseOrExit(arg, "Print summary details");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
                     case Mode.PrintUndoc:
                         {
                             config.PrintUndoc = ParseOrExit(arg, "Print undoc");
@@ -620,7 +633,7 @@ namespace Libraries
 
                     default:
                         {
-                            Log.PrintHelpAndError("Unexpected mode.");
+                            Log.ErrorAndExit("Unexpected mode.");
                             break;
                         }
                 }
@@ -628,19 +641,19 @@ namespace Libraries
 
             if (mode != Mode.Initial)
             {
-                Log.PrintHelpAndError("You missed an argument value.");
+                Log.ErrorAndExit("You missed an argument value.");
             }
 
             if (config.DirsDocsXml == null)
             {
-                Log.PrintHelpAndError($"You must specify a path to the dotnet-api-docs xml folder using '-{nameof(Mode.Docs)}'.");
+                Log.ErrorAndExit($"You must specify a path to the dotnet-api-docs xml folder using '-{nameof(Mode.Docs)}'.");
             }
 
             if (config.Direction == PortingDirection.ToDocs)
             {
                 if (config.DirsIntelliSense.Count == 0)
                 {
-                    Log.PrintHelpAndError($"You must specify at least one IntelliSense & DLL folder using '-{nameof(Mode.IntelliSense)}'.");
+                    Log.ErrorAndExit($"You must specify at least one IntelliSense & DLL folder using '-{nameof(Mode.IntelliSense)}'.");
                 }
             }
 
@@ -648,13 +661,13 @@ namespace Libraries
             {
                 if (config.CsProj == null)
                 {
-                    Log.PrintHelpAndError($"You must specify a *.csproj file using '-{nameof(Mode.CsProj)}'.");
+                    Log.ErrorAndExit($"You must specify a *.csproj file using '-{nameof(Mode.CsProj)}'.");
                 }
             }
 
             if (config.IncludedAssemblies.Count == 0)
             {
-                Log.PrintHelpAndError($"You must specify at least one assembly with {nameof(IncludedAssemblies)}.");
+                Log.ErrorAndExit($"You must specify at least one assembly with {nameof(IncludedAssemblies)}.");
             }
 
             return config;

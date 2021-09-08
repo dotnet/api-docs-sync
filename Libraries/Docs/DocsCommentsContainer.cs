@@ -47,12 +47,10 @@ namespace Libraries.Docs
                 return;
             }
 
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
             List<string> savedFiles = new();
             foreach (var type in Types.Values.Where(x => x.Changed))
             {
-                Log.Warning(false, $"Saving changes for {type.FilePath}:");
+                Log.Info(false, $"Saving changes for {type.FilePath} ... ");
 
                 try
                 {
@@ -82,7 +80,6 @@ namespace Libraries.Docs
                 catch (Exception e)
                 {
                     Log.Error("Failed to write to {0}. {1}", type.FilePath, e.Message);
-                    Log.Line();
                     Log.Error(e.StackTrace ?? string.Empty);
                     if (e.InnerException != null)
                     {
@@ -92,8 +89,6 @@ namespace Libraries.Docs
                         Log.Error(e.InnerException.StackTrace ?? string.Empty);
                     }
                 }
-
-                Log.Line();
             }
         }
 
@@ -168,16 +163,17 @@ namespace Libraries.Docs
 
         private void LoadFile(FileInfo fileInfo)
         {
-            Encoding encoding;
+            Encoding? encoding = null;
             try
             {
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                using (StreamReader sr = new(fileInfo.FullName, detectEncodingFromByteOrderMarks: true))
+                var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+                var utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+                using (StreamReader sr = new(fileInfo.FullName, utf8NoBom, detectEncodingFromByteOrderMarks: true))
                 {
                     xDoc = XDocument.Load(sr);
-                    // Fall back to the most common codepage used in dotnet-api-docs xml files
-                    encoding = sr.CurrentEncoding ?? Encoding.GetEncoding(1252);
+                    encoding = sr.CurrentEncoding;
                 }
+
             }
             catch(Exception ex)
             {

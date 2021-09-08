@@ -50,11 +50,10 @@ namespace Libraries
             }
 
             PortMissingComments();
-
+            DocsComments.Save();
             PrintUndocumentedAPIs();
             PrintSummary();
 
-            DocsComments.Save();
         }
 
         private void PortMissingComments()
@@ -85,7 +84,7 @@ namespace Libraries
                     TryPortMissingTypeParamsForAPI(dTypeToUpdate, tsTypeToPort, null); // Type names ending with <T> have TypeParams
                     if (dTypeToUpdate.BaseTypeName == "System.Delegate")
                     {
-                        TryPortMissingMethodForMember(dTypeToUpdate, tsTypeToPort, null);
+                        TryPortMissingReturnsForMember(dTypeToUpdate, tsTypeToPort, null);
                     }
                 }
 
@@ -119,7 +118,7 @@ namespace Libraries
                 }
                 else if (dMemberToUpdate.MemberType == "Method")
                 {
-                    TryPortMissingMethodForMember(dMemberToUpdate, tsMemberToPort, interfacedMember);
+                    TryPortMissingReturnsForMember(dMemberToUpdate, tsMemberToPort, interfacedMember);
                 }
 
                 if (dMemberToUpdate.Changed)
@@ -209,6 +208,14 @@ namespace Libraries
             if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeRemarks ||
                 dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberRemarks)
             {
+                return;
+            }
+
+            if (dApiToUpdate is DocsMember member &&
+                member.ParentType.BaseTypeName == "System.Enum" &&
+                member.MemberType == "Field")
+            {
+                // Avoid porting remarks for enums, they are not allowed in dotnet-api-docs (cause build warnings)
                 return;
             }
 
@@ -315,7 +322,12 @@ namespace Libraries
                             if (tsMemberToPort.Params.Count() == 0)
                             {
                                 ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
-                                Log.Warning($"  There were no IntelliSense xml comments for param '{dParam.Name}' in {dApiToUpdate.DocId}");
+                                Log.Warning($"There were no IntelliSense xml comments for param '{dParam.Name}' in {dApiToUpdate.DocId}");
+                            }
+                            else if (tsMemberToPort.Params.Count() != dApiToUpdate.Params.Count())
+                            {
+                                ProblematicAPIs.AddIfNotExists($"Param=[{dParam.Name}] in Member DocId=[{dApiToUpdate.DocId}]");
+                                Log.Warning($"The total number of params does not match between the IntelliSense and the Docs members: {dApiToUpdate.DocId}");
                             }
                             else
                             {
@@ -515,8 +527,8 @@ namespace Libraries
             }
         }
 
-        // Tries to document the passed method.
-        private void TryPortMissingMethodForMember(IDocsAPI dMemberToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
+        // Tries to document the returns element of the specified API: it can be a Method Member, or a Delegate Type.
+        private void TryPortMissingReturnsForMember(IDocsAPI dMemberToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
         {
             if (!Config.PortMemberReturns)
             {
@@ -628,7 +640,7 @@ namespace Libraries
                 Log.Error($"The param probably exists in code, but the exact name was not found in Docs. What would you like to do?");
                 Log.Warning("    0 - Exit program.");
                 Log.Info("    1 - Select the correct IntelliSense xml param from the existing ones.");
-                Log.Info("    2 - Ignore this param.");
+                Log.Info("    2 - Ignore this param and continue.");
                 Log.Warning("      Note:Make sure to double check the affected Docs file after the tool finishes executing.");
                 Log.Cyan(false, "Your answer [0,1,2]: ");
 
@@ -655,7 +667,8 @@ namespace Libraries
                                 {
                                     Log.Info($"IntelliSense xml params found in member '{tsMember.Name}':");
                                     Log.Warning("    0 - Exit program.");
-                                    int paramCounter = 1;
+                                    Log.Info("    1 - Ignore this param and continue.");
+                                    int paramCounter = 2;
                                     foreach (IntelliSenseXmlParam param in tsMember.Params)
                                     {
                                         Log.Info($"    {paramCounter} - {param.Name}");
@@ -679,9 +692,14 @@ namespace Libraries
                                         Log.Info("Goodbye!");
                                         Environment.Exit(0);
                                     }
+                                    else if (paramSelection == 1)
+                                    {
+                                        Log.Info("Skipping this param.");
+                                        break;
+                                    }
                                     else
                                     {
-                                        newTsParam = tsMember.Params[paramSelection - 1];
+                                        newTsParam = tsMember.Params[paramSelection - 2];
                                         Log.Success($"Selected: {newTsParam.Name}");
                                     }
                                 }
@@ -716,11 +734,14 @@ namespace Libraries
         /// <param name="docId">The API unique identifier.</param>
         private void PrintModifiedMember(string message, string docsFilePath, string docId)
         {
-            Log.Warning($"    File: {docsFilePath}");
-            Log.Warning($"        DocID: {docId}");
-            Log.Warning($"        {message}");
-            Log.Info("---------------------------------------------------");
-            Log.Line();
+            if (Config.PrintSummaryDetails)
+            {
+                Log.Warning($"    File: {docsFilePath}");
+                Log.Warning($"        DocID: {docId}");
+                Log.Warning($"        {message}");
+                Log.Info("---------------------------------------------------");
+                Log.Line();
+            }
         }
 
         // Prints all the undocumented APIs.
@@ -858,48 +879,65 @@ namespace Libraries
         private void PrintSummary()
         {
             Log.Line();
-            Log.Success("---------");
-            Log.Success("FINISHED!");
-            Log.Success("---------");
-
-            Log.Line();
             Log.Info($"Total modified files: {ModifiedFiles.Count}");
-            foreach (string file in ModifiedFiles)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Success($"    - {file}");
+                foreach (string file in ModifiedFiles)
+                {
+                    Log.Success($"    - {file}");
+                }
+                Log.Line();
             }
 
-            Log.Line();
             Log.Info($"Total modified types: {ModifiedTypes.Count}");
-            foreach (string type in ModifiedTypes)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Success($"    - {type}");
+                foreach (string type in ModifiedTypes)
+                {
+                    Log.Success($"    - {type}");
+                }
+                Log.Line();
             }
 
-            Log.Line();
             Log.Info($"Total modified APIs: {ModifiedAPIs.Count}");
-            foreach (string api in ModifiedAPIs)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Success($"    - {api}");
+                foreach (string api in ModifiedAPIs)
+                {
+                    Log.Success($"    - {api}");
+                }
             }
 
             Log.Line();
             Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
-            foreach (string api in ProblematicAPIs)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Warning($"    - {api}");
+                foreach (string api in ProblematicAPIs)
+                {
+                    Log.Warning($"    - {api}");
+                }
+                Log.Line();
             }
 
-            Log.Line();
             Log.Info($"Total added exceptions: {AddedExceptions.Count}");
-            foreach (string exception in AddedExceptions)
+            if (Config.PrintSummaryDetails)
             {
-                Log.Success($"    - {exception}");
+                foreach (string exception in AddedExceptions)
+                {
+                    Log.Success($"    - {exception}");
+                }
+                Log.Line();
             }
 
-            Log.Line();
             Log.Info(false, "Total modified individual elements: ");
             Log.Success($"{TotalModifiedIndividualElements}");
+
+            Log.Line();
+            Log.Success("---------");
+            Log.Success("FINISHED!");
+            Log.Success("---------");
+            Log.Line();
+
         }
     }
 }

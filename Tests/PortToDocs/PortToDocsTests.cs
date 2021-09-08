@@ -87,6 +87,13 @@ namespace Libraries.Tests
             PortToDocs("Exception_ExistingCref", c);
         }
 
+        [Fact]
+        // Avoid porting enum field remarks
+        public void Port_EnumRemarks()
+        {
+            PortToDocs("EnumRemarks", GetConfiguration());
+        }
+
         private static readonly string TestDataRootDir = Path.Join("..", "..", "..", "PortToDocs", "TestData");
         private static readonly string IntellisenseDir = "intellisense";
         private static readonly string XmlExpectedDir = "xml_expected";

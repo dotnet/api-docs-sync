@@ -47,8 +47,6 @@ namespace Libraries.Docs
                 return;
             }
 
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
             List<string> savedFiles = new();
             foreach (var type in Types.Values.Where(x => x.Changed))
             {
@@ -165,16 +163,17 @@ namespace Libraries.Docs
 
         private void LoadFile(FileInfo fileInfo)
         {
-            Encoding encoding;
+            Encoding? encoding = null;
             try
             {
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                using (StreamReader sr = new(fileInfo.FullName, detectEncodingFromByteOrderMarks: true))
+                var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+                var utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+                using (StreamReader sr = new(fileInfo.FullName, utf8NoBom, detectEncodingFromByteOrderMarks: true))
                 {
                     xDoc = XDocument.Load(sr);
-                    // Fall back to the most common codepage used in dotnet-api-docs xml files
-                    encoding = sr.CurrentEncoding ?? Encoding.GetEncoding(1252);
+                    encoding = sr.CurrentEncoding;
                 }
+
             }
             catch(Exception ex)
             {

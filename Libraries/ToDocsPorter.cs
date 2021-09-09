@@ -138,16 +138,17 @@ namespace Libraries
             string docId = dMemberToUpdate.DocIdEscaped;
             DocsMember? dInterfacedMember = null;
             bool isEII = false;
-            string summary = string.Empty;
-            string returns = string.Empty;
-            string remarks = string.Empty;
+            bool isProperty = dMemberToUpdate.MemberType == "Property";
+            bool isMethod = dMemberToUpdate.MemberType == "Method";
+
+            string? summary = null;
+            string? remarks = null;
+            string? property = null;
+            string? returns = null;
 
             if (IntelliSenseXmlComments.Members.TryGetValue(docId, out IntelliSenseXmlMember? tsMemberToPort) && tsMemberToPort != null)
             {
                 IntelliSenseXmlMember tsAcualMemberToPort = tsMemberToPort;
-                summary = tsMemberToPort.Summary;
-                returns = tsMemberToPort.Returns;
-                remarks = tsMemberToPort.Remarks;
 
                 // Rare case where the base type or interface docs should be used
                 if (tsMemberToPort.InheritDoc)
@@ -159,8 +160,16 @@ namespace Libraries
                         tsMemberToPort = tsInheritedMember;
 
                         summary = tsInheritedMember.Summary;
-                        returns = tsInheritedMember.Returns;
                         remarks = tsInheritedMember.Remarks;
+
+                        if (isProperty)
+                        {
+                            property = GetPropertyValue(tsMemberToPort.Value, tsMemberToPort.Returns);
+                        }
+                        else if (isMethod)
+                        {
+                            returns = tsInheritedMember.Returns;
+                        }
                     }
                     // Look for the base type and find the member from which this one inherits
                     else if (DocsComments.Types.TryGetValue($"T:{dMemberToUpdate.ParentType.DocIdEscaped}", out DocsType? dBaseType) && dBaseType != null)
@@ -196,17 +205,47 @@ namespace Libraries
                                 summary = dBaseMember.Summary;
                                 returns = dBaseMember.Returns;
                                 remarks = dBaseMember.Remarks;
+
+                                if (isProperty)
+                                {
+                                    property = GetPropertyValue(dBaseMember.Value, dBaseMember.Returns);
+                                }
+                                else
+                                {
+                                    returns = dBaseMember.Returns;
+                                }
                             }
                         }
+                    }
+                }
+                else
+                {
+                    summary = tsMemberToPort.Summary;
+                    remarks = tsMemberToPort.Remarks;
+                    if (isProperty)
+                    {
+                        property = GetPropertyValue(tsMemberToPort.Value, tsMemberToPort.Returns);
+                    }
+                    else if (isMethod)
+                    {
+                        returns = tsMemberToPort.Returns;
                     }
                 }
             }
             else if (TryGetEIIMember(dMemberToUpdate, out dInterfacedMember) && dInterfacedMember != null)
             {
                 summary = dInterfacedMember.Summary;
-                returns = dInterfacedMember.Returns;
 
-                if (dInterfacedMember != null && !dInterfacedMember.Remarks.IsDocsEmpty())
+                if (isProperty)
+                {
+                    property = GetPropertyValue(dInterfacedMember.Value, dInterfacedMember.Returns);
+                }
+                else if (isMethod)
+                {
+                    returns = dInterfacedMember.Returns;
+                }
+
+                if (!dInterfacedMember.Remarks.IsDocsEmpty())
                 {
                     // Only attempt to port if the member name is the same as the interfaced member docid without prefix
                     if (dMemberToUpdate.MemberName == dInterfacedMember.DocIdEscaped[2..])
@@ -246,12 +285,11 @@ namespace Libraries
                 TryPortMissingTypeParamsForAPI(dMemberToUpdate, tsMemberToPort, dInterfacedMember);
                 TryPortMissingExceptionsForMember(dMemberToUpdate, tsMemberToPort);
 
-                // Properties sometimes don't have a <value> but have a <returns>
-                if (dMemberToUpdate.MemberType == "Property")
+                if (isProperty)
                 {
-                    TryPortMissingPropertyForMember(dMemberToUpdate, tsMemberToPort, dInterfacedMember);
+                    TryPortMissingPropertyForMember(dMemberToUpdate, docId, property, isEII);
                 }
-                else if (dMemberToUpdate.MemberType == "Method")
+                else if (isMethod)
                 {
                     TryPortMissingReturnsForMember(dMemberToUpdate, docId, returns, isEII);
                 }
@@ -262,6 +300,21 @@ namespace Libraries
                     ModifiedFiles.AddIfNotExists(dMemberToUpdate.FilePath);
                 }
             }
+        }
+
+        // Issue: sometimes properties have their TS string in Value, sometimes in Returns
+        private string? GetPropertyValue(string value, string returns)
+        {
+            string? property = null;
+            if (!value.IsDocsEmpty())
+            {
+                property = value;
+            }
+            else if (!returns.IsDocsEmpty())
+            {
+                property = returns;
+            }
+            return property;
         }
 
         // Attempts to obtain the member of the implemented interface.
@@ -329,8 +382,6 @@ namespace Libraries
                 TotalModifiedIndividualElements++;
              }
         }
-
-
 
         // Ports all the parameter descriptions for the specified API if any of them is undocumented.
         private void TryPortMissingParamsForAPI(IDocsAPI dApiToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
@@ -512,68 +563,20 @@ namespace Libraries
         }
 
         // Tries to document the passed property.
-        private void TryPortMissingPropertyForMember(DocsMember dMemberToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
+        private void TryPortMissingPropertyForMember(DocsMember dMemberToUpdate, string docId, string? property, bool isEII = false)
         {
-            if (!Config.PortMemberProperties)
+            if (Config.PortMemberProperties && !property.IsDocsEmpty())
             {
-                return;
-            }
-
-            if (dMemberToUpdate.Value.IsDocsEmpty())
-            {
-                string name = string.Empty;
-                string value = string.Empty;
-                bool isEII = false;
-
-                // Issue: sometimes properties have their TS string in Value, sometimes in Returns
-                if (tsMemberToPort != null)
-                {
-                    name = tsMemberToPort.Name;
-                    if (!tsMemberToPort.Value.IsDocsEmpty())
-                    {
-                        value = tsMemberToPort.Value;
-                    }
-                    else if (!tsMemberToPort.Returns.IsDocsEmpty())
-                    {
-                        value = tsMemberToPort.Returns;
-                    }
-                }
-                // or try to find if it implements a documented interface
-                else if (interfacedMember != null)
-                {
-                    name = interfacedMember.MemberName;
-                    if (!interfacedMember.Value.IsDocsEmpty())
-                    {
-                        value = interfacedMember.Value;
-                    }
-                    else if (!interfacedMember.Returns.IsDocsEmpty())
-                    {
-                        value = interfacedMember.Returns;
-                    }
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        isEII = true;
-                    }
-                }
-
-                if (!value.IsDocsEmpty())
-                {
-                    dMemberToUpdate.Value = value;
-                    PrintModifiedMember("property", dMemberToUpdate.FilePath,dMemberToUpdate.DocId, isEII);
-                    TotalModifiedIndividualElements++;
-                }
+                dMemberToUpdate.Value = property!;
+                PrintModifiedMember("property", dMemberToUpdate.FilePath, docId, isEII);
+                TotalModifiedIndividualElements++;
             }
         }
 
         // Tries to document the returns element of the specified API: it can be a Method Member, or a Delegate Type.
-        private void TryPortMissingReturnsForMember(IDocsAPI dMemberToUpdate, string docId, string returns, bool isEII = false)
+        private void TryPortMissingReturnsForMember(IDocsAPI dMemberToUpdate, string docId, string? returns, bool isEII = false)
         {
-            if (!Config.PortMemberReturns)
-            {
-                return;
-            }
-
-            if (dMemberToUpdate.Returns.IsDocsEmpty())
+            if (Config.PortMemberReturns && !returns.IsDocsEmpty())
             {
                 // Bug: Sometimes a void return value shows up as not documented, skip those
                 if (dMemberToUpdate.ReturnType == "System.Void")
@@ -582,8 +585,8 @@ namespace Libraries
                 }
                 else if (!returns.IsDocsEmpty())
                 {
-                    dMemberToUpdate.Returns = returns;
-                    PrintModifiedMember("returns", dMemberToUpdate.FilePath, dMemberToUpdate.DocId, isEII);
+                    dMemberToUpdate.Returns = returns!;
+                    PrintModifiedMember("returns", dMemberToUpdate.FilePath, docId, isEII);
                     TotalModifiedIndividualElements++;
                 }
             }

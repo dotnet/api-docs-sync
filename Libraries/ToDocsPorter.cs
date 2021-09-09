@@ -80,6 +80,7 @@ namespace Libraries
                 IntelliSenseXmlMember tsActualTypeToPort = tsTypeToPort;
 
                 string summary = tsActualTypeToPort.Summary;
+                string returns = tsActualTypeToPort.Returns;
                 string remarks = tsActualTypeToPort.Remarks;
 
                 // Rare case where the base type or interface docs should be used
@@ -93,6 +94,7 @@ namespace Libraries
                             tsActualTypeToPort = tsInheritedMember;
 
                             summary = tsInheritedMember.Summary;
+                            returns = tsInheritedMember.Returns;
                             remarks = tsInheritedMember.Remarks;
                         }
                     }
@@ -108,6 +110,7 @@ namespace Libraries
                         }
 
                         summary = dBaseType.Summary;
+                        returns = dBaseType.Returns;
                         remarks = dBaseType.Remarks;
                     }
                 }
@@ -118,7 +121,7 @@ namespace Libraries
                 TryPortMissingTypeParamsForAPI(dTypeToUpdate, tsActualTypeToPort, null); // Type names ending with <T> have TypeParams
                 if (dTypeToUpdate.BaseTypeName == "System.Delegate")
                 {
-                    TryPortMissingReturnsForMember(dTypeToUpdate, tsActualTypeToPort, null);
+                    TryPortMissingReturnsForMember(dTypeToUpdate, docId, returns);
                 }
             }
 
@@ -136,12 +139,14 @@ namespace Libraries
             DocsMember? dInterfacedMember = null;
             bool isEII = false;
             string summary = string.Empty;
+            string returns = string.Empty;
             string remarks = string.Empty;
 
             if (IntelliSenseXmlComments.Members.TryGetValue(docId, out IntelliSenseXmlMember? tsMemberToPort) && tsMemberToPort != null)
             {
                 IntelliSenseXmlMember tsAcualMemberToPort = tsMemberToPort;
                 summary = tsMemberToPort.Summary;
+                returns = tsMemberToPort.Returns;
                 remarks = tsMemberToPort.Remarks;
 
                 // Rare case where the base type or interface docs should be used
@@ -154,6 +159,7 @@ namespace Libraries
                         tsMemberToPort = tsInheritedMember;
 
                         summary = tsInheritedMember.Summary;
+                        returns = tsInheritedMember.Returns;
                         remarks = tsInheritedMember.Remarks;
                     }
                     // Look for the base type and find the member from which this one inherits
@@ -188,6 +194,7 @@ namespace Libraries
                                 }
 
                                 summary = dBaseMember.Summary;
+                                returns = dBaseMember.Returns;
                                 remarks = dBaseMember.Remarks;
                             }
                         }
@@ -197,6 +204,7 @@ namespace Libraries
             else if (TryGetEIIMember(dMemberToUpdate, out dInterfacedMember) && dInterfacedMember != null)
             {
                 summary = dInterfacedMember.Summary;
+                returns = dInterfacedMember.Returns;
 
                 if (dInterfacedMember != null && !dInterfacedMember.Remarks.IsDocsEmpty())
                 {
@@ -245,7 +253,7 @@ namespace Libraries
                 }
                 else if (dMemberToUpdate.MemberType == "Method")
                 {
-                    TryPortMissingReturnsForMember(dMemberToUpdate, tsMemberToPort, dInterfacedMember);
+                    TryPortMissingReturnsForMember(dMemberToUpdate, docId, returns, isEII);
                 }
 
                 if (dMemberToUpdate.Changed)
@@ -321,6 +329,8 @@ namespace Libraries
                 TotalModifiedIndividualElements++;
              }
         }
+
+
 
         // Ports all the parameter descriptions for the specified API if any of them is undocumented.
         private void TryPortMissingParamsForAPI(IDocsAPI dApiToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
@@ -556,7 +566,7 @@ namespace Libraries
         }
 
         // Tries to document the returns element of the specified API: it can be a Method Member, or a Delegate Type.
-        private void TryPortMissingReturnsForMember(IDocsAPI dMemberToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
+        private void TryPortMissingReturnsForMember(IDocsAPI dMemberToUpdate, string docId, string returns, bool isEII = false)
         {
             if (!Config.PortMemberReturns)
             {
@@ -565,30 +575,14 @@ namespace Libraries
 
             if (dMemberToUpdate.Returns.IsDocsEmpty())
             {
-                string name = string.Empty;
-                string value = string.Empty;
-                bool isEII = false;
-
                 // Bug: Sometimes a void return value shows up as not documented, skip those
                 if (dMemberToUpdate.ReturnType == "System.Void")
                 {
-                    ProblematicAPIs.AddIfNotExists($"Unexpected System.Void return value in Method=[{dMemberToUpdate.DocId}]");
+                    ProblematicAPIs.AddIfNotExists($"Unexpected System.Void return value in Method=[{docId}]");
                 }
-                else if (tsMemberToPort != null && !tsMemberToPort.Returns.IsDocsEmpty())
+                else if (!returns.IsDocsEmpty())
                 {
-                    name = tsMemberToPort.Name;
-                    value = tsMemberToPort.Returns;
-                }
-                else if (interfacedMember != null && !interfacedMember.Returns.IsDocsEmpty())
-                {
-                    name = interfacedMember.MemberName;
-                    value = interfacedMember.Returns;
-                    isEII = true;
-                }
-
-                if (!value.IsDocsEmpty())
-                {
-                    dMemberToUpdate.Returns = value;
+                    dMemberToUpdate.Returns = returns;
                     PrintModifiedMember("returns", dMemberToUpdate.FilePath, dMemberToUpdate.DocId, isEII);
                     TotalModifiedIndividualElements++;
                 }

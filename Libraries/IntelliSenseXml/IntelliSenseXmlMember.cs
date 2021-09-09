@@ -9,8 +9,55 @@ namespace Libraries.IntelliSenseXml
     {
         private readonly XElement XEMember;
 
+        private XElement? _xInheritDoc = null;
+        private XElement? XInheritDoc
+        {
+            get
+            {
+                if (_xInheritDoc == null)
+                {
+                    _xInheritDoc = XEMember.Elements("inheritdoc").FirstOrDefault();
+                }
+                return _xInheritDoc;
+            }
+        }
+
         public string Assembly { get; private set; }
 
+        private string? _inheritDocCref = null;
+        public string InheritDocCrefEscaped
+        {
+            get
+            {
+                if (_inheritDocCref == null)
+                {
+                    _inheritDocCref = string.Empty;
+                    if (InheritDoc && XInheritDoc != null)
+                    {
+                        XAttribute? xInheritDocCref = XInheritDoc.Attribute("cref");
+                        if (xInheritDocCref != null)
+                        {
+                            _inheritDocCref = xInheritDocCref.Value.DocIdEscaped();
+                        }
+                    }
+                }
+                return _inheritDocCref;
+            }
+        }
+
+        private bool? _inheritDoc = null;
+        public bool InheritDoc
+        {
+            get
+            {
+                if (!_inheritDoc.HasValue)
+                {
+                    _inheritDoc = XInheritDoc != null;
+
+                }
+                return _inheritDoc.Value;
+            }
+        }
 
         private string _namespace = string.Empty;
         public string Namespace

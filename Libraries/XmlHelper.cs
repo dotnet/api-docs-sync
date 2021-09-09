@@ -156,7 +156,7 @@ namespace Libraries
             XElement xeFormat = new XElement("format");
 
             string updatedValue = SubstituteRemarksRegexPatterns(newValue);
-            updatedValue = ReplaceMarkdownPatterns(updatedValue);
+            updatedValue = ReplaceMarkdownPatterns(updatedValue).Trim();
 
             string remarksTitle = string.Empty;
             if (!updatedValue.Contains("## Remarks"))

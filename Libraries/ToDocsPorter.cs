@@ -285,18 +285,22 @@ namespace Libraries
                     string cleanedInterfaceRemarks = string.Empty;
                     if (!dInterfacedMember.Remarks.Contains(Configuration.ToBeAdded))
                     {
-                        cleanedInterfaceRemarks += Environment.NewLine;
-
-                        string interfaceMemberRemarks = dInterfacedMember.Remarks.RemoveSubstrings("##Remarks", "## Remarks", "<![CDATA[", "]]>");
-                        foreach (string line in interfaceMemberRemarks.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        string interfaceMemberRemarks = dInterfacedMember.Remarks.RemoveSubstrings("##Remarks", "## Remarks", "<![CDATA[", "]]>").Trim();
+                        string[] splitted = interfaceMemberRemarks.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        for (int i = 0; i < splitted.Length; i++)
                         {
-                            cleanedInterfaceRemarks += Environment.NewLine + line;
+                            string line = splitted[i];
+                            cleanedInterfaceRemarks += line;
+                            if (i < splitted.Length - 1)
+                            {
+                                cleanedInterfaceRemarks += Environment.NewLine;
+                            }
                         }
                     }
 
                     // Only port the interface remarks if the user desired that
                     // Otherwise, always add the EII special message
-                    remarks = eiiMessage + (!Config.SkipInterfaceRemarks ? cleanedInterfaceRemarks : string.Empty);
+                    remarks = eiiMessage + (!Config.SkipInterfaceRemarks ? Environment.NewLine + Environment.NewLine + cleanedInterfaceRemarks : string.Empty);
 
                     isEII = true;
                 }

@@ -79,9 +79,9 @@ namespace Libraries
             {
                 IntelliSenseXmlMember tsActualTypeToPort = tsTypeToPort;
 
-                string summary = tsActualTypeToPort.Summary;
-                string returns = tsActualTypeToPort.Returns;
-                string remarks = tsActualTypeToPort.Remarks;
+                string? summary = null;
+                string? returns = null;
+                string? remarks = null;
 
                 // Rare case where the base type or interface docs should be used
                 if (tsTypeToPort.InheritDoc)
@@ -114,14 +114,20 @@ namespace Libraries
                         remarks = dBaseType.Remarks;
                     }
                 }
+                else
+                {
+                    summary = tsActualTypeToPort.Summary;
+                    returns = tsActualTypeToPort.Returns;
+                    remarks = tsActualTypeToPort.Remarks;
+                }
 
-                TryPortMissingSummaryForAPI(dTypeToUpdate, docId, summary);
-                TryPortMissingRemarksForAPI(dTypeToUpdate, docId, remarks);
+                TryPortMissingSummaryForAPI(dTypeToUpdate, summary);
+                TryPortMissingRemarksForAPI(dTypeToUpdate, remarks);
                 TryPortMissingParamsForAPI(dTypeToUpdate, tsActualTypeToPort, null); // Some types, like delegates, have params
                 TryPortMissingTypeParamsForAPI(dTypeToUpdate, tsActualTypeToPort, null); // Type names ending with <T> have TypeParams
                 if (dTypeToUpdate.BaseTypeName == "System.Delegate")
                 {
-                    TryPortMissingReturnsForMember(dTypeToUpdate, docId, returns);
+                    TryPortMissingReturnsForMember(dTypeToUpdate, returns);
                 }
             }
 
@@ -135,7 +141,6 @@ namespace Libraries
         // Tries to find an IntelliSense xml element from which to port documentation for the specified Docs member.
         private void PortMissingCommentsForMember(DocsMember dMemberToUpdate)
         {
-            string docId = dMemberToUpdate.DocIdEscaped;
             DocsMember? dInterfacedMember = null;
             bool isEII = false;
             bool isProperty = dMemberToUpdate.MemberType == "Property";
@@ -146,7 +151,7 @@ namespace Libraries
             string? property = null;
             string? returns = null;
 
-            if (IntelliSenseXmlComments.Members.TryGetValue(docId, out IntelliSenseXmlMember? tsMemberToPort) && tsMemberToPort != null)
+            if (IntelliSenseXmlComments.Members.TryGetValue(dMemberToUpdate.DocIdEscaped, out IntelliSenseXmlMember? tsMemberToPort) && tsMemberToPort != null)
             {
                 IntelliSenseXmlMember tsAcualMemberToPort = tsMemberToPort;
 
@@ -179,7 +184,7 @@ namespace Libraries
                         if (membersOfParentType.Any())
                         {
                             DocsMember? dBaseMember = null;
-                            string unprefixedDocId = docId[2..];
+                            string unprefixedDocId = dMemberToUpdate.DocIdEscaped[2..];
                             string baseTypeDocId = dBaseType.DocIdEscaped[2..];
                             foreach (var kvp in membersOfParentType)
                             {
@@ -279,19 +284,19 @@ namespace Libraries
 
             if (tsMemberToPort != null || dInterfacedMember != null)
             {
-                TryPortMissingSummaryForAPI(dMemberToUpdate, docId, summary, isEII);
-                TryPortMissingRemarksForAPI(dMemberToUpdate, docId, remarks, isEII);
+                TryPortMissingSummaryForAPI(dMemberToUpdate, summary, isEII);
+                TryPortMissingRemarksForAPI(dMemberToUpdate, remarks, isEII);
                 TryPortMissingParamsForAPI(dMemberToUpdate, tsMemberToPort, dInterfacedMember);
                 TryPortMissingTypeParamsForAPI(dMemberToUpdate, tsMemberToPort, dInterfacedMember);
                 TryPortMissingExceptionsForMember(dMemberToUpdate, tsMemberToPort);
 
                 if (isProperty)
                 {
-                    TryPortMissingPropertyForMember(dMemberToUpdate, docId, property, isEII);
+                    TryPortMissingPropertyForMember(dMemberToUpdate, property, isEII);
                 }
                 else if (isMethod)
                 {
-                    TryPortMissingReturnsForMember(dMemberToUpdate, docId, returns, isEII);
+                    TryPortMissingReturnsForMember(dMemberToUpdate, returns, isEII);
                 }
 
                 if (dMemberToUpdate.Changed)
@@ -336,7 +341,7 @@ namespace Libraries
         }
 
         // Ports the summary for the specified API if the field is undocumented.
-        private void TryPortMissingSummaryForAPI(IDocsAPI dApiToUpdate, string docId, string summary, bool isEII = false)
+        private void TryPortMissingSummaryForAPI(IDocsAPI dApiToUpdate, string? summary, bool isEII = false)
         {
             if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeSummaries ||
                 dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberSummaries)
@@ -345,21 +350,18 @@ namespace Libraries
             }
 
             // Only port if undocumented in MS Docs
-            if (dApiToUpdate.Summary.IsDocsEmpty())
+            if (dApiToUpdate.Summary.IsDocsEmpty() && !summary.IsDocsEmpty())
             {
-                if (!summary.IsDocsEmpty())
-                {
-                    dApiToUpdate.Summary = summary;
+                dApiToUpdate.Summary = summary!;
 
-                    // Any member can have an empty summary
-                    PrintModifiedMember("summary", dApiToUpdate.FilePath, docId, isEII);
-                    TotalModifiedIndividualElements++;
-                }
+                // Any member can have an empty summary
+                PrintModifiedMember("summary", dApiToUpdate.FilePath, dApiToUpdate.DocId, isEII);
+                TotalModifiedIndividualElements++;
             }
         }
 
         // Ports the remarks for the specified API if the field is undocumented.
-        private void TryPortMissingRemarksForAPI(IDocsAPI dApiToUpdate, string docId, string remarks, bool isEII = false)
+        private void TryPortMissingRemarksForAPI(IDocsAPI dApiToUpdate,string? remarks, bool isEII = false)
         {
             if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeRemarks ||
                 dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberRemarks)
@@ -377,7 +379,7 @@ namespace Libraries
 
             if (dApiToUpdate.Remarks.IsDocsEmpty() && !remarks.IsDocsEmpty())
             {
-                dApiToUpdate.Remarks = remarks;
+                dApiToUpdate.Remarks = remarks!;
                 PrintModifiedMember("remarks", dApiToUpdate.FilePath, dApiToUpdate.DocId, isEII);
                 TotalModifiedIndividualElements++;
              }
@@ -563,30 +565,30 @@ namespace Libraries
         }
 
         // Tries to document the passed property.
-        private void TryPortMissingPropertyForMember(DocsMember dMemberToUpdate, string docId, string? property, bool isEII = false)
+        private void TryPortMissingPropertyForMember(DocsMember dMemberToUpdate, string? property, bool isEII = false)
         {
             if (Config.PortMemberProperties && !property.IsDocsEmpty())
             {
                 dMemberToUpdate.Value = property!;
-                PrintModifiedMember("property", dMemberToUpdate.FilePath, docId, isEII);
+                PrintModifiedMember("property", dMemberToUpdate.FilePath, dMemberToUpdate.DocIdEscaped, isEII);
                 TotalModifiedIndividualElements++;
             }
         }
 
         // Tries to document the returns element of the specified API: it can be a Method Member, or a Delegate Type.
-        private void TryPortMissingReturnsForMember(IDocsAPI dMemberToUpdate, string docId, string? returns, bool isEII = false)
+        private void TryPortMissingReturnsForMember(IDocsAPI dMemberToUpdate, string? returns, bool isEII = false)
         {
             if (Config.PortMemberReturns && !returns.IsDocsEmpty())
             {
                 // Bug: Sometimes a void return value shows up as not documented, skip those
                 if (dMemberToUpdate.ReturnType == "System.Void")
                 {
-                    ProblematicAPIs.AddIfNotExists($"Unexpected System.Void return value in Method=[{docId}]");
+                    ProblematicAPIs.AddIfNotExists($"Unexpected System.Void return value in Method=[{dMemberToUpdate.DocId}]");
                 }
                 else if (!returns.IsDocsEmpty())
                 {
                     dMemberToUpdate.Returns = returns!;
-                    PrintModifiedMember("returns", dMemberToUpdate.FilePath, docId, isEII);
+                    PrintModifiedMember("returns", dMemberToUpdate.FilePath, dMemberToUpdate.DocId, isEII);
                     TotalModifiedIndividualElements++;
                 }
             }

@@ -22,6 +22,12 @@ namespace Libraries.Docs
 
         protected DocsAPI(XElement xeRoot) => XERoot = xeRoot;
 
+        public bool IsUndocumented =>
+            Summary.IsDocsEmpty() ||
+            Returns.IsDocsEmpty() ||
+            Params.Any(p => p.Value.IsDocsEmpty()) ||
+            TypeParams.Any(tp => tp.Value.IsDocsEmpty());
+
         public abstract bool Changed { get; set; }
         public string FilePath { get; set; } = string.Empty;
         public abstract string DocId { get; }
@@ -205,7 +211,7 @@ namespace Libraries.Docs
             {
                 if (_docIdEscaped == null)
                 {
-                    _docIdEscaped = DocId.Replace("<", "{").Replace(">", "}").Replace("&lt;", "{").Replace("&gt;", "}");
+                    _docIdEscaped = DocId.DocIdEscaped();
                 }
                 return _docIdEscaped;
             }

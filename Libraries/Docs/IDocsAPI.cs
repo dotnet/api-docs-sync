@@ -6,6 +6,7 @@ namespace Libraries.Docs
     internal interface IDocsAPI
     {
         public abstract APIKind Kind { get; }
+        public abstract bool IsUndocumented { get; }
         public abstract bool Changed { get; set; }
         public abstract string FilePath { get; set; }
         public abstract string DocId { get; }

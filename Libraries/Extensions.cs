@@ -10,7 +10,7 @@ namespace Libraries
         // Adds a string to a list of strings if the element is not there yet. The method makes sure to escape unexpected curly brackets to prevent formatting exceptions.
         public static void AddIfNotExists(this List<string> list, string element)
         {
-            string cleanedElement = element.Escaped();
+            string cleanedElement = element.DocIdEscaped();
             if (!list.Contains(cleanedElement))
             {
                 list.Add(cleanedElement);
@@ -46,7 +46,7 @@ namespace Libraries
 
         // Some API DocIDs with types contain "{" and "}" to enclose the typeparam, which causes
         // an exception to be thrown when trying to embed the string in a formatted string.
-        public static string Escaped(this string str) => str.Replace("{", "{{").Replace("}", "}}");
+        public static string DocIdEscaped(this string str) => str.Replace("{", "{{").Replace("}", "}}").Replace("<", "{").Replace(">", "}").Replace("&lt;", "{").Replace("&gt;", "}");
 
         // Checks if the passed string is considered "empty" according to the Docs repo rules.
         public static bool IsDocsEmpty(this string? s) =>

@@ -569,7 +569,7 @@ namespace Libraries
         // Tries to document the passed property.
         private void TryPortMissingPropertyForMember(DocsMember dMemberToUpdate, string? property, bool isEII = false)
         {
-            if (Config.PortMemberProperties && !property.IsDocsEmpty())
+            if (Config.PortMemberProperties && dMemberToUpdate.Value.IsDocsEmpty() && !property.IsDocsEmpty())
             {
                 dMemberToUpdate.Value = property!;
                 PrintModifiedMember("property", dMemberToUpdate.FilePath, dMemberToUpdate.DocIdEscaped, isEII);

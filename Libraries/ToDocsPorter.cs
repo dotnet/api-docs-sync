@@ -580,14 +580,14 @@ namespace Libraries
         // Tries to document the returns element of the specified API: it can be a Method Member, or a Delegate Type.
         private void TryPortMissingReturnsForMember(IDocsAPI dMemberToUpdate, string? returns, bool isEII = false)
         {
-            if (Config.PortMemberReturns && !returns.IsDocsEmpty())
+            if (Config.PortMemberReturns)
             {
                 // Bug: Sometimes a void return value shows up as not documented, skip those
                 if (dMemberToUpdate.ReturnType == "System.Void")
                 {
                     ProblematicAPIs.AddIfNotExists($"Unexpected System.Void return value in Method=[{dMemberToUpdate.DocId}]");
                 }
-                else if (!returns.IsDocsEmpty())
+                else if (dMemberToUpdate.Returns.IsDocsEmpty() && !returns.IsDocsEmpty())
                 {
                     dMemberToUpdate.Returns = returns!;
                     PrintModifiedMember("returns", dMemberToUpdate.FilePath, dMemberToUpdate.DocId, isEII);

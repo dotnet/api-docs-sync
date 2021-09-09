@@ -37,8 +37,7 @@ namespace Libraries.Tests
         {
             PortToDocs("AssemblyAndNamespaceDifferent",
                        GetConfiguration(),
-                       assemblyName: "MyAssembly",
-                       namespaceName: "MyNamespace");
+                       namespaceNames: new[] { TestData.TestNamespace});
         }
 
         [Fact]
@@ -94,6 +93,16 @@ namespace Libraries.Tests
             PortToDocs("EnumRemarks", GetConfiguration());
         }
 
+        [Fact]
+        // When the inheritdoc label is found, look for the parent type's documentation.
+        // The parent type is located in a different assembly.
+        public void Port_InheritDoc()
+        {
+            PortToDocs("InheritDoc",
+                       GetConfiguration(),
+                       assemblyNames: new[] { TestData.TestAssembly, "System" });
+        }
+
         private static readonly string TestDataRootDir = Path.Join("..", "..", "..", "PortToDocs", "TestData");
         private static readonly string IntellisenseDir = "intellisense";
         private static readonly string XmlExpectedDir = "xml_expected";
@@ -146,12 +155,15 @@ namespace Libraries.Tests
                 SkipInterfaceRemarks = skipInterfaceRemarks
             };
 
-        private static void PortToDocs(
+    private static void PortToDocs(
             string testName,
             Configuration c,
-            string assemblyName = TestData.TestAssembly,
-            string namespaceName = null) // Most namespaces have the same assembly name
+            string[] assemblyNames = null,
+            string[] namespaceNames = null) // Most namespaces have the same assembly name
         {
+            assemblyNames ??= new string[] { TestData.TestAssembly };
+            namespaceNames ??= Array.Empty<string>();
+
             using TestDirectory testDirectory = new();
 
             string targetDir = Path.Join(testDirectory.FullPath, testName);
@@ -161,9 +173,12 @@ namespace Libraries.Tests
 
             DirectoryRecursiveCopy(sourceDir, targetDir);
 
-            c.IncludedAssemblies.Add(assemblyName);
+            foreach (string assemblyName in assemblyNames)
+            {
+                c.IncludedAssemblies.Add(assemblyName);
+            }
 
-            if (!string.IsNullOrEmpty(namespaceName))
+            foreach (string namespaceName in namespaceNames)
             {
                 c.IncludedNamespaces.Add(namespaceName);
             }

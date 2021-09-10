@@ -9,7 +9,8 @@ namespace Libraries
 {
     internal class XmlHelper
     {
-        private static readonly Dictionary<string, string> _replaceableNormalElementPatterns = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> _replaceableNormalElementPatterns = new()
+        {
             { "<c>null</c>",    "<see langword=\"null\" />"},
             { "<c>true</c>",    "<see langword=\"true\" />"},
             { "<c>false</c>",   "<see langword=\"false\" />"},
@@ -31,7 +32,8 @@ namespace Libraries
             { "></see>",        " />" }
         };
 
-        private static readonly Dictionary<string, string> _replaceableMarkdownPatterns = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> _replaceableMarkdownPatterns = new()
+        {
             { "<see langword=\"null\"/>",    "`null`" },
             { "<see langword=\"null\" />",   "`null`" },
             { "<see langword=\"true\"/>",    "`true`" },
@@ -72,13 +74,15 @@ namespace Libraries
             { "</note>",                     "" }
         };
 
-        private static readonly Dictionary<string, string> _replaceableExceptionPatterns = new Dictionary<string, string>{
+        private static readonly Dictionary<string, string> _replaceableExceptionPatterns = new()
+        {
 
             { "<para>",  "\r\n" },
             { "</para>", "" }
         };
 
-        private static readonly Dictionary<string, string> _replaceableMarkdownRegexPatterns = new Dictionary<string, string> {
+        private static readonly Dictionary<string, string> _replaceableMarkdownRegexPatterns = new()
+        {
             { @"\<paramref name\=""(?'paramrefContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${paramrefContents}`" },
             { @"\<seealso cref\=""(?'seealsoContents'.+)""[ ]*\/\>",      @"seealsoContents" },
         };
@@ -153,7 +157,7 @@ namespace Libraries
             // Empty value because SaveChildElement will add a child to the parent, not replace it
             element.Value = string.Empty;
 
-            XElement xeFormat = new XElement("format");
+            XElement xeFormat = new("format");
 
             string updatedValue = SubstituteRemarksRegexPatterns(newValue);
             updatedValue = ReplaceMarkdownPatterns(updatedValue).Trim();
@@ -305,7 +309,7 @@ namespace Libraries
         {
             foreach (KeyValuePair<string, string> pattern in replaceableRegexPatterns)
             {
-                Regex regex = new Regex(pattern.Key);
+                Regex regex = new(pattern.Key);
                 if (regex.IsMatch(value))
                 {
                     value = regex.Replace(value, pattern.Value);

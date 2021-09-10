@@ -2,7 +2,7 @@
 
 namespace Libraries.Docs
 {
-    internal class DocsTypeSignature
+    public class DocsTypeSignature
     {
         private readonly XElement XETypeSignature;
 

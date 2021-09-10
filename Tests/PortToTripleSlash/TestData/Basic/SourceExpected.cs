@@ -18,20 +18,20 @@ namespace MyNamespace
     }
 
     /// <summary>This is the MyType class summary.</summary>
-    /// <remarks>These are the <see cref="MyNamespace.MyType" /> class remarks.
-    /// URL entities: #(),.
+    /// <remarks><format type="text/markdown"><![CDATA[
+    /// These are the <xref:MyNamespace.MyType> class remarks.
+    /// URL entities: %23%28%29%2C.
     /// Multiple lines.
-    /// <format type="text/markdown"><![CDATA[
     /// > [!NOTE]
     /// > This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
-    /// ]]></format>
-    /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside <b>the cdata</b>.
-    /// Long xrefs one after the other: <see cref="System.IO.Pipelines.PipeWriter.FlushAsync(System.Threading.CancellationToken)" /> or <see cref="System.IO.Pipelines.PipeWriter.WriteAsync(System.ReadOnlyMemory{byte},System.Threading.CancellationToken)" /> should both be converted to crefs.</remarks>
+    /// This text is not a note. It has a <xref:MyNamespace.MyType> that should remain and still be **inside the cdata**.
+    /// Long xrefs one after the other: <xref:System.IO.Pipelines.PipeWriter.FlushAsync(System.Threading.CancellationToken)> or <xref:System.IO.Pipelines.PipeWriter.WriteAsync(System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)> should also remain.
+    /// ]]></format></remarks>
     // Original MyType class comments with information for maintainers, must stay.
     public class MyType
     {
+        // Original MyType constructor double slash comments on top of triple slash, with information for maintainers, must stay.
         /// <summary>This is the MyType constructor summary.</summary>
-        // Original MyType constructor double slash comments on top of triple slash, with information for maintainers, must stay but after triple slash.
         // Original MyType constructor double slash comments on bottom of triple slash, with information for maintainers, must stay.
         public MyType()
         {
@@ -86,12 +86,12 @@ namespace MyNamespace
         /// <returns>This is the MyIntMethod return value. It mentions the <see cref="System.ArgumentNullException" />.</returns>
         /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyIntMethod. It mentions the <paramref name="param1" />.</exception>
         /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyIntMethod.</exception>
-        /// <remarks>These are the MyIntMethod remarks.
+        /// <remarks><format type="text/markdown"><![CDATA[
+        /// These are the MyIntMethod remarks.
         /// Here is a random snippet, NOT preceded by the examples header.
-        /// <format type="text/markdown"><![CDATA[
         /// [!code-cpp[MyExample](~/samples/snippets/example.cpp)]
-        /// ]]></format>
-        /// There is a hyperlink, which should still allow conversion from markdown to xml: <a href="http://github.com/dotnet/runtime">MyHyperlink</a>.</remarks>
+        /// There is a hyperlink, which should remain as markdown: [MyHyperlink](http://github.com/dotnet/runtime).
+        /// ]]></format></remarks>
         public int MyIntMethod(int param1, int param2)
         {
             // Internal comments should remain untouched.
@@ -107,8 +107,8 @@ namespace MyNamespace
         /// <remarks>These are the MyVoidMethod remarks.
         /// Multiple lines.
         /// Mentions the <see cref="System.ArgumentNullException" />.
-        /// Also mentions an overloaded method DocID: <see cref="MyNamespace.MyType.MyIntMethod" />.
-        /// And also mentions an overloaded method DocID with displayProperty which should be ignored when porting: <see cref="MyNamespace.MyType.MyIntMethod" />.</remarks>
+        /// Also mentions an overloaded method DocID: <see cref="O:MyNamespace.MyType.MyIntMethod" />.
+        /// And also mentions an overloaded method DocID with displayProperty which should be ignored when porting: <see cref="O:MyNamespace.MyType.MyIntMethod" />.</remarks>
         public void MyVoidMethod()
         {
         }
@@ -141,14 +141,14 @@ namespace MyNamespace
         /// <param name="sender">This is the sender parameter.</param>
         /// <param name="e">This is the e parameter.</param>
         /// <remarks>These are the <see cref="MyNamespace.MyType.MyDelegate{T}" /> remarks. There is a code example, which should be moved to its own examples section:</remarks>
-        /// <example>Here is some text in the examples section. There is an <see cref="MyNamespace.MyType.MyDelegate{T}" /> that should be converted to xml.
+        /// <example><format type="text/markdown"><![CDATA[
+        /// Here is some text in the examples section. There is an <xref:MyNamespace.MyType.MyDelegate`1> that should remain an xref element.
         /// The snippet links below should be inserted in markdown.
-        /// <format type="text/markdown"><![CDATA[
         /// [!code-csharp[MyExample#1](~/samples/snippets/example.cs)]
         /// [!code-vb[MyExample#2](~/samples/snippets/example.vb)]
         /// [!code-cpp[MyExample#3](~/samples/snippets/example.cpp)]
-        /// ]]></format>
-        /// This text should be outside the cdata in xml: <see cref="MyNamespace.MyType" />.</example>
+        /// This text remain inside the cdata: <xref:MyNamespace.MyType>.
+        /// ]]></format></example>
         /// <seealso cref="System.Delegate"/>
         /// <altmember cref="System.Delegate"/>
         /// <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>

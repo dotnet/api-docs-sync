@@ -1,8 +1,9 @@
-﻿using System.Xml.Linq;
+﻿using System.Linq;
+using System.Xml.Linq;
 
 namespace Libraries.Docs
 {
-    internal class DocsAttribute
+    public class DocsAttribute
     {
         private readonly XElement XEAttribute;
 
@@ -13,12 +14,15 @@ namespace Libraries.Docs
                 return XmlHelper.GetAttributeValue(XEAttribute, "FrameworkAlternate");
             }
         }
-        public string AttributeName
+
+        public string? AttributeName
         {
-            get
-            {
-                return XmlHelper.GetChildElementValue(XEAttribute, "AttributeName");
-            }
+            get => GetAttributeName("C#");
+        }
+
+        public string? GetAttributeName(string language)
+        {
+            return XEAttribute.Elements("AttributeName").Where(x => XmlHelper.GetAttributeValue(x, "Language") == language).SingleOrDefault()?.Value;
         }
 
         public DocsAttribute(XElement xeAttribute)

@@ -20,9 +20,9 @@ Multiple lines.
 > [!NOTE]
 > This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
 
-This text is not a note. It has a <xref:MyNamespace.MyType> that should be xml and outside **the cdata**.
+This text is not a note. It has a <xref:MyNamespace.MyType> that should remain and still be **inside the cdata**.
 
-Long xrefs one after the other: <xref:System.IO.Pipelines.PipeWriter.FlushAsync(System.Threading.CancellationToken)> or <xref:System.IO.Pipelines.PipeWriter.WriteAsync(System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)> should both be converted to crefs.
+Long xrefs one after the other: <xref:System.IO.Pipelines.PipeWriter.FlushAsync(System.Threading.CancellationToken)> or <xref:System.IO.Pipelines.PipeWriter.WriteAsync(System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)> should also remain.
 
       ]]></format>
     </remarks>
@@ -122,7 +122,7 @@ Here is a random snippet, NOT preceded by the examples header.
 
 [!code-cpp[MyExample](~/samples/snippets/example.cpp)]
 
-There is a hyperlink, which should still allow conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
+There is a hyperlink, which should remain as markdown: [MyHyperlink](http://github.com/dotnet/runtime).
 
           ]]></format>
         </remarks>

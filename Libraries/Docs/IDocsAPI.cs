@@ -3,7 +3,7 @@ using System.Xml.Linq;
 
 namespace Libraries.Docs
 {
-    internal interface IDocsAPI
+    public interface IDocsAPI
     {
         public abstract APIKind Kind { get; }
         public abstract bool IsUndocumented { get; }

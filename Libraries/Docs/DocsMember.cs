@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace Libraries.Docs
 {
-    internal class DocsMember : DocsAPI
+    public class DocsMember : DocsAPI
     {
         private string? _memberName;
         private List<DocsMemberSignature>? _memberSignatures;

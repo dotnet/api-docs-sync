@@ -8,14 +8,14 @@ using System.Xml.Linq;
 
 namespace Libraries.Docs
 {
-    internal class DocsCommentsContainer
+    public class DocsCommentsContainer
     {
         private Configuration Config { get; set; }
 
         private XDocument? xDoc = null;
 
-        public readonly Dictionary<string, DocsType> Types = new();
-        public readonly Dictionary<string, DocsMember> Members = new();
+        internal readonly Dictionary<string, DocsType> Types = new();
+        internal readonly Dictionary<string, DocsMember> Members = new();
 
         public DocsCommentsContainer(Configuration config)
         {

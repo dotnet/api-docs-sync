@@ -6,8 +6,11 @@ using System.Xml.Linq;
 
 namespace Libraries.Docs
 {
-    internal abstract class DocsAPI : IDocsAPI
+    public abstract class DocsAPI : IDocsAPI
     {
+        private DocsSummary? _summary;
+        private DocsRemarks? _remarks;
+        private List<DocsExample>? _examples;
         private List<DocsParam>? _params;
         private List<DocsParameter>? _parameters;
         private List<DocsTypeParameter>? _typeParameters;
@@ -190,7 +193,70 @@ namespace Libraries.Docs
         public abstract string ReturnType { get; }
         public abstract string Returns { get; set; }
 
+        public DocsSummary SummaryElement
+        {
+            get
+            {
+                if (_summary == null)
+                {
+                    XElement? xe = Docs?.Element("summary");
+
+                    if (xe != null)
+                    {
+                        _summary = new(xe);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"There was no <summary> element. Doc ID: {DocId}");
+                    }
+                }
+
+                return _summary;
+            }
+        }
+
         public abstract string Remarks { get; set; }
+
+        public DocsRemarks RemarksElement
+        {
+            get
+            {
+                if (_remarks == null)
+                {
+                    XElement? xe = Docs?.Element("remarks");
+
+                    if (xe != null)
+                    {
+                        _remarks = new(xe);
+
+                        if (!_remarks.ExampleContent?.ParsedText?.IsDocsEmpty() ?? false)
+                        {
+                            ExampleElements.Add(_remarks.ExampleContent!);
+                        }
+                    }
+                    else
+                    {
+                        _remarks = new(new XElement("remarks"));
+                    }
+                }
+
+                return _remarks;
+            }
+        }
+
+        public List<DocsExample> ExampleElements
+        {
+            get
+            {
+                if (_examples == null)
+                {
+                    IEnumerable<XElement> elems = Docs.Elements("example");
+                    _examples = elems.Select(e => new DocsExample(e)).ToList();
+                }
+
+                return _examples;
+            }
+        }
 
         public List<DocsAssemblyInfo> AssemblyInfos
         {
@@ -206,10 +272,10 @@ namespace Libraries.Docs
 
         public DocsParam SaveParam(XElement xeIntelliSenseXmlParam)
         {
-            XElement xeDocsParam = new XElement(xeIntelliSenseXmlParam.Name);
+            XElement xeDocsParam = new(xeIntelliSenseXmlParam.Name);
             xeDocsParam.ReplaceAttributes(xeIntelliSenseXmlParam.Attributes());
             XmlHelper.SaveFormattedAsXml(xeDocsParam, xeIntelliSenseXmlParam.Value);
-            DocsParam docsParam = new DocsParam(this, xeDocsParam);
+            DocsParam docsParam = new(this, xeDocsParam);
             Changed = true;
             return docsParam;
         }
@@ -229,7 +295,7 @@ namespace Libraries.Docs
 
         public DocsTypeParam AddTypeParam(string name, string value)
         {
-            XElement typeParam = new XElement("typeparam");
+            XElement typeParam = new("typeparam");
             typeParam.SetAttributeValue("name", name);
             XmlHelper.AddChildFormattedAsXml(Docs, typeParam, value);
             Changed = true;

@@ -13,7 +13,7 @@ namespace MyNamespace
     // Original MyType class comments with information for maintainers, must stay.
     public class MyType
     {
-        // Original MyType constructor double slash comments on top of triple slash, with information for maintainers, must stay but after triple slash.
+        // Original MyType constructor double slash comments on top of triple slash, with information for maintainers, must stay.
         /// <summary>
         /// Original triple slash comments. They should be replaced.
         /// </summary>

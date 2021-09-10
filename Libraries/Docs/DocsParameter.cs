@@ -2,7 +2,7 @@
 
 namespace Libraries.Docs
 {
-    internal class DocsParameter
+    public class DocsParameter : DocsTextElement
     {
         private readonly XElement XEParameter;
         public string Name
@@ -19,7 +19,7 @@ namespace Libraries.Docs
                 return XmlHelper.GetAttributeValue(XEParameter, "Type");
             }
         }
-        public DocsParameter(XElement xeParameter)
+        public DocsParameter(XElement xeParameter) : base(xeParameter)
         {
             XEParameter = xeParameter;
         }

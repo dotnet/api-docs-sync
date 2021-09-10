@@ -18,7 +18,7 @@ These are the <xref:MyNamespace.MyType.MyDelegate`1> remarks. There is a code ex
 
 ## Examples
 
-Here is some text in the examples section. There is an <xref:MyNamespace.MyType.MyDelegate`1> that should be converted to xml.
+Here is some text in the examples section. There is an <xref:MyNamespace.MyType.MyDelegate`1> that should remain an xref element.
 
 The snippet links below should be inserted in markdown.
 
@@ -26,7 +26,7 @@ The snippet links below should be inserted in markdown.
 [!code-vb[MyExample#2](~/samples/snippets/example.vb)]
 [!code-cpp[MyExample#3](~/samples/snippets/example.cpp)]
 
-This text should be outside the cdata in xml: <xref:MyNamespace.MyType>.
+This text remain inside the cdata: <xref:MyNamespace.MyType>.
 
       ]]></format>
     </remarks>

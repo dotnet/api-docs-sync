@@ -1,0 +1,30 @@
+﻿<Type Name="MyGenericType&lt;T&gt;" FullName="MyNamespace.MyGenericType">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyGenericType" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>This is the MyGenericType static class summary.</summary>
+  </Docs>
+  <Members>
+    <Member MemberName="Select&lt;TSource,TResult&gt;">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyGenericType.Select``2(MyNamespace.MyGenericType{``0},System.Func{``0,``1})" />
+      <Docs>
+        <summary>Projects each element into a new form.</summary>
+        <typeparam name="TSource">The type of the elements of <paramref name="source" />.</typeparam>
+        <typeparam name="TResult">The type of the value returned by <paramref name="selector" />.</typeparam>
+        <param name="source">A sequence of values to invoke a transform function on.</param>
+        <param name="selector">A transform function to apply to each element.</param>
+        <altmember cref="System.Linq.Enumerable.Any``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean})"/>
+        <remarks>
+          <format type="text/markdown">
+            <![CDATA[
+## Remarks
+Here's a reference to <xref:MyNamespace.MyGenericType.Select%60%602%28MyNamespace.MyGenericType%7B%60%600%7D%2CSystem.Func%7B%60%600%2C%60%601%7D%29>.
+          ]]>
+          </format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>

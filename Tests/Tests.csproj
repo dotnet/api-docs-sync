@@ -12,6 +12,41 @@
     <Compile Remove="PortToTripleSlash\TestData\Generics\SourceOriginal.cs" />
     <Compile Remove="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
     <Compile Remove="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\Directives.Expected.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\Directives.Original.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\DirectivesExistingXml.Expected.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\DirectivesExistingXml.Original.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\ExistingXml.Expected.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\ExistingXml.Original.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Expected.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Original.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\DirectivesExistingXml.Expected.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\DirectivesExistingXml.Original.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\Directives.Expected.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\Directives.Original.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\ExistingXml.Expected.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\ExistingXml.Original.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Expected.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Original.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

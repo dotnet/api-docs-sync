@@ -9,7 +9,7 @@
       <format type="text/markdown">
   <![CDATA[
 ## Remarks
-Contains the nested class <xref:MyNamespace.MyGenericType%601.Enumerator>.
+The `MyGenericType<T>` type contains the nested class <xref:MyNamespace.MyGenericType%601.Enumerator>.
       ]]></format>
     </remarks>
   </Docs>

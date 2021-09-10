@@ -7,7 +7,7 @@ namespace Libraries.Docs
     /// <summary>
     /// Each one of these TypeParameter objects islocated inside the TypeParameters section inside the Member.
     /// </summary>
-    internal class DocsTypeParameter
+    public class DocsTypeParameter
     {
         private readonly XElement XETypeParameter;
         public string Name
@@ -51,6 +51,18 @@ namespace Libraries.Docs
                 if (Constraints != null)
                 {
                     return XmlHelper.GetChildElementValue(Constraints, "BaseTypeName");
+                }
+                return string.Empty;
+            }
+        }
+
+        public string ConstraintsInterfaceName
+        {
+            get
+            {
+                if (Constraints != null)
+                {
+                    return XmlHelper.GetChildElementValue(Constraints, "InterfaceName");
                 }
                 return string.Empty;
             }

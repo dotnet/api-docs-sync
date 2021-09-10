@@ -2,7 +2,7 @@
 
 namespace Libraries.Docs
 {
-    internal class DocsParam
+    public class DocsParam : DocsTextElement
     {
         private readonly XElement XEDocsParam;
         public IDocsAPI ParentAPI
@@ -28,7 +28,7 @@ namespace Libraries.Docs
                 ParentAPI.Changed = true;
             }
         }
-        public DocsParam(IDocsAPI parentAPI, XElement xeDocsParam)
+        public DocsParam(IDocsAPI parentAPI, XElement xeDocsParam) : base(xeDocsParam)
         {
             ParentAPI = parentAPI;
             XEDocsParam = xeDocsParam;

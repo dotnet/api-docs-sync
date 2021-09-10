@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace Libraries.Docs
 {
-    internal class DocsException
+    public class DocsException
     {
         private readonly XElement XEException;
 

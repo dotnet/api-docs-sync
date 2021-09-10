@@ -9,7 +9,7 @@ namespace Libraries.Docs
     /// <summary>
     /// Represents the root xml element (unique) of a Docs xml file, called Type.
     /// </summary>
-    internal class DocsType : DocsAPI
+    public class DocsType : DocsAPI
     {
         private string? _typeName;
         private string? _name;

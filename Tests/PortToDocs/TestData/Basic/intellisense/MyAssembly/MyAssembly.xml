@@ -25,5 +25,11 @@
       <summary>This is the property summary.</summary>
       <value>This is the property value.</value>
     </member>
+    <member name="M:MyNamespace.MyType.MyTypeParamMethod``1(``0,System.Collections.Generic.IEqualityComparer{``0})">
+      <typeparam name="TValue">The typeparam of MyTypeParamMethod.</typeparam>
+      <param name="value">An element of type <typeparamref name="TValue" />.</param>
+      <param name="comparer">The equality comparer of type <typeparamref name="TValue" />.</param>
+      <summary>The signature of this method would be: <c>public void Add&lt;TValue&gt; (TValue value, System.Collections.Generic.IEqualityComparer&lt;TValue&gt; comparer);</c></summary>
+    </member>
   </members>
 </doc>

@@ -65,7 +65,7 @@ namespace Libraries.Docs
                         string message = string.Format("Could not find a DocId MemberSignature for '{0}'", MemberName);
                         throw new Exception(message);
                     }
-                     _docId = ms.Value;
+                     _docId = ms.Value.DocIdEscaped();
                 }
                 return _docId;
             }
@@ -115,7 +115,7 @@ namespace Libraries.Docs
                 }
                 else
                 {
-                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocIdEscaped}");
+                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocId}");
                 }
             }
         }
@@ -158,7 +158,7 @@ namespace Libraries.Docs
                 }
                 else
                 {
-                    Log.Warning($"Attempted to save a value element for an API that is not a property: {DocIdEscaped}");
+                    Log.Warning($"Attempted to save a value element for an API that is not a property: {DocId}");
                 }
             }
         }

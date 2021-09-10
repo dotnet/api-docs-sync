@@ -74,7 +74,7 @@ namespace Libraries
         // Tries to find an IntelliSense xml element from which to port documentation for the specified Docs type.
         private void PortMissingCommentsForType(DocsType dTypeToUpdate)
         {
-            string docId = dTypeToUpdate.DocIdEscaped;
+            string docId = dTypeToUpdate.DocId;
             if (IntelliSenseXmlComments.Members.TryGetValue(docId, out IntelliSenseXmlMember? tsTypeToPort) && tsTypeToPort.Name == docId)
             {
                 IntelliSenseXmlMember tsActualTypeToPort = tsTypeToPort;
@@ -119,9 +119,9 @@ namespace Libraries
             string? remarks = null;
 
             // See if there is an inheritdoc cref indicating the exact member to use for docs
-            if (!string.IsNullOrEmpty(tsTypeToPort.InheritDocCrefEscaped))
+            if (!string.IsNullOrEmpty(tsTypeToPort.InheritDocCref))
             {
-                if (IntelliSenseXmlComments.Members.TryGetValue(tsTypeToPort.InheritDocCrefEscaped, out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
+                if (IntelliSenseXmlComments.Members.TryGetValue(tsTypeToPort.InheritDocCref, out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
                 {
                     summary = tsInheritedMember.Summary;
                     returns = tsInheritedMember.Returns;
@@ -160,7 +160,7 @@ namespace Libraries
             string? returns = null;
             bool isEII = false;
 
-            if (IntelliSenseXmlComments.Members.TryGetValue(dMemberToUpdate.DocIdEscaped, out IntelliSenseXmlMember? tsMemberToPort) && tsMemberToPort != null)
+            if (IntelliSenseXmlComments.Members.TryGetValue(dMemberToUpdate.DocId, out IntelliSenseXmlMember? tsMemberToPort) && tsMemberToPort != null)
             {
                 // Rare case where the base type or interface docs should be used
                 if (tsMemberToPort.InheritDoc)
@@ -213,8 +213,8 @@ namespace Libraries
             string? property = null;
 
             // See if there is an inheritdoc cref indicating the exact member to use for docs
-            if (!string.IsNullOrEmpty(tsMemberToPort.InheritDocCrefEscaped) &&
-                IntelliSenseXmlComments.Members.TryGetValue(tsMemberToPort.InheritDocCrefEscaped, out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
+            if (!string.IsNullOrEmpty(tsMemberToPort.InheritDocCref) &&
+                IntelliSenseXmlComments.Members.TryGetValue(tsMemberToPort.InheritDocCref, out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
             {
                 summary = tsInheritedMember.Summary;
                 returns = isMethod ? tsInheritedMember.Returns : null;
@@ -222,18 +222,18 @@ namespace Libraries
                 property = isProperty ? GetPropertyValue(tsInheritedMember.Value, tsInheritedMember.Returns) : null;
             }
             // Look for the base type and find the member from which this one inherits
-            else if (DocsComments.Types.TryGetValue($"T:{dMemberToUpdate.ParentType.DocIdEscaped}", out DocsType? dBaseType) && dBaseType != null)
+            else if (DocsComments.Types.TryGetValue($"T:{dMemberToUpdate.ParentType.DocId}", out DocsType? dBaseType) && dBaseType != null)
             {
                 // Get all the members of the base type
                 var membersOfParentType = DocsComments.Members.Where(kvp => kvp.Value.ParentType.FullName == dBaseType.FullName);
                 if (membersOfParentType.Any())
                 {
                     DocsMember? dBaseMember = null;
-                    string unprefixedDocId = dMemberToUpdate.DocIdEscaped[2..];
-                    string baseTypeDocId = dBaseType.DocIdEscaped[2..];
+                    string unprefixedDocId = dMemberToUpdate.DocId[2..];
+                    string baseTypeDocId = dBaseType.DocId[2..];
                     foreach (var kvp in membersOfParentType)
                     {
-                        string currentDocId = kvp.Value.DocIdEscaped[2..];
+                        string currentDocId = kvp.Value.DocId[2..];
                         // Replace the prefix of the base type member API with the prefix of the member API to document
                         string replacedDocId = currentDocId.Replace(baseTypeDocId, unprefixedDocId);
                         if (replacedDocId == unprefixedDocId)
@@ -274,10 +274,10 @@ namespace Libraries
             if (!dInterfacedMember.Remarks.IsDocsEmpty())
             {
                 // Only attempt to port if the member name is the same as the interfaced member docid without prefix
-                if (dMemberToUpdate.MemberName == dInterfacedMember.DocIdEscaped[2..])
+                if (dMemberToUpdate.MemberName == dInterfacedMember.DocId[2..])
                 {
-                    string dMemberToUpdateTypeDocIdNoPrefix = dMemberToUpdate.ParentType.DocIdEscaped[2..];
-                    string interfacedMemberTypeDocIdNoPrefix = dInterfacedMember.ParentType.DocIdEscaped[2..];
+                    string dMemberToUpdateTypeDocIdNoPrefix = dMemberToUpdate.ParentType.DocId[2..];
+                    string interfacedMemberTypeDocIdNoPrefix = dInterfacedMember.ParentType.DocId[2..];
 
                     // Special text for EIIs in Remarks
                     string eiiMessage = $"This member is an explicit interface member implementation. It can be used only when the <xref:{dMemberToUpdateTypeDocIdNoPrefix}> instance is cast to an <xref:{interfacedMemberTypeDocIdNoPrefix}> interface.";
@@ -572,7 +572,7 @@ namespace Libraries
             if (Config.PortMemberProperties && dMemberToUpdate.Value.IsDocsEmpty() && !property.IsDocsEmpty())
             {
                 dMemberToUpdate.Value = property!;
-                PrintModifiedMember("property", dMemberToUpdate.FilePath, dMemberToUpdate.DocIdEscaped, isEII);
+                PrintModifiedMember("property", dMemberToUpdate.FilePath, dMemberToUpdate.DocId, isEII);
                 TotalModifiedIndividualElements++;
             }
         }

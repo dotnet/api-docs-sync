@@ -44,12 +44,41 @@
     <Member MemberName="MyProperty">
       <MemberSignature Language="DocId" Value="P:MyNamespace.MyType.MyProperty" />
       <MemberType>Property</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
       <ReturnValue>
         <ReturnType>System.Int32</ReturnType>
       </ReturnValue>
       <Docs>
         <summary>This is the property summary.</summary>
         <value>This is the property value.</value>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Add&lt;TValue&gt;">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyTypeParamMethod``1(``0,System.Collections.Generic.IEqualityComparer{``0})" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <TypeParameters>
+        <TypeParameter Name="TValue" />
+      </TypeParameters>
+      <Parameters>
+        <Parameter Name="value" Type="TValue" />
+        <Parameter Name="comparer" Type="System.Collections.Generic.IEqualityComparer&lt;TValue&gt;" />
+      </Parameters>
+      <Docs>
+        <typeparam name="TValue">The typeparam of MyTypeParamMethod.</typeparam>
+        <param name="value">An element of type <typeparamref name="TValue" />.</param>
+        <param name="comparer">The equality comparer of type <typeparamref name="TValue" />.</param>
+        <summary>The signature of this method would be: <c>public void Add&lt;TValue&gt; (TValue value, System.Collections.Generic.IEqualityComparer&lt;TValue&gt; comparer);</c></summary>
         <remarks>To be added.</remarks>
       </Docs>
     </Member>

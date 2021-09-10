@@ -1,8 +1,4 @@
-﻿#nullable enable
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-
-namespace Libraries
+﻿namespace Libraries
 {
     // Provides generic extension methods.
     internal static class Extensions
@@ -46,7 +42,14 @@ namespace Libraries
 
         // Some API DocIDs with types contain "{" and "}" to enclose the typeparam, which causes
         // an exception to be thrown when trying to embed the string in a formatted string.
-        public static string DocIdEscaped(this string str) => str.Replace("{", "{{").Replace("}", "}}").Replace("<", "{").Replace(">", "}").Replace("&lt;", "{").Replace("&gt;", "}");
+        public static string DocIdEscaped(this string docId) =>
+            docId
+            .Replace("{", "{{")
+            .Replace("}", "}}")
+            .Replace("<", "{{")
+            .Replace(">", "}}")
+            .Replace("&lt;", "{{")
+            .Replace("&gt;", "}}");
 
         // Checks if the passed string is considered "empty" according to the Docs repo rules.
         public static bool IsDocsEmpty(this string? s) =>

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
 namespace Libraries.IntelliSenseXml
 {
@@ -25,7 +22,7 @@ namespace Libraries.IntelliSenseXml
         public string Assembly { get; private set; }
 
         private string? _inheritDocCref = null;
-        public string InheritDocCrefEscaped
+        public string InheritDocCref
         {
             get
             {
@@ -87,7 +84,8 @@ namespace Libraries.IntelliSenseXml
             {
                 if (_name == null)
                 {
-                    _name = XmlHelper.GetAttributeValue(XEMember, "name");
+                    // The member name is a DocId
+                    _name = XmlHelper.GetAttributeValue(XEMember, "name").DocIdEscaped();
                 }
                 return _name;
             }

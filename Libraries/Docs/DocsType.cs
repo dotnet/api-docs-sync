@@ -120,7 +120,7 @@ namespace Libraries.Docs
                         string message = $"DocId TypeSignature not found for FullName";
                         throw new Exception($"DocId TypeSignature not found for FullName");
                     }
-                    _docId = dts.Value;
+                    _docId = dts.Value.DocIdEscaped();
                 }
                 return _docId;
             }
@@ -239,7 +239,7 @@ namespace Libraries.Docs
                 }
                 else
                 {
-                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocIdEscaped}");
+                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocId}");
                 }
             }
         }

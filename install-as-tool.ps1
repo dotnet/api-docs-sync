@@ -9,6 +9,18 @@ $APP_NAME = "DocsPortingTool"
 $EXE_PROJECT = "Program"
 
 $toolList = dotnet tool list --global
+# Output example when there are tools installed:
+
+#   Package Id                 Version                 Commands
+#   ------------------------------------------------------------------
+#   docsportingtool            3.0.0                   DocsPortingTool
+#   microsoft.dotnet.darc      1.1.0-beta.21458.1      darc
+
+# When there are no tools installed, the output only contains:
+
+#   Package Id                 Version                 Commands
+#   ------------------------------------------------------------------
+
 If ($toolList.Length -gt 2)
 {
 	For ($i = 2; $i -lt $toolList.Length; $i++)

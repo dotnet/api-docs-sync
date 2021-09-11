@@ -79,29 +79,26 @@ namespace Libraries
             {
                 IntelliSenseXmlMember tsActualTypeToPort = tsTypeToPort;
 
-                string? summary;
-                string? returns;
-                string? remarks;
-
+                MissingComments mc = default;
                 // Rare case where the base type or interface docs should be used
                 if (tsTypeToPort.InheritDoc)
                 {
-                    (summary, returns, remarks) = GetMissingCommentsForTypeFromInheritDoc(dTypeToUpdate, tsTypeToPort);
+                    mc = GetMissingCommentsForTypeFromInheritDoc(dTypeToUpdate, tsTypeToPort);
                 }
                 else
                 {
-                    summary = tsActualTypeToPort.Summary;
-                    returns = tsActualTypeToPort.Returns;
-                    remarks = tsActualTypeToPort.Remarks;
+                    mc.Summary = tsActualTypeToPort.Summary;
+                    mc.Returns = tsActualTypeToPort.Returns;
+                    mc.Remarks = tsActualTypeToPort.Remarks;
                 }
 
-                TryPortMissingSummaryForAPI(dTypeToUpdate, summary);
-                TryPortMissingRemarksForAPI(dTypeToUpdate, remarks);
+                TryPortMissingSummaryForAPI(dTypeToUpdate, mc.Summary);
+                TryPortMissingRemarksForAPI(dTypeToUpdate, mc.Remarks);
                 TryPortMissingParamsForAPI(dTypeToUpdate, tsActualTypeToPort, null); // Some types, like delegates, have params
                 TryPortMissingTypeParamsForAPI(dTypeToUpdate, tsActualTypeToPort, null); // Type names ending with <T> have TypeParams
                 if (dTypeToUpdate.BaseTypeName == "System.Delegate")
                 {
-                    TryPortMissingReturnsForMember(dTypeToUpdate, returns);
+                    TryPortMissingReturnsForMember(dTypeToUpdate, mc.Returns);
                 }
 
                 if (dTypeToUpdate.Changed)
@@ -112,20 +109,18 @@ namespace Libraries
             }
         }
 
-        private (string?, string?, string?) GetMissingCommentsForTypeFromInheritDoc(DocsType dTypeToUpdate, IntelliSenseXmlMember tsTypeToPort)
+        private MissingComments GetMissingCommentsForTypeFromInheritDoc(DocsType dTypeToUpdate, IntelliSenseXmlMember tsTypeToPort)
         {
-            string? summary = null;
-            string? returns = null;
-            string? remarks = null;
+            MissingComments mc = default;
 
             // See if there is an inheritdoc cref indicating the exact member to use for docs
             if (!string.IsNullOrEmpty(tsTypeToPort.InheritDocCref))
             {
                 if (IntelliSenseXmlComments.Members.TryGetValue(tsTypeToPort.InheritDocCref, out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
                 {
-                    summary = tsInheritedMember.Summary;
-                    returns = tsInheritedMember.Returns;
-                    remarks = tsInheritedMember.Remarks;
+                    mc.Summary = tsInheritedMember.Summary;
+                    mc.Returns = tsInheritedMember.Returns;
+                    mc.Remarks = tsInheritedMember.Remarks;
                 }
             }
             // Look for the base type from which this one inherits
@@ -139,12 +134,12 @@ namespace Libraries
                     PortMissingCommentsForType(dBaseType);
                 }
 
-                summary = dBaseType.Summary;
-                returns = dBaseType.Returns;
-                remarks = dBaseType.Remarks;
+                mc.Summary = dBaseType.Summary;
+                mc.Returns = dBaseType.Returns;
+                mc.Remarks = dBaseType.Remarks;
             }
 
-            return (summary, returns, remarks);
+            return mc;
         }
 
         // Tries to find an IntelliSense xml element from which to port documentation for the specified Docs member.
@@ -154,47 +149,42 @@ namespace Libraries
             bool isProperty = dMemberToUpdate.MemberType == "Property";
             bool isMethod = dMemberToUpdate.MemberType == "Method";
 
-            string? summary = null;
-            string? remarks = null;
-            string? property = null;
-            string? returns = null;
-            bool isEII = false;
-
+            MissingComments mc = default;
             if (IntelliSenseXmlComments.Members.TryGetValue(dMemberToUpdate.DocId, out IntelliSenseXmlMember? tsMemberToPort) && tsMemberToPort != null)
             {
                 // Rare case where the base type or interface docs should be used
                 if (tsMemberToPort.InheritDoc)
                 {
-                    (summary, returns, remarks, property) = GetMissingCommentsForMemberFromInheritDoc(dMemberToUpdate, tsMemberToPort, isProperty, isMethod);
+                    mc = GetMissingCommentsForMemberFromInheritDoc(dMemberToUpdate, tsMemberToPort, isProperty, isMethod);
                 }
                 else
                 {
-                    summary = tsMemberToPort.Summary;
-                    returns = isMethod ? tsMemberToPort.Returns : null;
-                    remarks = tsMemberToPort.Remarks;
-                    property = isProperty ? GetPropertyValue(tsMemberToPort.Value, tsMemberToPort.Returns) : null;
+                    mc.Summary = tsMemberToPort.Summary;
+                    mc.Returns = isMethod ? tsMemberToPort.Returns : null;
+                    mc.Remarks = tsMemberToPort.Remarks;
+                    mc.Property = isProperty ? GetPropertyValue(tsMemberToPort.Value, tsMemberToPort.Returns) : null;
                 }
             }
             else if (TryGetEIIMember(dMemberToUpdate, out dInterfacedMember) && dInterfacedMember != null)
             {
-                (summary, returns, remarks, property, isEII) = GetMissingCommentsForMemberFromInterface(dMemberToUpdate, dInterfacedMember, isProperty, isMethod);
+                mc = GetMissingCommentsForMemberFromInterface(dMemberToUpdate, dInterfacedMember, isProperty, isMethod);
             }
 
             if (tsMemberToPort != null || dInterfacedMember != null)
             {
-                TryPortMissingSummaryForAPI(dMemberToUpdate, summary, isEII);
-                TryPortMissingRemarksForAPI(dMemberToUpdate, remarks, isEII);
+                TryPortMissingSummaryForAPI(dMemberToUpdate, mc.Summary, mc.IsEII);
+                TryPortMissingRemarksForAPI(dMemberToUpdate, mc.Remarks, mc.IsEII);
                 TryPortMissingParamsForAPI(dMemberToUpdate, tsMemberToPort, dInterfacedMember);
                 TryPortMissingTypeParamsForAPI(dMemberToUpdate, tsMemberToPort, dInterfacedMember);
                 TryPortMissingExceptionsForMember(dMemberToUpdate, tsMemberToPort);
 
                 if (isProperty)
                 {
-                    TryPortMissingPropertyForMember(dMemberToUpdate, property, isEII);
+                    TryPortMissingPropertyForMember(dMemberToUpdate, mc.Property, mc.IsEII);
                 }
                 else if (isMethod)
                 {
-                    TryPortMissingReturnsForMember(dMemberToUpdate, returns, isEII);
+                    TryPortMissingReturnsForMember(dMemberToUpdate, mc.Returns, mc.IsEII);
                 }
 
                 if (dMemberToUpdate.Changed)
@@ -205,21 +195,18 @@ namespace Libraries
             }
         }
 
-        private (string?, string?, string?, string?) GetMissingCommentsForMemberFromInheritDoc(DocsMember dMemberToUpdate, IntelliSenseXmlMember tsMemberToPort, bool isProperty, bool isMethod)
+        private MissingComments GetMissingCommentsForMemberFromInheritDoc(DocsMember dMemberToUpdate, IntelliSenseXmlMember tsMemberToPort, bool isProperty, bool isMethod)
         {
-            string? summary = null;
-            string? returns = null;
-            string? remarks = null;
-            string? property = null;
+            MissingComments mc = default;
 
             // See if there is an inheritdoc cref indicating the exact member to use for docs
             if (!string.IsNullOrEmpty(tsMemberToPort.InheritDocCref) &&
                 IntelliSenseXmlComments.Members.TryGetValue(tsMemberToPort.InheritDocCref, out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
             {
-                summary = tsInheritedMember.Summary;
-                returns = isMethod ? tsInheritedMember.Returns : null;
-                remarks = tsInheritedMember.Remarks;
-                property = isProperty ? GetPropertyValue(tsInheritedMember.Value, tsInheritedMember.Returns) : null;
+                mc.Summary = tsInheritedMember.Summary;
+                mc.Returns = isMethod ? tsInheritedMember.Returns : null;
+                mc.Remarks = tsInheritedMember.Remarks;
+                mc.Property = isProperty ? GetPropertyValue(tsInheritedMember.Value, tsInheritedMember.Returns) : null;
             }
             // Look for the base type and find the member from which this one inherits
             else if (DocsComments.Types.TryGetValue($"T:{dMemberToUpdate.ParentType.DocId}", out DocsType? dBaseType) && dBaseType != null)
@@ -252,24 +239,24 @@ namespace Libraries
                             PortMissingCommentsForMember(dBaseMember);
                         }
 
-                        summary = dBaseMember.Summary;
-                        returns = isMethod ? dBaseMember.Returns : null;
-                        remarks = dBaseMember.Remarks;
-                        property = isProperty ? GetPropertyValue(dBaseMember.Value, dBaseMember.Returns) : null;
+                        mc.Summary = dBaseMember.Summary;
+                        mc.Returns = isMethod ? dBaseMember.Returns : null;
+                        mc.Remarks = dBaseMember.Remarks;
+                        mc.Property = isProperty ? GetPropertyValue(dBaseMember.Value, dBaseMember.Returns) : null;
                     }
                 }
             }
 
-            return (summary, returns, remarks, property);
+            return mc;
         }
 
-        private (string?, string?, string?, string?, bool) GetMissingCommentsForMemberFromInterface(DocsMember dMemberToUpdate, DocsMember dInterfacedMember, bool isProperty, bool isMethod)
+        private MissingComments GetMissingCommentsForMemberFromInterface(DocsMember dMemberToUpdate, DocsMember dInterfacedMember, bool isProperty, bool isMethod)
         {
-            string? summary = dInterfacedMember.Summary;
-            string? returns = isMethod ? dInterfacedMember.Returns : null;
-            string? remarks = null;
-            string? property = isProperty ? GetPropertyValue(dInterfacedMember.Value, dInterfacedMember.Returns) : null;
-            bool isEII = false;
+            MissingComments mc = default;
+
+            mc.Summary = dInterfacedMember.Summary;
+            mc.Returns = isMethod ? dInterfacedMember.Returns : null;
+            mc.Property = isProperty ? GetPropertyValue(dInterfacedMember.Value, dInterfacedMember.Returns) : null;
 
             if (!dInterfacedMember.Remarks.IsDocsEmpty())
             {
@@ -300,13 +287,13 @@ namespace Libraries
 
                     // Only port the interface remarks if the user desired that
                     // Otherwise, always add the EII special message
-                    remarks = eiiMessage + (!Config.SkipInterfaceRemarks ? Environment.NewLine + Environment.NewLine + cleanedInterfaceRemarks : string.Empty);
+                    mc.Remarks = eiiMessage + (!Config.SkipInterfaceRemarks ? Environment.NewLine + Environment.NewLine + cleanedInterfaceRemarks : string.Empty);
 
-                    isEII = true;
+                    mc.IsEII = true;
                 }
             }
 
-            return (summary, returns, remarks, property, isEII);
+            return mc;
         }
 
         // Issue: sometimes properties have their TS string in Value, sometimes in Returns
@@ -969,6 +956,15 @@ namespace Libraries
             Log.Success("---------");
             Log.Line();
 
+        }
+
+        private struct MissingComments
+        {
+            internal string? Summary;
+            internal string? Returns;
+            internal string? Remarks;
+            internal string? Property;
+            internal bool IsEII;
         }
     }
 }

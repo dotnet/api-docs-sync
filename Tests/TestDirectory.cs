@@ -1,4 +1,6 @@
-﻿using Xunit;
+﻿using System;
+using System.IO;
+using Xunit;
 
 namespace Libraries.Tests
 {
@@ -30,6 +32,7 @@ namespace Libraries.Tests
             catch
             {
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name="T:MyNamespace.MyType">
+      <inheritdoc/>
+    </member>
+    <member name="M:MyNamespace.MyType.MyMethod">
+      <inheritdoc cref="M:System.MyParentType.MyMethod"/>
+    </member>
+  </members>
+</doc>

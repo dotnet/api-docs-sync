@@ -156,7 +156,7 @@ namespace Libraries
             XElement xeFormat = new XElement("format");
 
             string updatedValue = SubstituteRemarksRegexPatterns(newValue);
-            updatedValue = ReplaceMarkdownPatterns(updatedValue);
+            updatedValue = ReplaceMarkdownPatterns(updatedValue).Trim();
 
             string remarksTitle = string.Empty;
             if (!updatedValue.Contains("## Remarks"))
@@ -282,6 +282,8 @@ namespace Libraries
                     updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
                 }
             }
+
+            updatedValue = Regex.Replace(updatedValue, @"[\r\n\t ]+\-[ ]?or[ ]?\-[\r\n\t ]+", "\r\n\r\n-or-\r\n\r\n");
             return updatedValue;
         }
 

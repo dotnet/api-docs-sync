@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace Libraries.Docs
@@ -20,17 +21,20 @@ namespace Libraries.Docs
         private List<DocsAttribute>? _attributes;
         private List<DocsTypeSignature>? _typesSignatures;
 
-        public DocsType(string filePath, XDocument xDoc, XElement xeRoot)
+        public DocsType(string filePath, XDocument xDoc, XElement xeRoot, Encoding encoding)
             : base(xeRoot)
         {
             FilePath = filePath;
             XDoc = xDoc;
+            FileEncoding = encoding;
             AssemblyInfos.AddRange(XERoot.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)));
         }
 
         public XDocument XDoc { get; set; }
 
         public override bool Changed { get; set; }
+
+        public Encoding FileEncoding { get; internal set; }
 
         public string TypeName
         {
@@ -116,7 +120,7 @@ namespace Libraries.Docs
                         string message = $"DocId TypeSignature not found for FullName";
                         throw new Exception($"DocId TypeSignature not found for FullName");
                     }
-                    _docId = dts.Value;
+                    _docId = dts.Value.DocIdEscaped();
                 }
                 return _docId;
             }
@@ -199,6 +203,44 @@ namespace Libraries.Docs
             set
             {
                 SaveFormattedAsXml("summary", value, addIfMissing: true);
+            }
+        }
+
+        /// <summary>
+        /// Only available when the type is a delegate.
+        /// </summary>
+        public override string ReturnType
+        {
+            get
+            {
+                XElement? xeReturnValue = XERoot.Element("ReturnValue");
+                if (xeReturnValue != null)
+                {
+                    return XmlHelper.GetChildElementValue(xeReturnValue, "ReturnType");
+                }
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Only available when the type is a delegate.
+        /// </summary>
+        public override string Returns
+        {
+            get
+            {
+                return (ReturnType != "System.Void") ? GetNodesInPlainText("returns") : string.Empty;
+            }
+            set
+            {
+                if (ReturnType != "System.Void")
+                {
+                    SaveFormattedAsXml("returns", value, addIfMissing: false);
+                }
+                else
+                {
+                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocId}");
+                }
             }
         }
 

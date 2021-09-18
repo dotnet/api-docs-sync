@@ -1,0 +1,35 @@
+﻿<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name="T:MyNamespace.MyType">
+      <param name="param1">This is the first Type param value (like with delegates).</param>
+      <param name="param2">This is the second Type param value (like with delegates).</param>
+      <typeparam name="T1">This is the first Type typeparam value.</typeparam>
+      <typeparam name="T2">This is the second Type typeparam value.</typeparam>
+      <summary>This is the type summary. It has a reference to <paramref name="param1" />. It contains the word null which should be transformed.</summary>
+    </member>
+    <member name="M:MyNamespace.MyType.MyMethod">
+      <param name="param1">This is the first Method param value.</param>
+      <param name="param2">This is the second Method param value.</param>
+      <typeparam name="T1">This is the first Method typeparam.</typeparam>
+      <typeparam name="T2">This is the second Method typeparam.</typeparam>
+      <summary>This is the method summary. It has a reference to <typeparamref name="T1" />.</summary>
+      <returns>This is the return value of MyMethod.</returns>
+      <exception cref="T:System.ArgumentNullException">This is the original text of ArgumentNullException thrown for MyMethod.</exception>
+      <exception cref="T:System.IndexOutOfRangeException">This is the original text of IndexOutOfRangeException thrown for MyMethod.</exception>
+    </member>
+    <member name="P:MyNamespace.MyType.MyProperty">
+      <summary>This is the property summary.</summary>
+      <value>This is the property value.</value>
+    </member>
+    <member name="M:MyNamespace.MyType.MyTypeParamMethod``1(``0,System.Collections.Generic.IEqualityComparer{``0})">
+      <typeparam name="TValue">The typeparam of MyTypeParamMethod.</typeparam>
+      <param name="value">An element of type <typeparamref name="TValue" />.</param>
+      <param name="comparer">The equality comparer of type <typeparamref name="TValue" />.</param>
+      <summary>The signature of this method would be: <c>public void Add&lt;TValue&gt; (TValue value, System.Collections.Generic.IEqualityComparer&lt;TValue&gt; comparer);</c></summary>
+    </member>
+  </members>
+</doc>

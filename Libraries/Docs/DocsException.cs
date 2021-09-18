@@ -18,7 +18,7 @@ namespace Libraries.Docs
         {
             get
             {
-                return XmlHelper.GetAttributeValue(XEException, "cref");
+                return XmlHelper.GetAttributeValue(XEException, "cref").DocIdEscaped();
             }
         }
 

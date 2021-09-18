@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,20 +13,20 @@ namespace Libraries.Tests
         // Verifies the basic case of porting all regular fields.
         public void Port_Basic()
         {
-            PortToDocs("Basic");
+            PortToDocs("Basic", GetConfiguration());
         }
 
         [Fact]
         public void Port_DontAddMissingRemarks()
         {
-            PortToDocs("DontAddMissingRemarks");
+            PortToDocs("DontAddMissingRemarks", GetConfiguration());
         }
 
         [Fact]
         // Verifies porting of APIs living in namespaces whose name match their assembly.
         public void Port_AssemblyAndNamespaceSame()
         {
-            PortToDocs("AssemblyAndNamespaceSame");
+            PortToDocs("AssemblyAndNamespaceSame", GetConfiguration());
         }
 
         [Fact]
@@ -36,8 +34,8 @@ namespace Libraries.Tests
         public void Port_AssemblyAndNamespaceDifferent()
         {
             PortToDocs("AssemblyAndNamespaceDifferent",
-                assemblyName: "MyAssembly",
-                namespaceName: "MyNamespace");
+                       GetConfiguration(),
+                       namespaceNames: new[] { TestData.TestNamespace});
         }
 
         [Fact]
@@ -46,9 +44,8 @@ namespace Libraries.Tests
         // No interface strings should be ported.
         public void Port_Remarks_NoEII_NoInterfaceRemarks()
         {
-            PortToDocs("Remarks_NoEII_NoInterfaceRemarks",
-                skipInterfaceImplementations: true,
-                skipInterfaceRemarks: true);
+            Configuration c = GetConfiguration(skipInterfaceImplementations: true, skipInterfaceRemarks: true);
+            PortToDocs("Remarks_NoEII_NoInterfaceRemarks", c);
         }
 
         [Fact]
@@ -57,9 +54,8 @@ namespace Libraries.Tests
         // Ports EII message and interface method remarks.
         public void Port_Remarks_WithEII_WithInterfaceRemarks()
         {
-            PortToDocs("Remarks_WithEII_WithInterfaceRemarks",
-                skipInterfaceImplementations: false,
-                skipInterfaceRemarks: false);
+            Configuration c = GetConfiguration(skipInterfaceImplementations: false, skipInterfaceRemarks: false);
+            PortToDocs("Remarks_WithEII_WithInterfaceRemarks", c);
         }
 
         [Fact]
@@ -68,30 +64,73 @@ namespace Libraries.Tests
         // Ports EII message but no interface method remarks.
         public void Port_Remarks_WithEII_NoInterfaceRemarks()
         {
-            PortToDocs("Remarks_WithEII_NoInterfaceRemarks",
-                skipInterfaceImplementations: false,
-                skipInterfaceRemarks: true);
+            Configuration c = GetConfiguration(skipInterfaceImplementations: false, skipInterfaceRemarks: true);
+            PortToDocs("Remarks_WithEII_NoInterfaceRemarks", c);
         }
 
         [Fact]
-        /// Verifies that new exceptions are ported.
+        // Verifies that new exceptions are ported.
         public void Port_Exceptions()
         {
-            PortToDocs("Exceptions");
+            PortToDocs("Exceptions", GetConfiguration());
         }
 
         [Fact]
-        /// Verifies that when an exception has already been ported, but went through
-        /// language review, does not get ported if its above the difference threshold.
+        // Verifies that when an exception has already been ported, but went through
+        // language review, does not get ported if its above the difference threshold.
         public void Port_Exception_ExistingCref()
         {
-            PortToDocs("Exception_ExistingCref",
-                portExceptionsExisting: true,
-                exceptionCollisionThreshold: 60);
+            Configuration c = GetConfiguration(portExceptionsExisting: true, exceptionCollisionThreshold: 60);
+            PortToDocs("Exception_ExistingCref", c);
         }
 
-        private void PortToDocs(
-            string testDataDir,
+        [Fact]
+        // Avoid porting enum field remarks
+        public void Port_EnumRemarks()
+        {
+            PortToDocs("EnumRemarks", GetConfiguration());
+        }
+
+        [Fact]
+        // When the inheritdoc label is found, look for the parent type's documentation.
+        // The parent type is located in a different assembly.
+        public void Port_InheritDoc()
+        {
+            PortToDocs("InheritDoc",
+                       GetConfiguration(),
+                       assemblyNames: new[] { TestData.TestAssembly, "System" });
+        }
+
+        private static readonly string TestDataRootDir = Path.Join("..", "..", "..", "PortToDocs", "TestData");
+        private static readonly string IntellisenseDir = "intellisense";
+        private static readonly string XmlExpectedDir = "xml_expected";
+        private static readonly string XmlActualDir = "xml";
+
+        private static void DirectoryRecursiveCopy(string sourceDir, string targetDir)
+        {
+            DirectoryInfo dir = new(sourceDir);
+
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException($"Source directory does not exist or could not be found: {sourceDir}");
+            }
+
+            Directory.CreateDirectory(targetDir);
+
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                string tempPath = Path.Combine(targetDir, file.Name);
+                file.CopyTo(tempPath, false);
+            }
+
+            foreach (DirectoryInfo subdir in dir.GetDirectories())
+            {
+                string tempPath = Path.Combine(targetDir, subdir.Name);
+                DirectoryRecursiveCopy(subdir.FullName, tempPath);
+            }
+        }
+
+        private static Configuration GetConfiguration(
             bool disablePrompts = true,
             bool printUndoc = false,
             bool save = true,
@@ -100,23 +139,7 @@ namespace Libraries.Tests
             bool portTypeRemarks = true,
             bool portMemberRemarks = true,
             bool portExceptionsExisting = false,
-            int exceptionCollisionThreshold = 70,
-            string assemblyName = TestData.TestAssembly,
-            string namespaceName = null, // Most namespaces have the same assembly name
-            string typeName = TestData.TestType)
-        {
-            using TestDirectory tempDir = new TestDirectory();
-
-            PortToDocsTestData testData = new PortToDocsTestData(
-                tempDir,
-                testDataDir,
-                skipInterfaceImplementations: skipInterfaceImplementations,
-                assemblyName: assemblyName,
-                namespaceName: namespaceName,
-                typeName: typeName
-            );
-
-            Configuration c = new()
+            int exceptionCollisionThreshold = 70) => new()
             {
                 Direction = Configuration.PortingDirection.ToDocs,
                 DisablePrompts = disablePrompts,
@@ -130,76 +153,61 @@ namespace Libraries.Tests
                 SkipInterfaceRemarks = skipInterfaceRemarks
             };
 
-            c.IncludedAssemblies.Add(assemblyName);
+    private static void PortToDocs(
+            string testName,
+            Configuration c,
+            string[] assemblyNames = null,
+            string[] namespaceNames = null) // Most namespaces have the same assembly name
+        {
+            assemblyNames ??= new string[] { TestData.TestAssembly };
+            namespaceNames ??= Array.Empty<string>();
 
-            if (!string.IsNullOrEmpty(namespaceName))
+            using TestDirectory testDirectory = new();
+
+            string targetDir = Path.Join(testDirectory.FullPath, testName);
+            Directory.CreateDirectory(targetDir);
+
+            string sourceDir = Path.Join(TestDataRootDir, testName);
+
+            DirectoryRecursiveCopy(sourceDir, targetDir);
+
+            foreach (string assemblyName in assemblyNames)
+            {
+                c.IncludedAssemblies.Add(assemblyName);
+            }
+
+            foreach (string namespaceName in namespaceNames)
             {
                 c.IncludedNamespaces.Add(namespaceName);
             }
 
-            c.DirsDocsXml.Add(testData.DocsDir);
-            c.DirsIntelliSense.Add(testData.IntelliSenseAndDLLDir);
+            c.DirsDocsXml.Add(new(Path.Join(targetDir, XmlActualDir)));
+            c.DirsIntelliSense.Add(new(Path.Join(targetDir, IntellisenseDir)));
 
             var porter = new ToDocsPorter(c);
             porter.Start();
 
-            Verify(testData);
+            Verify(targetDir);
         }
 
-        private void Verify(PortToDocsTestData testData)
+        private static void Verify(string rootPath)
         {
-            string[] expectedLines = File.ReadAllLines(testData.ExpectedFilePath);
-            string[] actualLines = File.ReadAllLines(testData.ActualFilePath);
+            EnumerationOptions o = new() { RecurseSubdirectories = true };
+            FileInfo[] expectedXmlFiles = new DirectoryInfo(Path.Join(rootPath, XmlExpectedDir)).GetFiles("*.xml", o);
+            FileInfo[] actualXmlFiles = new DirectoryInfo(Path.Join(rootPath, XmlActualDir)).GetFiles("*.xml", o);
 
-            for (int i = 0; i < expectedLines.Length; i++)
+            foreach (var expectedFile in expectedXmlFiles)
             {
-                Assert.True(i < expectedLines.Length);
-                Assert.True(i < actualLines.Length);
+                FileInfo actualFile = actualXmlFiles.FirstOrDefault(x =>
+                    x.Name == expectedFile.Name &&
+                    Path.GetFileName(x.DirectoryName) == Path.GetFileName(expectedFile.DirectoryName));
+                Assert.NotNull(actualFile);
 
-                string expectedLine = expectedLines[i];
-                string actualLine = actualLines[i];
+                string expectedText = File.ReadAllText(expectedFile.FullName);
+                string actualText = File.ReadAllText(actualFile.FullName);
 
-                // Print some more details before asserting
-                if (expectedLine != actualLine)
-                {
-                    string expected = GetProblematicLines("Expected", expectedLines, i);
-                    string actual = GetProblematicLines("Actual", actualLines, i);
-
-                    Output.WriteLine(expected);
-                    Output.WriteLine(actual);
-                }
-
-                Assert.Equal(expectedLine, actualLine);
+                Assert.Equal(expectedText, actualText);
             }
-
-            // Check at the end, because we first want to fail on different lines
-            Assert.Equal(expectedLines.Length, actualLines.Length);
-        }
-
-
-        private static string GetProblematicLines(string title, string[] lines, int lineNumber)
-        {
-            string output = $"{title}:{Environment.NewLine}";
-
-            for (int i = 5; i >= 1; i--)
-            {
-                if ((lineNumber - i) >= 0)
-                {
-                    output += $"[{lineNumber - i}] {lines[lineNumber - i]}{Environment.NewLine}";
-                }
-            }
-
-            output += $"[{lineNumber}] {lines[lineNumber]}{Environment.NewLine}";
-
-            for (int i = 1; i <= 5; i++)
-            {
-                if ((lineNumber + i) < lines.Length)
-                {
-                    output += $"[{lineNumber + i}] {lines[lineNumber + i]}{Environment.NewLine}";
-                }
-            }
-
-            return output;
         }
     }
 }

@@ -65,7 +65,7 @@ namespace Libraries.Docs
                         string message = string.Format("Could not find a DocId MemberSignature for '{0}'", MemberName);
                         throw new Exception(message);
                     }
-                     _docId = ms.Value;
+                     _docId = ms.Value.DocIdEscaped();
                 }
                 return _docId;
             }
@@ -88,7 +88,7 @@ namespace Libraries.Docs
             }
         }
 
-        public string ReturnType
+        public override string ReturnType
         {
             get
             {
@@ -101,7 +101,7 @@ namespace Libraries.Docs
             }
         }
 
-        public string Returns
+        public override string Returns
         {
             get
             {
@@ -115,7 +115,7 @@ namespace Libraries.Docs
                 }
                 else
                 {
-                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocIdEscaped}");
+                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocId}");
                 }
             }
         }
@@ -158,7 +158,7 @@ namespace Libraries.Docs
                 }
                 else
                 {
-                    Log.Warning($"Attempted to save a value element for an API that is not a property: {DocIdEscaped}");
+                    Log.Warning($"Attempted to save a value element for an API that is not a property: {DocId}");
                 }
             }
         }
@@ -191,7 +191,8 @@ namespace Libraries.Docs
         {
             XElement exception = new XElement("exception");
             exception.SetAttributeValue("cref", cref);
-            XmlHelper.AddChildFormattedAsXml(Docs, exception, value);
+            XmlHelper.SaveFormattedAsXml(exception, value, removeUndesiredEndlines: false);
+            Docs.Add(exception);
             Changed = true;
             return new DocsException(this, exception);
         }

@@ -8,7 +8,6 @@ namespace Libraries.Docs
 {
     internal abstract class DocsAPI : IDocsAPI
     {
-        private string? _docIdEscaped = null;
         private List<DocsParam>? _params;
         private List<DocsParameter>? _parameters;
         private List<DocsTypeParameter>? _typeParameters;
@@ -21,6 +20,12 @@ namespace Libraries.Docs
         protected readonly XElement XERoot;
 
         protected DocsAPI(XElement xeRoot) => XERoot = xeRoot;
+
+        public bool IsUndocumented =>
+            Summary.IsDocsEmpty() ||
+            Returns.IsDocsEmpty() ||
+            Params.Any(p => p.Value.IsDocsEmpty()) ||
+            TypeParams.Any(tp => tp.Value.IsDocsEmpty());
 
         public abstract bool Changed { get; set; }
         public string FilePath { get; set; } = string.Empty;
@@ -132,7 +137,7 @@ namespace Libraries.Docs
                 {
                     if (Docs != null)
                     {
-                        _seeAlsoCrefs = Docs.Elements("seealso").Select(x => XmlHelper.GetAttributeValue(x, "cref")).ToList();
+                        _seeAlsoCrefs = Docs.Elements("seealso").Select(x => XmlHelper.GetAttributeValue(x, "cref").DocIdEscaped()).ToList();
                     }
                     else
                     {
@@ -151,7 +156,7 @@ namespace Libraries.Docs
                 {
                     if (Docs != null)
                     {
-                        _altMemberCrefs = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref")).ToList();
+                        _altMemberCrefs = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref").DocIdEscaped()).ToList();
                     }
                     else
                     {
@@ -182,6 +187,8 @@ namespace Libraries.Docs
         }
 
         public abstract string Summary { get; set; }
+        public abstract string ReturnType { get; }
+        public abstract string Returns { get; set; }
 
         public abstract string Remarks { get; set; }
 
@@ -194,18 +201,6 @@ namespace Libraries.Docs
                     _assemblyInfos = new List<DocsAssemblyInfo>();
                 }
                 return _assemblyInfos;
-            }
-        }
-
-        public string DocIdEscaped
-        {
-            get
-            {
-                if (_docIdEscaped == null)
-                {
-                    _docIdEscaped = DocId.Replace("<", "{").Replace(">", "}").Replace("&lt;", "{").Replace("&gt;", "}");
-                }
-                return _docIdEscaped;
             }
         }
 

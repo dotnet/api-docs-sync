@@ -47,26 +47,19 @@ namespace Libraries.Docs
                 return;
             }
 
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            Encoding encoding = Encoding.GetEncoding(1252); // Preserves original xml encoding from Docs repo
-
-            List<string> savedFiles = new List<string>();
+            List<string> savedFiles = new();
             foreach (var type in Types.Values.Where(x => x.Changed))
             {
-                Log.Warning(false, $"Saving changes for {type.FilePath}:");
+                Log.Info(false, $"Saving changes for {type.FilePath} ... ");
 
                 try
                 {
-                    StreamReader sr = new StreamReader(type.FilePath);
-                    int x = sr.Read(); // Force the first read to be done so the encoding is detected
-                    sr.Close();
-
                     // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                    XmlWriterSettings xws = new XmlWriterSettings
+                    XmlWriterSettings xws = new()
                     {
+                        Encoding = type.FileEncoding,
                         OmitXmlDeclaration = true,
                         Indent = true,
-                        Encoding = encoding,
                         CheckCharacters = false
                     };
 
@@ -79,7 +72,7 @@ namespace Libraries.Docs
                     string fileData = File.ReadAllText(type.FilePath);
                     if (!fileData.EndsWith(Environment.NewLine))
                     {
-                        File.WriteAllText(type.FilePath, fileData + Environment.NewLine, encoding);
+                        File.WriteAllText(type.FilePath, fileData + Environment.NewLine, type.FileEncoding);
                     }
 
                     Log.Success(" [Saved]");
@@ -87,7 +80,6 @@ namespace Libraries.Docs
                 catch (Exception e)
                 {
                     Log.Error("Failed to write to {0}. {1}", type.FilePath, e.Message);
-                    Log.Line();
                     Log.Error(e.StackTrace ?? string.Empty);
                     if (e.InnerException != null)
                     {
@@ -96,10 +88,7 @@ namespace Libraries.Docs
                         Log.Line();
                         Log.Error(e.InnerException.StackTrace ?? string.Empty);
                     }
-                    System.Threading.Thread.Sleep(1000);
                 }
-
-                Log.Line();
             }
         }
 
@@ -174,12 +163,17 @@ namespace Libraries.Docs
 
         private void LoadFile(FileInfo fileInfo)
         {
+            Encoding? encoding = null;
             try
             {
-                // docs repo uses code page 1252
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                StreamReader sr = new(fileInfo.FullName, Encoding.GetEncoding(1252));
-                xDoc = XDocument.Load(sr);
+                var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+                var utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+                using (StreamReader sr = new(fileInfo.FullName, utf8NoBom, detectEncodingFromByteOrderMarks: true))
+                {
+                    xDoc = XDocument.Load(sr);
+                    encoding = sr.CurrentEncoding;
+                }
+
             }
             catch(Exception ex)
             {
@@ -192,7 +186,7 @@ namespace Libraries.Docs
                 return;
             }
 
-            DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root!);
+            DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root!, encoding);
 
             bool add = false;
             bool addedAsInterface = false;

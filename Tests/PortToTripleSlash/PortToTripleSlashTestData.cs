@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.IO;
+using Xunit;
 
 namespace Libraries.Tests
 {
@@ -7,7 +8,7 @@ namespace Libraries.Tests
         private const string SourceOriginal = "SourceOriginal.cs";
         private const string SourceExpected = "SourceExpected.cs";
         private const string ProjectDirName = "Project";
-        private string TestDataRootDirPath => @"../../../PortToTripleSlash/TestData";
+        private const string TestDataRootDirPath = @"../../../PortToTripleSlash/TestData";
 
         private DirectoryInfo ProjectDir { get; set; }
         internal string ProjectFilePath { get; set; }

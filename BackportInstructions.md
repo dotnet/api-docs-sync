@@ -176,4 +176,4 @@ For reference, here are a couple of assemblies that have been addressed:
 
     b. Check that there is no markdown in the plain xml sections, or viceversa (the build may not catch some of these).
 
-    c. No need to focus on the content of the documentation itself, but if you find a description you'd like to improve, this is the time to offer a suggested change.
+    c. No need to focus on the content of the documentation itself, but if you find a description you'd like to improve, this is the time to offer a suggested change. 

@@ -407,13 +407,13 @@ namespace Libraries
                             string msg;
                             if (tsMemberToPort.Params.Count() == 0)
                             {
-                                msg = $"There were no IntelliSense xml comments for param {dParam.Name} in Member DocId {dApiToUpdate.DocId}"
+                                msg = $"There were no IntelliSense xml comments for param {dParam.Name} in Member DocId {dApiToUpdate.DocId}";
                                 ProblematicAPIs.AddIfNotExists(msg);
                                 Log.Warning(msg);
                             }
                             else if (tsMemberToPort.Params.Count() != dApiToUpdate.Params.Count())
                             {
-                                msg = $"The total number of params does not match between IntelliSense and Docs members {dApiToUpdate.DocId}"
+                                msg = $"The total number of params does not match between IntelliSense and Docs members {dApiToUpdate.DocId}";
                                 ProblematicAPIs.AddIfNotExists(msg);
                                 Log.Warning(msg);
                             }

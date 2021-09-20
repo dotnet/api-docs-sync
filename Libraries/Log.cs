@@ -215,9 +215,13 @@ Options:
                                                     Usage example:
                                                         -IncludedAssemblies System.IO,System.Runtime
 
-                                                    IMPORTANT: 
+                                                    IMPORTANT:
                                                     Namespaces usually match the assembly name. There are some exceptions, like with types that live in
                                                     the System.Runtime assembly. For those cases, make sure to also specify the -IncludedNamespaces argument.
+
+                                                    IMPORTANT:
+                                                    Include both facades and implementation. For example, for System.IO.FileStream, include both 
+                                                    System.Private.CoreLib (for the implementation) and System.Runtime (the facade).
 
     -CsProj                 file path           Mandatory only when using '-Direction ToTripleSlash' to port from Docs to triple slash comments in source.
                                                     An absolute path to a *.csproj file from your repo. Make sure its the src file, not the ref or test file.

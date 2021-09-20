@@ -1,4 +1,6 @@
-﻿namespace Libraries
+﻿using System.Collections.Generic;
+
+namespace Libraries
 {
     // Provides generic extension methods.
     internal static class Extensions
@@ -13,7 +15,7 @@
             }
         }
 
-        // Removes the specified subtrings from another string
+        // Removes the specified substrings from another string
         public static string RemoveSubstrings(this string oldString, params string[] stringsToRemove)
         {
             string newString = oldString;

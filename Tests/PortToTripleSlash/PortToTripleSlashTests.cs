@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.IO;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Libraries.Tests

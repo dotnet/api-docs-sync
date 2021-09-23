@@ -197,7 +197,7 @@ namespace Libraries.IntelliSenseXml
             }
 
             XEMember = xeMember ?? throw new ArgumentNullException(nameof(xeMember));
-            Assembly = assembly;
+            Assembly = assembly.Trim();
         }
 
         public override string ToString()

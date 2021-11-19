@@ -6,6 +6,7 @@
     <Company>Microsoft</Company>
     <Authors>carlossanlop</Authors>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>

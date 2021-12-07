@@ -75,6 +75,7 @@ namespace Libraries.Docs.Tests
 
         [Theory]
         [InlineData(@"Accessibility: <xref:Accessibility>", @"Accessibility: <see cref=""Accessibility"" />")]
+        [InlineData(@"The `MyGenericType<T>` type contains the nested class <xref:MyNamespace.MyGenericType%601.Enumerator>.", @"The `MyGenericType<T>` type contains the nested class <see cref=""MyNamespace.MyGenericType{T}.Enumerator"" />.")]
         [InlineData(@"SyndicationCategory: <xref:System.ServiceModel.Syndication.SyndicationCategory>", @"SyndicationCategory: <see cref=""System.ServiceModel.Syndication.SyndicationCategory"" />")]
         [InlineData(@"Label: <xref:System.ServiceModel.Syndication.SyndicationCategory.Label*>", @"Label: <see cref=""System.ServiceModel.Syndication.SyndicationCategory.Label"" />")]
         [InlineData(@"==: <xref:System.Windows.Media.Matrix.op_Equality*?displayProperty=nameWithType>", @"==: <see cref=""System.Windows.Media.Matrix.op_Equality"" />")]

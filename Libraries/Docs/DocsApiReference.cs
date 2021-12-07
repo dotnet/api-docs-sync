@@ -16,7 +16,7 @@ namespace Libraries.Docs
 
         // Generic parameters need to support both single and double backtick conventions
         private const string GenericParameterPattern = @"`{1,2}(?<arity>\d+)";
-        private const string ApiChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;`]";
+        private const string ApiChars = @"[A-Za-z0-9\-\._~:\/#\[\]\{\}@!\$&'\(\)\*\+,;`%]";
         private const string ApiReferencePattern = @"((?<prefix>[A-Za-z]):)?(?<api>(" + ApiChars + @")+)?(?<extraVars>\?(" + ApiChars + @")+=(" + ApiChars + @")+)?";
         private static readonly Regex XrefPattern = new("<xref:(?<api>" + ApiReferencePattern + ")\\s*>", RegexOptions.Compiled);
 

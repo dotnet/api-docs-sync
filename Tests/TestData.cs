@@ -9,7 +9,6 @@ namespace Libraries.Tests
         internal const string TestType = "MyType";
         internal const string DocsDirName = "Docs";
 
-        internal string ExpectedFilePath { get; set; }
         internal string ActualFilePath { get; set; }
         internal DirectoryInfo DocsDir { get; set; }
 

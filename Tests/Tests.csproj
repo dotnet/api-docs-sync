@@ -9,43 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="PortToTripleSlash\TestData\Generics\SourceExpected.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\Generics\SourceOriginal.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\Directives.Expected.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\Directives.Original.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\DirectivesExistingXml.Expected.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\DirectivesExistingXml.Original.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\ExistingXml.Expected.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\ExistingXml.Original.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Expected.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Original.cs" />
+    <Compile Remove="PortToTripleSlash\TestData\**\*.csproj" />
+    <None Include="PortToTripleSlash\TestData\**\*.csproj" />
+    <Compile Remove="PortToTripleSlash\TestData\**\*.cs" />
+    <None Include="PortToTripleSlash\TestData\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\DirectivesExistingXml.Expected.cs">
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\*.Expected.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\DirectivesExistingXml.Original.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\Directives.Expected.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\Directives.Original.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\ExistingXml.Expected.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\ExistingXml.Original.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Expected.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\WhitespaceOnly.Original.cs">
+    <Content Include="PortToTripleSlash\TestData\LeadingTrivia\*.Original.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -55,27 +29,19 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="16.9.0" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.4.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0-preview-20210219-03" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1-beta1" />
-    <PackageReference Include="NuGet.Frameworks" Version="5.9.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NuGet.Frameworks" Version="6.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0-preview.1.21102.12" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Verify.Xunit" Version="14.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Libraries\Libraries.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="PortToTripleSlash\TestData\Generics\MyAssembly.csproj" />
-    <None Include="PortToTripleSlash\TestData\Generics\SourceExpected.cs" />
-    <None Include="PortToTripleSlash\TestData\Generics\SourceOriginal.cs" />
-    <None Include="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
-    <None Include="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
-    <None Include="PortToTripleSlash\TestData\Basic\MyAssembly.csproj" />
   </ItemGroup>
 
 </Project>

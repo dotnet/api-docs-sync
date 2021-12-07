@@ -1,27 +1,26 @@
-﻿using Xunit;
+﻿using VerifyXunit;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Libraries.Tests
 {
+    [UsesVerify]
     public class PortToTripleSlashTests : BasePortTests
     {
-        public PortToTripleSlashTests(ITestOutputHelper output) : base(output)
+        public PortToTripleSlashTests(ITestOutputHelper output) 
+            : base(output)
         {
         }
 
-        [Fact]
-        public void Port_Basic()
+        [Theory]
+        [InlineData("Basic")]
+        [InlineData("Generics")]
+        public async Task PortToTripleSlash(string scenario)
         {
-            PortToTripleSlash("Basic");
+            await TestScenario(scenario);
         }
 
-        [Fact]
-        public void Port_Generics()
-        {
-            PortToTripleSlash("Generics");
-        }
-
-        private static void PortToTripleSlash(
+        private static async Task TestScenario(
             string testDataDir,
             bool save = true,
             bool skipInterfaceImplementations = true,
@@ -55,29 +54,9 @@ namespace Libraries.Tests
 
             ToTripleSlashPorter.Start(c);
 
-            Verify(testData);
-        }
-
-        private static void Verify(PortToTripleSlashTestData testData)
-        {
-            string[] expectedLines = File.ReadAllLines(testData.ExpectedFilePath);
-            string[] actualLines = File.ReadAllLines(testData.ActualFilePath);
-
-            for (int i = 0; i < expectedLines.Length; i++)
-            {
-                string expectedLine = expectedLines[i];
-                string actualLine = actualLines[i];
-                if (System.Diagnostics.Debugger.IsAttached)
-                {
-                    if (expectedLine != actualLine)
-                    {
-                        System.Diagnostics.Debugger.Break();
-                    }
-                }
-                Assert.Equal(expectedLine, actualLine);
-            }
-
-            Assert.Equal(expectedLines.Length, actualLines.Length);
+            await Verifier.VerifyFile(testData.ActualFilePath)
+                .UseDirectory($"./TestData/{testDataDir}")
+                .UseFileName("SourceExpected");
         }
     }
 }

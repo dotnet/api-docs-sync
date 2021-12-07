@@ -6,3 +6,4 @@ obj
 .ionide/
 artifacts/
 */*.user
+*.received.*

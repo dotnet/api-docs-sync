@@ -28,6 +28,35 @@ namespace Libraries.Docs.Tests
                 Referencing
                 <see cref=""T:System.Int32"" />.
             ")]
+        [InlineData(
+            @"<remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+This is a reference to the typeparam `T`.
+
+This is a reference to the parameter `param1`.
+
+Mentions the `param1` and an <xref:System.ArgumentNullException>.
+
+There are also a `true` and a `null`.
+
+          ]]></format>
+        </remarks>",
+            @"<format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+This is a reference to the typeparam `T`.
+
+This is a reference to the parameter `param1`.
+
+Mentions the `param1` and an <xref:System.ArgumentNullException>.
+
+There are also a `true` and a `null`.
+
+          ]]></format>")]
         public void GetsRawText(string xml, string expected)
         {
             var remarks = new DocsRemarks(XElement.Parse(xml));
@@ -58,6 +87,27 @@ Remarks
 Referencing
 <see cref=""int"" />
 With Blank Lines.")]
+        [InlineData(
+            @"        <Docs><typeparam name=""T"">This is the MyTypeParamMethod typeparam T.</typeparam>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+This is a reference to the typeparam `T`.
+
+This is a reference to the parameter `param1`.
+
+Mentions the `param1` and an <xref:System.ArgumentNullException>.
+
+There are also a `true` and a `null`.
+
+          ]]></format>
+        </remarks></Docs>",
+            @"This is a reference to the typeparam <typeparamref name=""T"" />.
+This is a reference to the parameter <see cref=""param1"" />.
+Mentions the <see cref=""param1"" /> and an <see cref=""System.ArgumentNullException"" />.
+There are also a <see langword=""true"" /> and a <see langword=""null"" />.")]
         public void GetsParsedText(string xml, string expected)
         {
             var remarks = new DocsRemarks(XElement.Parse(xml));

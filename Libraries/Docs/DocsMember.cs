@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -65,7 +66,9 @@ namespace Libraries.Docs
                         string message = string.Format("Could not find a DocId MemberSignature for '{0}'", MemberName);
                         throw new Exception(message);
                     }
-                     _docId = ms.Value.DocIdEscaped();
+
+                    // This value must not be unescaped
+                    _docId = ms.Value;
                 }
                 return _docId;
             }

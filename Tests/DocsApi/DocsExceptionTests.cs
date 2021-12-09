@@ -23,6 +23,21 @@ namespace Libraries.Docs.Tests
             @"<exception cref=""T:System.InvalidOperationException"">
                     If a null reference is returned from <paramref name=""projectInstanceFactory"" /></exception>",
             @"If a null reference is returned from <paramref name=""projectInstanceFactory"" />")]
+        [InlineData(
+            @"<exception cref=""T:System.IndexOutOfRangeException"">This is the IndexOutOfRangeException thrown by MyVoidMethod.
+
+-or-
+
+This is the second case.
+
+Empty newlines should be respected.</exception>",
+            @"This is the IndexOutOfRangeException thrown by MyVoidMethod.
+
+-or-
+
+This is the second case.
+
+Empty newlines should be respected.")]
         public void ExtractsValueInPlainText(string xml, string expected)
         {
             var parent = new TestDocsApi();

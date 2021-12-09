@@ -159,7 +159,7 @@ namespace Libraries.Docs
                 {
                     if (Docs != null)
                     {
-                        _altMemberCrefs = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref").DocIdEscaped()).ToList();
+                        _altMemberCrefs = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref")).ToList();
                     }
                     else
                     {

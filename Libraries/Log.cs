@@ -18,10 +18,12 @@ namespace Libraries
             string msg = args != null ? (args.Length > 0 ? string.Format(format, args) : format) : format;
             if (endline)
             {
+                Debug.WriteLine($"[DPT]: {msg}");
                 Console.WriteLine(msg);
             }
             else
             {
+                Debug.Write(msg);
                 Console.Write(msg);
             }
             Console.ForegroundColor = originalColor;

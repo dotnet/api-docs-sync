@@ -1,4 +1,4 @@
-﻿<Type Name="MyGenericType&lt;T&gt;" FullName="MyNamespace.MyGenericType">
+﻿<Type Name="MyGenericType" FullName="MyNamespace.MyGenericType">
   <TypeSignature Language="DocId" Value="T:MyNamespace.MyGenericType" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>

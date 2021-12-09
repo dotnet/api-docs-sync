@@ -101,8 +101,11 @@ namespace MyNamespace
         /// <summary>This is the MyVoidMethod summary.</summary>
         /// <exception cref="System.ArgumentNullException">This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.</exception>
         /// <exception cref="System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyVoidMethod.
+        /// 
         /// -or-
+        /// 
         /// This is the second case.
+        /// 
         /// Empty newlines should be respected.</exception>
         /// <remarks>These are the MyVoidMethod remarks.
         /// Multiple lines.

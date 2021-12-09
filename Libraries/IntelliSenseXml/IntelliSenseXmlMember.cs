@@ -165,8 +165,8 @@ namespace Libraries.IntelliSenseXml
             {
                 if (_returns == null)
                 {
-                        XElement? xElement = XEMember.Element("returns");
-                        _returns = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
+                    XElement? xElement = XEMember.Element("returns");
+                    _returns = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _returns;
             }
@@ -179,8 +179,8 @@ namespace Libraries.IntelliSenseXml
             {
                 if (_remarks == null)
                 {
-                        XElement? xElement = XEMember.Element("remarks");
-                        _remarks = (xElement !=  null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
+                    XElement? xElement = XEMember.Element("remarks");
+                    _remarks = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
                 }
                 return _remarks;
             }

@@ -35,7 +35,7 @@ namespace Libraries.Tests
         {
             PortToDocs("AssemblyAndNamespaceDifferent",
                        GetConfiguration(),
-                       namespaceNames: new[] { TestData.TestNamespace});
+                       namespaceNames: new[] { TestData.TestNamespace });
         }
 
         [Fact]
@@ -153,7 +153,7 @@ namespace Libraries.Tests
                 SkipInterfaceRemarks = skipInterfaceRemarks
             };
 
-    private static void PortToDocs(
+        private static void PortToDocs(
             string testName,
             Configuration c,
             string[] assemblyNames = null,

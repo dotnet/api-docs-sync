@@ -1,0 +1,16 @@
+﻿<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name="T:MyAssembly.MyType">
+      <summary>This is the type summary.</summary>
+      <remarks>These are the type remarks. They also have a cref link: <see cref="M:MyAssembly.MyType.MyMethod()" />.</remarks>
+    </member>
+    <member name="M:MyAssembly.MyType.MyMethod">
+      <summary>This is the method summary.</summary>
+      <remarks>These are the method remarks. They are pointing to a param: <paramref name="myParam" />.</remarks>
+    </member>
+  </members>
+</doc>

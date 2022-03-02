@@ -1,0 +1,48 @@
+﻿<Type Name="MyType" FullName="MyNamespace.MyType">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>System.Object</BaseTypeName>
+  </Base>
+  <Interfaces />
+  <Docs>
+    <summary>This is the type summary.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName="MyMethod">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyMethod" />
+      <MemberType>Method</MemberType>
+      <Implements />
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>This is the method summary.</summary>
+        <remarks>To be added.</remarks>
+        <exception cref="T:System.ArgumentNullException">This is the original text of ArgumentNullException thrown for MyMethod.</exception>
+        <exception cref="T:System.IndexOutOfRangeException">This is the original text of IndexOutOfRangeException thrown for MyMethod.
+
+-or-
+
+A proper alternative.
+
+-or-
+
+An improper alternative.
+
+-or-
+
+A somewhat proper alternative.</exception>
+      </Docs>
+    </Member>
+  </Members>
+</Type>

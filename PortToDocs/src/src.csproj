@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <Company>Microsoft</Company>
+    <Authors>carlossanlop</Authors>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

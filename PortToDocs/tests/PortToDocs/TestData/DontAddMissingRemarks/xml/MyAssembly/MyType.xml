@@ -1,0 +1,39 @@
+﻿<Type Name="MyEnum" FullName="MyNamespace.MyEnum">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyEnum" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>System.Object</BaseTypeName>
+  </Base>
+  <Interfaces />
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName="MyOption0">
+      <MemberSignature Language="DocId" Value="F:MyNamespace.MyEnum.MyOption0" />
+      <MemberType>Field</MemberType>
+      <ReturnValue>
+        <ReturnType>MyNamespace.MyEnum</ReturnType>
+      </ReturnValue>
+      <MenmberValue>0</MenmberValue>
+      <Docs>
+        <summary>To be added.</summary>
+      </Docs>
+    </Member>
+    <Member MemberName="MyOption1">
+      <MemberSignature Language="DocId" Value="F:MyNamespace.MyEnum.MyOption1" />
+      <MemberType>Field</MemberType>
+      <ReturnValue>
+        <ReturnType>MyNamespace.MyEnum</ReturnType>
+      </ReturnValue>
+      <MenmberValue>1</MenmberValue>
+      <Docs>
+        <summary>To be added.</summary>
+      </Docs>
+    </Member>
+  </Members>
+</Type>

@@ -9,6 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "tests", "tests\tests.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PortToTripleSlash", "PortToTripleSlash\PortToTripleSlash.csproj", "{59FE1032-97B5-48BE-BB5A-A0428916271F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{14364EF5-DFAA-40FA-A313-4C89088FEA3D}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+		install-as-tool.ps1 = install-as-tool.ps1
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

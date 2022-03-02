@@ -1,0 +1,37 @@
+﻿<Type Name="MyDelegate" FullName="MyNamespace.MyType.MyDelegate`1">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType.MyDelegate`1" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <param name="sender">This is the sender parameter.</param>
+    <param name="e">This is the e parameter.</param>
+    <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
+    <summary>This is the MyDelegate summary.</summary>
+    <remarks>
+      <format type="text/markdown">
+  <![CDATA[
+
+## Remarks
+
+These are the <xref:MyNamespace.MyType.MyDelegate`1> remarks. There is a code example, which should be moved to its own examples section:
+
+## Examples
+
+Here is some text in the examples section. There is an <xref:MyNamespace.MyType.MyDelegate`1> that should be converted to xml.
+
+The snippet links below should be inserted in markdown.
+
+[!code-csharp[MyExample#1](~/samples/snippets/example.cs)]
+[!code-vb[MyExample#2](~/samples/snippets/example.vb)]
+[!code-cpp[MyExample#3](~/samples/snippets/example.cpp)]
+
+This text should be outside the cdata in xml: <xref:MyNamespace.MyType>.
+
+      ]]></format>
+    </remarks>
+    <altmember cref="T:System.Delegate" />
+    <seealso cref="T:System.Delegate" />
+    <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>
+  </Docs>
+</Type>

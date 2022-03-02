@@ -1,0 +1,233 @@
+﻿<Type Name="MyType" FullName="MyNamespace.MyType">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>This is the MyType class summary.</summary>
+    <remarks>
+      <format type="text/markdown">
+  <![CDATA[
+
+## Remarks
+
+These are the <xref:MyNamespace.MyType> class remarks.
+
+URL entities: %23%28%29%2C.
+
+Multiple lines.
+
+> [!NOTE]
+> This note should prevent converting markdown to xml. It has a <xref:MyNamespace.MyEnum>.
+
+This text is not a note. It has a <xref:MyNamespace.MyType> that should be xml and outside **the cdata**.
+
+Long xrefs one after the other: <xref:System.IO.Pipelines.PipeWriter.FlushAsync(System.Threading.CancellationToken)> or <xref:System.IO.Pipelines.PipeWriter.WriteAsync(System.ReadOnlyMemory{System.Byte},System.Threading.CancellationToken)> should both be converted to crefs.
+
+      ]]></format>
+    </remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.#ctor" />
+      <MemberType>Constructor</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <summary>This is the MyType constructor summary.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="MyProperty">
+      <MemberSignature Language="DocId" Value="P:MyNamespace.MyType.MyProperty" />
+      <MemberType>Property</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <summary>This is the MyProperty summary.</summary>
+        <value>This is the MyProperty value.</value>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+These are the MyProperty remarks.
+
+Multiple lines and a reference to the field <xref:MyNamespace.MyType.MyField?displayProperty=nameWithType> and the xref uses displayProperty, which should be ignored when porting.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="MyField">
+      <MemberSignature Language="DocId" Value="F:MyNamespace.MyType.MyField" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <MemberValue>1</MemberValue>
+      <Docs>
+        <summary>This is the MyField summary.
+
+There is a primitive type <see cref="T:System.Single" /> here.</summary>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+These are the MyField remarks.
+
+There is a primitive type <xref:System.Int32> here.
+
+Multiple lines.
+
+## Example
+
+This example section has a header in singular.
+
+```cs
+MyType t = new MyType();
+```
+```vb
+Dim t = New MyType()
+```
+```cpp
+MyType t = MyType();
+```
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="MyIntMethod">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyIntMethod(System.Int32,System.Int32)" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <param name="param1">This is the MyIntMethod param1 summary.</param>
+        <param name="param2">This is the MyIntMethod param2 summary.</param>
+        <summary>This is the MyIntMethod summary.</summary>
+        <returns>This is the MyIntMethod return value. It mentions the <see cref="T:System.ArgumentNullException" />.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+These are the MyIntMethod remarks.
+
+Here is a random snippet, NOT preceded by the examples header.
+
+[!code-cpp[MyExample](~/samples/snippets/example.cpp)]
+
+There is a hyperlink, which should still allow conversion from markdown to xml: [MyHyperlink](http://github.com/dotnet/runtime).
+
+          ]]></format>
+        </remarks>
+        <exception cref="T:System.ArgumentNullException">This is the ArgumentNullException thrown by MyIntMethod. It mentions the <paramref name="param1" />.</exception>
+        <exception cref="T:System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyIntMethod.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName="MyVoidMethod">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyVoidMethod" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <summary>This is the MyVoidMethod summary.</summary>
+        <remarks>
+          <format type="text/markdown">
+  <![CDATA[
+
+## Remarks
+
+These are the MyVoidMethod remarks.
+
+Multiple lines.
+
+Mentions the <xref:System.ArgumentNullException>.
+
+Also mentions an overloaded method DocID: <xref:MyNamespace.MyType.MyIntMethod%2A>.
+
+And also mentions an overloaded method DocID with displayProperty which should be ignored when porting: <xref:MyNamespace.MyType.MyIntMethod%2A?displayProperty=nameWithType>.
+
+          ]]></format>
+        </remarks>
+        <exception cref="T:System.ArgumentNullException">This is the ArgumentNullException thrown by MyVoidMethod. It mentions the <paramref name="param1" />.</exception>
+        <exception cref="T:System.IndexOutOfRangeException">This is the IndexOutOfRangeException thrown by MyVoidMethod.
+
+-or-
+
+This is the second case.
+
+Empty newlines should be respected.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName="UndocumentedMethod">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.UndocumentedMethod" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="MyTypeParamMethod">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.MyTypeParamMethod``1(System.Int32)" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <typeparam name="T">This is the MyTypeParamMethod typeparam T.</typeparam>
+        <param name="param1">This is the MyTypeParamMethod parameter param1.</param>
+        <summary>This is the MyTypeParamMethod summary.</summary>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+This is a reference to the typeparam `T`.
+
+This is a reference to the parameter `param1`.
+
+Mentions the `param1` and an <xref:System.ArgumentNullException>.
+
+There are also a `true` and a `null`.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="MyEvent">
+      <MemberSignature Language="DocId" Value="E:MyNamespace.MyType.MyEvent" />
+      <MemberType>Event</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <summary>This is the MyEvent summary.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="op_Addition">
+      <MemberSignature Language="DocId" Value="M:MyNamespace.MyType.op_Addition(MyNamespace.MyType,MyNamespace.MyType)" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <param name="value1">The first type to add.</param>
+        <param name="value2">The second type to add.</param>
+        <summary>Adds two MyType instances.</summary>
+        <returns>The added types.</returns>
+        <remarks>These are the <see cref="M:MyNamespace.MyType.op_Addition(MyNamespace.MyType,MyNamespace.MyType)" /> remarks. They are in plain xml and should be transferred unmodified.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>

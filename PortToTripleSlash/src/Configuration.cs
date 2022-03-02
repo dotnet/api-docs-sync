@@ -12,9 +12,7 @@ namespace DocsPortingTool.Libraries
         {
             BinLog,
             CsProj,
-            DisablePrompts,
             Docs,
-            ExceptionCollisionThreshold,
             ExcludedAssemblies,
             ExcludedNamespaces,
             ExcludedTypes,
@@ -22,21 +20,6 @@ namespace DocsPortingTool.Libraries
             IncludedNamespaces,
             IncludedTypes,
             Initial,
-            IntelliSense,
-            PortExceptionsExisting,
-            PortExceptionsNew,
-            PortMemberParams,
-            PortMemberProperties,
-            PortMemberReturns,
-            PortMemberRemarks,
-            PortMemberSummaries,
-            PortMemberTypeParams,
-            PortTypeParams, // Params of a Type
-            PortTypeRemarks,
-            PortTypeSummaries,
-            PortTypeTypeParams, // TypeParams of a Type
-            PrintSummaryDetails,
-            PrintUndoc,
             Save,
             SkipInterfaceImplementations,
             SkipInterfaceRemarks
@@ -67,36 +50,13 @@ namespace DocsPortingTool.Libraries
         public readonly string BinLogPath = "output.binlog";
         public bool BinLogger { get; private set; } = false;
         public FileInfo? CsProj { get; set; }
-        public List<DirectoryInfo> DirsIntelliSense { get; } = new List<DirectoryInfo>();
         public List<DirectoryInfo> DirsDocsXml { get; } = new List<DirectoryInfo>();
-        public bool DisablePrompts { get; set; } = true;
-        public int ExceptionCollisionThreshold { get; set; } = 70;
         public HashSet<string> ExcludedAssemblies { get; } = new HashSet<string>();
         public HashSet<string> ExcludedNamespaces { get; } = new HashSet<string>();
         public HashSet<string> ExcludedTypes { get; } = new HashSet<string>();
         public HashSet<string> IncludedAssemblies { get; } = new HashSet<string>();
         public HashSet<string> IncludedNamespaces { get; } = new HashSet<string>();
         public HashSet<string> IncludedTypes { get; } = new HashSet<string>();
-        public bool PortExceptionsExisting { get; set; } = false;
-        public bool PortExceptionsNew { get; set; } = true;
-        public bool PortMemberParams { get; set; } = true;
-        public bool PortMemberProperties { get; set; } = true;
-        public bool PortMemberReturns { get; set; } = true;
-        public bool PortMemberRemarks { get; set; } = true;
-        public bool PortMemberSummaries { get; set; } = true;
-        public bool PortMemberTypeParams { get; set; } = true;
-        /// <summary>
-        /// Params of a Type.
-        /// </summary>
-        public bool PortTypeParams { get; set; } = true;
-        public bool PortTypeRemarks { get; set; } = true;
-        public bool PortTypeSummaries { get; set; } = true;
-        /// <summary>
-        /// TypeParams of a Type.
-        /// </summary>
-        public bool PortTypeTypeParams { get; set; } = true;
-        public bool PrintSummaryDetails { get; set; } = false;
-        public bool PrintUndoc { get; set; } = false;
         public bool Save { get; set; } = false;
         public bool SkipInterfaceImplementations { get; set; } = false;
         public bool SkipInterfaceRemarks { get; set; } = true;
@@ -148,13 +108,6 @@ namespace DocsPortingTool.Libraries
                             break;
                         }
 
-                    case Mode.DisablePrompts:
-                        {
-                            config.DisablePrompts = ParseOrExit(arg, "Disable prompts");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
                     case Mode.Docs:
                         {
                             string[] splittedDirPaths = arg.Split(',', StringSplitOptions.RemoveEmptyEntries);
@@ -173,24 +126,6 @@ namespace DocsPortingTool.Libraries
                             }
 
                             mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.ExceptionCollisionThreshold:
-                        {
-                            if (!int.TryParse(arg, out int value))
-                            {
-                                throw new Exception($"Invalid int value for 'Exception collision threshold' argument: {arg}");
-                            }
-                            else if (value < 1 || value > 100)
-                            {
-                                throw new Exception($"Value needs to be between 0 and 100: {value}");
-                            }
-
-                            config.ExceptionCollisionThreshold = value;
-
-                            Log.Cyan($"Exception collision threshold:");
-                            Log.Info($" - {value}");
                             break;
                         }
 
@@ -342,14 +277,6 @@ namespace DocsPortingTool.Libraries
                                     mode = Mode.Docs;
                                     break;
 
-                                case "-DISABLEPROMPTS":
-                                    mode = Mode.DisablePrompts;
-                                    break;
-
-                                case "EXCEPTIONCOLLISIONTHRESHOLD":
-                                    mode = Mode.ExceptionCollisionThreshold;
-                                    break;
-
                                 case "-EXCLUDEDASSEMBLIES":
                                     mode = Mode.ExcludedAssemblies;
                                     break;
@@ -380,66 +307,6 @@ namespace DocsPortingTool.Libraries
                                     mode = Mode.IncludedTypes;
                                     break;
 
-                                case "-INTELLISENSE":
-                                    mode = Mode.IntelliSense;
-                                    break;
-
-                                case "-PORTEXCEPTIONSEXISTING":
-                                    mode = Mode.PortExceptionsExisting;
-                                    break;
-
-                                case "-PORTEXCEPTIONSNEW":
-                                    mode = Mode.PortExceptionsNew;
-                                    break;
-
-                                case "-PORTMEMBERPARAMS":
-                                    mode = Mode.PortMemberParams;
-                                    break;
-
-                                case "-PORTMEMBERPROPERTIES":
-                                    mode = Mode.PortMemberProperties;
-                                    break;
-
-                                case "-PORTMEMBERRETURNS":
-                                    mode = Mode.PortMemberReturns;
-                                    break;
-
-                                case "-PORTMEMBERREMARKS":
-                                    mode = Mode.PortMemberRemarks;
-                                    break;
-
-                                case "-PORTMEMBERSUMMARIES":
-                                    mode = Mode.PortMemberSummaries;
-                                    break;
-
-                                case "-PORTMEMBERTYPEPARAMS":
-                                    mode = Mode.PortMemberTypeParams;
-                                    break;
-
-                                case "-PORTTYPEPARAMS": // Params of a Type
-                                    mode = Mode.PortTypeParams;
-                                    break;
-
-                                case "-PORTTYPEREMARKS":
-                                    mode = Mode.PortTypeRemarks;
-                                    break;
-
-                                case "-PORTTYPESUMMARIES":
-                                    mode = Mode.PortTypeSummaries;
-                                    break;
-
-                                case "-PORTTYPETYPEPARAMS": // TypeParams of a Type
-                                    mode = Mode.PortTypeTypeParams;
-                                    break;
-
-                                case "-PRINTSUMMARYDETAILS":
-                                    mode = Mode.PrintSummaryDetails;
-                                    break;
-
-                                case "-PRINTUNDOC":
-                                    mode = Mode.PrintUndoc;
-                                    break;
-
                                 case "-SAVE":
                                     mode = Mode.Save;
                                     break;
@@ -456,125 +323,6 @@ namespace DocsPortingTool.Libraries
                                     Log.ErrorAndExit($"Unrecognized argument: {arg}");
                                     break;
                             }
-                            break;
-                        }
-
-                    case Mode.IntelliSense:
-                        {
-                            string[] splittedDirPaths = arg.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-                            Log.Cyan($"Specified IntelliSense locations:");
-                            foreach (string dirPath in splittedDirPaths)
-                            {
-                                DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
-                                if (!dirInfo.Exists)
-                                {
-                                    throw new Exception($"This IntelliSense directory does not exist: {dirPath}");
-                                }
-
-                                config.DirsIntelliSense.Add(dirInfo);
-                                Log.Info($"  -  {dirPath}");
-                            }
-
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortExceptionsExisting:
-                        {
-                            config.PortExceptionsExisting = ParseOrExit(arg, "Port existing exceptions");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortExceptionsNew:
-                        {
-                            config.PortExceptionsNew = ParseOrExit(arg, "Port new exceptions");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortMemberParams:
-                        {
-                            config.PortMemberParams = ParseOrExit(arg, "Port member Params");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortMemberProperties:
-                        {
-                            config.PortMemberProperties = ParseOrExit(arg, "Port member Properties");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortMemberRemarks:
-                        {
-                            config.PortMemberRemarks = ParseOrExit(arg, "Port member Remarks");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortMemberReturns:
-                        {
-                            config.PortMemberReturns = ParseOrExit(arg, "Port member Returns");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortMemberSummaries:
-                        {
-                            config.PortMemberSummaries = ParseOrExit(arg, "Port member Summaries");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortMemberTypeParams:
-                        {
-                            config.PortMemberTypeParams = ParseOrExit(arg, "Port member TypeParams");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortTypeParams: // Params of a Type
-                        {
-                            config.PortTypeParams = ParseOrExit(arg, "Port Type Params");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortTypeRemarks:
-                        {
-                            config.PortTypeRemarks = ParseOrExit(arg, "Port Type Remarks");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortTypeSummaries:
-                        {
-                            config.PortTypeSummaries = ParseOrExit(arg, "Port Type Summaries");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PortTypeTypeParams: // TypeParams of a Type
-                        {
-                            config.PortTypeTypeParams = ParseOrExit(arg, "Port Type TypeParams");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PrintSummaryDetails:
-                        {
-                            config.PrintSummaryDetails = ParseOrExit(arg, "Print summary details");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.PrintUndoc:
-                        {
-                            config.PrintUndoc = ParseOrExit(arg, "Print undoc");
-                            mode = Mode.Initial;
                             break;
                         }
 

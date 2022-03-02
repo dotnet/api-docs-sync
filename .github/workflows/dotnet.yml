@@ -15,9 +15,15 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+    - name: Restore dependencies of PortToTripleSlash
+      run: dotnet restore PortToTripleSlash/PortToTripleSlash.sln
+    - name: Build PortToTripleSlash
+      run: dotnet build --no-restore PortToTripleSlash/PortToTripleSlash.sln
+    - name: Test PortToTripleSlash
+      run: dotnet test --no-build --verbosity normal PortToTripleSlash/PortToTripleSlash.sln
+    - name: Restore dependencies of PortToDocs
+      run: dotnet restore PortToDocs/PortToDocs.sln
+    - name: Build PortToDocs
+      run: dotnet build --no-restore PortToDocs/PortToDocs.sln
+    - name: Test PortToDocs
+      run: dotnet test --no-build --verbosity normal PortToDocs/PortToDocs.sln

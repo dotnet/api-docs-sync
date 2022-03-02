@@ -8,7 +8,7 @@ This repo contains tools that allow porting documentation in two directions:
 
 ## Requirements
 
-- [.NET 7.0 SDK](https://github.com/dotnet/installer#installers-and-binaries)
+- [.NET 6.0 SDK](https://github.com/dotnet/installer#installers-and-binaries)
 - A local git clone of a dotnet repo with source code whose APIs live in an API docs repo. Examples:
   - [dotnet/runtime](https://github.com/dotnet/runtime)
   - [dotnet/winforms](https://github.com/dotnet/winforms)

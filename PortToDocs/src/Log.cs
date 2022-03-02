@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace DocsPortingTool.Libraries
 {
@@ -194,7 +189,7 @@ Options:
                                                     Usage example:
                                                         -Docs ""%SourceRepos%\dotnet-api-docs\xml\System.IO.FileSystem\"",%SourceRepos%\AspNetApiDocs\aspnet-mvc\xml
 
-    -IntelliSense           comma-separated     Mandatory only when using '-Direction ToDocs' to port from IntelliSense xml to Docs.
+    -IntelliSense           comma-separated     Mandatory.
                             folder paths            A comma separated list (no spaces) of absolute directory paths where we the IntelliSense xml files
                                                     are located. Usually it's the 'artifacts/bin' folder in your source code repo.
                                                     The IntelliSense xml files will be searched for recursively. You must specify the root folder (usually 'bin'),
@@ -222,17 +217,6 @@ Options:
                                                     Include both facades and implementation. For example, for System.IO.FileStream, include both
                                                     System.Private.CoreLib (for the implementation) and System.Runtime (the facade).
 
-    -CsProj                 file path           Mandatory only when using '-Direction ToTripleSlash' to port from Docs to triple slash comments in source.
-                                                    An absolute path to a *.csproj file from your repo. Make sure its the src file, not the ref or test file.
-                                                    Known locations:
-                                                        > Runtime:   %SourceRepos%\runtime\src\libraries\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj
-                                                        > CoreCLR:   %SourceRepos%\runtime\src\coreclr\src\System.Private.CoreLib\System.Private.CoreLib.csproj
-                                                        > WPF:       %SourceRepos%\wpf\src\Microsoft.DotNet.Wpf\src\<AssemblyOrNamespace>\<AssemblyOrNamespace>.csproj
-                                                        > WinForms:  %SourceRepos%\winforms\src\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj
-                                                        > WCF:       %SourceRepos%\wcf\src\<AssemblyOrNamespace>\
-                                                    Usage example:
-                                                        -SourceCode ""%SourceRepos%\runtime\src\libraries\System.IO.FileSystem\"",%SourceRepos%\runtime\src\coreclr\src\System.Private.CoreLib\
-
                                OPTIONAL
   ------------------------------------------------------------
   |    PARAMETER     |           TYPE          | DESCRIPTION |
@@ -242,18 +226,6 @@ Options:
 
     -BinLog                 bool                Default is false (binlog file generation is disabled).
                                                 When set to true, will output a diagnostics binlog file if using '-Direction ToTripleSlash'.
-
-    -Direction              string              Default is 'ToDocs'.
-                                                Determines in which direction the comments should flow.
-                                                Possible values:
-                                                    > ToDocs: Comments are ported from the Intellisense xml files generated in the specified source code repo build,
-                                                              to the specified Docs repo containing ECMA xml files.
-                                                    > ToTripleSlash: Comments are ported from the specified Docs repo containint ECMA xml files,
-                                                              to the triple slash comments on top of each API in the specified source code repo.
-                                                              Using this option automatically sets `SkipInterfaceImplementations` to `true`, to avoid loading
-                                                              unnecessary interface docs xml files into memory.
-                                                Usage example:
-                                                    -Direction ToTripleSlash
 
     -DisablePrompts         bool                Default is true (prompts are disabled).
                                                 Avoids prompting the user for input to correct some particular errors.
@@ -395,9 +367,7 @@ Options:
             Warning(@"
     TL;DR:
 
-    To port from IntelliSense xmls to Docs xmls, specify these parameters:
-
-        -Direction ToDocs
+      PortToDocs
         -Docs <pathToDocsXmlFolder>
         -IntelliSense <pathToArtifactsFolder1>[,<pathToArtifactsFolder2>,...,<pathToArtifactsFolderN>]
         -IncludedAssemblies <assembly1>[,<assembly2>,...<assemblyN>]
@@ -405,29 +375,12 @@ Options:
         -Save true
 
         Example:
-            DocsPortingTool \
-                -Direction ToDocs \
+            PortToDocs \
                 -Docs D:\dotnet-api-docs\xml \
                 -IntelliSense D:\runtime\artifacts\bin\System.IO.FileSystem\ \
                 -IncludedAssemblies System.IO.FileSystem \
                 -IncludedNamespaces System.IO \
                 -Save true
-
-    To port from Docs xmls to triple slash comments, specify these parameters:
-
-        -Direction ToTripleSlash
-        -CsProj <pathToCsproj>
-        -Docs <pathToDocsXmlFolder>
-        -IncludedAssemblies <assembly1>[,<assembly2>,...,<assemblyN>]
-        -IncludedNamespaces <namespace1>[,<namespace2>,...,<namespaceN>]
-
-        Example:
-            DocsPortingTool \
-                -Direction ToTripleSlash \
-                -CsProj D:\runtime\src\libraries\System.IO.Compression.Brotli\src\System.IO.Compression.Brotli.csproj \
-                -Docs D:\dotnet-api-docs\xml \
-                -IncludedAssemblies System.IO.Compression.Brotli \
-                -IncludedNamespaces System.IO.Compression \
 ");
             Magenta(@"
     Note:

@@ -11,7 +11,6 @@ namespace DocsPortingTool.Libraries
         private enum Mode
         {
             BinLog,
-            CsProj,
             DisablePrompts,
             Docs,
             ExceptionCollisionThreshold,
@@ -121,29 +120,6 @@ namespace DocsPortingTool.Libraries
                     case Mode.BinLog:
                         {
                             config.BinLogger = ParseOrExit(arg, "Create a binlog");
-                            mode = Mode.Initial;
-                            break;
-                        }
-
-                    case Mode.CsProj:
-                        {
-                            if (string.IsNullOrWhiteSpace(arg))
-                            {
-                                throw new Exception("You must specify a *.csproj path.");
-                            }
-                            else if (!File.Exists(arg))
-                            {
-                                throw new Exception($"The *.csproj file does not exist: {arg}");
-                            }
-                            else
-                            {
-                                string ext = Path.GetExtension(arg).ToUpperInvariant();
-                                if (ext != ".CSPROJ")
-                                {
-                                    throw new Exception($"The file does not have a *.csproj extension: {arg}");
-                                }
-                            }
-                            config.CsProj = new FileInfo(arg);
                             mode = Mode.Initial;
                             break;
                         }
@@ -332,10 +308,6 @@ namespace DocsPortingTool.Libraries
                             {
                                 case "-BINLOG":
                                     mode = Mode.BinLog;
-                                    break;
-
-                                case "-CSPROJ":
-                                    mode = Mode.CsProj;
                                     break;
 
                                 case "-DOCS":

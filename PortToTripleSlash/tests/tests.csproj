@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Company>Microsoft</Company>
+    <Authors>carlossanlop</Authors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>

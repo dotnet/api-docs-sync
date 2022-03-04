@@ -16,14 +16,14 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
     - name: Restore dependencies of PortToTripleSlash
-      run: dotnet restore PortToTripleSlash/PortToTripleSlash.sln
+      run: dotnet restore src/PortToTripleSlash/PortToTripleSlash.sln
     - name: Build PortToTripleSlash
-      run: dotnet build --no-restore PortToTripleSlash/PortToTripleSlash.sln
+      run: dotnet build --no-restore src/PortToTripleSlash/PortToTripleSlash.sln
     - name: Test PortToTripleSlash
-      run: dotnet test --no-build --verbosity normal PortToTripleSlash/PortToTripleSlash.sln
+      run: dotnet test --no-build --verbosity normal src/PortToTripleSlash/PortToTripleSlash.sln
     - name: Restore dependencies of PortToDocs
-      run: dotnet restore PortToDocs/PortToDocs.sln
+      run: dotnet restore src/PortToDocs/PortToDocs.sln
     - name: Build PortToDocs
-      run: dotnet build --no-restore PortToDocs/PortToDocs.sln
+      run: dotnet build --no-restore src/PortToDocs/PortToDocs.sln
     - name: Test PortToDocs
-      run: dotnet test --no-build --verbosity normal PortToDocs/PortToDocs.sln
+      run: dotnet test --no-build --verbosity normal src/PortToDocs/PortToDocs.sln

@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using Xunit;
 
-namespace DocsPortingTool.Libraries.Tests
+namespace ApiDocsSync.Libraries.Tests
 {
     internal class PortToTripleSlashTestData : TestData
     {

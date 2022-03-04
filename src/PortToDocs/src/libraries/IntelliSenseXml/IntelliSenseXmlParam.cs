@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace DocsPortingTool.Libraries.IntelliSenseXml
+namespace ApiDocsSync.Libraries.IntelliSenseXml
 {
     internal class IntelliSenseXmlParam
     {

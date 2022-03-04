@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace DocsPortingTool.Libraries.Docs
+namespace ApiDocsSync.Libraries.Docs
 {
     /// <summary>
     /// Each one of these typeparam objects live inside the Docs section inside the Member object.

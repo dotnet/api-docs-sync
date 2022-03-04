@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Xml.Linq;
 
-namespace DocsPortingTool.Libraries.Docs
+namespace ApiDocsSync.Libraries.Docs
 {
     /// <summary>
     /// Each one of these TypeParameter objects islocated inside the TypeParameters section inside the Member.

@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace DocsPortingTool.Libraries.Docs
+namespace ApiDocsSync.Libraries.Docs
 {
     internal abstract class DocsAPI : IDocsAPI
     {

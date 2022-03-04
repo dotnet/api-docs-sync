@@ -4,7 +4,7 @@ using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace DocsPortingTool.Libraries.Tests
+namespace ApiDocsSync.Libraries.Tests
 {
     public class PortToDocsTests : BasePortTests
     {

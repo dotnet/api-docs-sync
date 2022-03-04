@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using DocsPortingTool.Libraries.Docs;
-using DocsPortingTool.Libraries.IntelliSenseXml;
+using ApiDocsSync.Libraries.Docs;
+using ApiDocsSync.Libraries.IntelliSenseXml;
 
-namespace DocsPortingTool.Libraries
+namespace ApiDocsSync.Libraries
 {
     public class ToDocsPorter
     {

@@ -1,6 +1,6 @@
 ﻿using Xunit.Abstractions;
 
-namespace DocsPortingTool.Libraries.Tests
+namespace ApiDocsSync.Libraries.Tests
 {
     public abstract class BasePortTests
     {

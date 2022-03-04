@@ -2,7 +2,7 @@
 using Xunit;
 using Xunit.Abstractions;
 
-namespace DocsPortingTool.Libraries.Tests
+namespace ApiDocsSync.Libraries.Tests
 {
     public class PortToTripleSlashTests : BasePortTests
     {

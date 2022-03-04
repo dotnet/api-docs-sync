@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <StartupObject>DocsPortingTool.PortToTripleSlash</StartupObject>
+    <StartupObject>ApiDocsSync.PortToTripleSlash</StartupObject>
     <Company>Microsoft</Company>
     <Authors>carlossanlop</Authors>
     <Nullable>enable</Nullable>

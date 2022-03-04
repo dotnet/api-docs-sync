@@ -1,4 +1,4 @@
-﻿namespace DocsPortingTool.Libraries.Docs
+﻿namespace ApiDocsSync.Libraries.Docs
 {
     internal enum APIKind
     {

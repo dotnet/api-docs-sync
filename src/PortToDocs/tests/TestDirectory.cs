@@ -2,7 +2,7 @@
 using System.IO;
 using Xunit;
 
-namespace DocsPortingTool.Libraries.Tests
+namespace ApiDocsSync.Libraries.Tests
 {
     public class TestDirectory : IDisposable
     {

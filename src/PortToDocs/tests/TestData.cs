@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace DocsPortingTool.Libraries.Tests
+namespace ApiDocsSync.Libraries.Tests
 {
     internal class TestData
     {

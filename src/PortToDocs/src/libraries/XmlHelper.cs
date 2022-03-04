@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace DocsPortingTool.Libraries
+namespace ApiDocsSync.Libraries
 {
     internal class XmlHelper
     {

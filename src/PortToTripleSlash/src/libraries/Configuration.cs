@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace DocsPortingTool.Libraries
+namespace ApiDocsSync.Libraries
 {
     public class Configuration
     {

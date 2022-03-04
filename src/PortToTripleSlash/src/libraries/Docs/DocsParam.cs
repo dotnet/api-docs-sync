@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace DocsPortingTool.Libraries.Docs
+namespace ApiDocsSync.Libraries.Docs
 {
     internal class DocsParam
     {

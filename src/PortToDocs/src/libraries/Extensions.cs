@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DocsPortingTool.Libraries
+namespace ApiDocsSync.Libraries
 {
     // Provides generic extension methods.
     internal static class Extensions

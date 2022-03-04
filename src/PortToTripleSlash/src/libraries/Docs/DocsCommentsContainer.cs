@@ -6,7 +6,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace DocsPortingTool.Libraries.Docs
+namespace ApiDocsSync.Libraries.Docs
 {
     internal class DocsCommentsContainer
     {

@@ -1,6 +1,6 @@
-using DocsPortingTool.Libraries;
+using ApiDocsSync.Libraries;
 
-namespace DocsPortingTool
+namespace ApiDocsSync
 {
     class PortToTripleSlash
     {

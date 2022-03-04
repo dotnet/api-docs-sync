@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DocsPortingTool.Libraries
+namespace ApiDocsSync.Libraries
 {
     public static class Log
     {

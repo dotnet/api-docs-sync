@@ -1,6 +1,6 @@
-# DocsPortingTool
+# API Docs Sync
 
-This repo contains tools that allow porting documentation in two directions:
+This repo contains two tools that allow porting documentation in two directions:
 
 - IntelliSense xml files to MS Docs xml files. [Instructions](docs/PortToDocs.md).
 

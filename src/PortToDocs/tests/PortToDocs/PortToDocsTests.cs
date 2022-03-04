@@ -38,7 +38,7 @@ namespace DocsPortingTool.Libraries.Tests
         {
             PortToDocs("AssemblyAndNamespaceDifferent",
                        GetConfiguration(),
-                       namespaceNames: new[] { TestData.TestNamespace});
+                       namespaceNames: new[] { TestData.TestNamespace });
         }
 
         [Fact]
@@ -155,11 +155,11 @@ namespace DocsPortingTool.Libraries.Tests
                 SkipInterfaceRemarks = skipInterfaceRemarks
             };
 
-    private static void PortToDocs(
-            string testName,
-            Configuration c,
-            string[] assemblyNames = null,
-            string[] namespaceNames = null) // Most namespaces have the same assembly name
+        private static void PortToDocs(
+                string testName,
+                Configuration c,
+                string[] assemblyNames = null,
+                string[] namespaceNames = null) // Most namespaces have the same assembly name
         {
             assemblyNames ??= new string[] { TestData.TestAssembly };
             namespaceNames ??= Array.Empty<string>();

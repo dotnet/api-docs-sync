@@ -175,7 +175,7 @@ namespace DocsPortingTool.Libraries.Docs
                 }
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Error($"Failed to load '{fileInfo.FullName}'. {ex}");
                 return;
@@ -267,7 +267,7 @@ namespace DocsPortingTool.Libraries.Docs
 
         private bool IsXmlMalformed(XDocument? xDoc, string fileName)
         {
-            if(xDoc == null)
+            if (xDoc == null)
             {
                 Log.Error($"XDocument is null: {fileName}");
                 return true;

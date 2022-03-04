@@ -22,7 +22,7 @@ namespace DocsPortingTool.Libraries.Docs
             {
                 if (_assemblyVersions == null)
                 {
-                   _assemblyVersions = XEAssemblyInfo.Elements("AssemblyVersion").Select(x => XmlHelper.GetNodesInPlainText(x)).ToList();
+                    _assemblyVersions = XEAssemblyInfo.Elements("AssemblyVersion").Select(x => XmlHelper.GetNodesInPlainText(x)).ToList();
                 }
                 return _assemblyVersions;
             }

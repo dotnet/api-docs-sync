@@ -1,9 +1,9 @@
-﻿using DocsPortingTool.Libraries.Docs;
-using DocsPortingTool.Libraries.IntelliSenseXml;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using DocsPortingTool.Libraries.Docs;
+using DocsPortingTool.Libraries.IntelliSenseXml;
 
 namespace DocsPortingTool.Libraries
 {
@@ -345,7 +345,7 @@ namespace DocsPortingTool.Libraries
         }
 
         // Ports the remarks for the specified API if the field is undocumented.
-        private void TryPortMissingRemarksForAPI(IDocsAPI dApiToUpdate,string? remarks, bool isEII = false)
+        private void TryPortMissingRemarksForAPI(IDocsAPI dApiToUpdate, string? remarks, bool isEII = false)
         {
             if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeRemarks ||
                 dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberRemarks)
@@ -366,7 +366,7 @@ namespace DocsPortingTool.Libraries
                 dApiToUpdate.Remarks = remarks!;
                 PrintModifiedMember("remarks", dApiToUpdate.FilePath, dApiToUpdate.DocId, isEII);
                 TotalModifiedIndividualElements++;
-             }
+            }
         }
 
         // Ports all the parameter descriptions for the specified API if any of them is undocumented.
@@ -626,7 +626,7 @@ namespace DocsPortingTool.Libraries
                         }
                     }
 
-                    if (dException !=  null)
+                    if (dException != null)
                     {
                         if (created || (!tsException.Value.IsDocsEmpty() && dException.Value.IsDocsEmpty()))
                         {

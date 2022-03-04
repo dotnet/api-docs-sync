@@ -18,12 +18,7 @@ This repo contains tools that allow porting documentation in two directions:
 
 ## Install as dotnet tools
 
-For both tools, you can run their respective `install-as-tool.ps1` script to install them as a dotnet tool in your PATH.
-
-```powershell
- .\PortToDocs\install-as-tool.ps1
- .\PortToTripleSlash\install-as-tool.ps1
-```
+To install the two tools as global dotnet tools in your `$PATH`, run the `install-as-tool.ps1` script.
 
 Documentation for global dotnet tools: https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-tool-install
 

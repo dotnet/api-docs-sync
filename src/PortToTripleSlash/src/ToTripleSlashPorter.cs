@@ -1,10 +1,4 @@
-﻿using DocsPortingTool.Libraries.Docs;
-using DocsPortingTool.Libraries.RoslynTripleSlash;
-using Microsoft.Build.Locator;
-using Microsoft.Build.Logging;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -13,6 +7,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.RegularExpressions;
+using DocsPortingTool.Libraries.Docs;
+using DocsPortingTool.Libraries.RoslynTripleSlash;
+using Microsoft.Build.Locator;
+using Microsoft.Build.Logging;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace DocsPortingTool.Libraries
 {
@@ -61,7 +61,7 @@ namespace DocsPortingTool.Libraries
 
         private static readonly Dictionary<string, string> WorkspaceProperties = new() { { "RuntimeFlavor", "Mono" } };
 
-        private static readonly Dictionary<string,MSBuildWorkspace> Workspaces = new();
+        private static readonly Dictionary<string, MSBuildWorkspace> Workspaces = new();
         private static readonly Dictionary<string, MSBuildWorkspace> WorkspacesMono = new();
 
         private static readonly Dictionary<string, Project> Projects = new();

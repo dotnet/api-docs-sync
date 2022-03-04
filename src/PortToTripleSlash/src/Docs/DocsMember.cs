@@ -65,7 +65,7 @@ namespace DocsPortingTool.Libraries.Docs
                         string message = string.Format("Could not find a DocId MemberSignature for '{0}'", MemberName);
                         throw new Exception(message);
                     }
-                     _docId = ms.Value.DocIdEscaped();
+                    _docId = ms.Value.DocIdEscaped();
                 }
                 return _docId;
             }

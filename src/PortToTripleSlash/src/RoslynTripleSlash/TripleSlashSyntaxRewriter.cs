@@ -1,12 +1,12 @@
-﻿using DocsPortingTool.Libraries.Docs;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
+using DocsPortingTool.Libraries.Docs;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DocsPortingTool.Libraries.RoslynTripleSlash
 {
@@ -122,21 +122,21 @@ namespace DocsPortingTool.Libraries.RoslynTripleSlash
         private static readonly Dictionary<string, string> PrimitiveTypes = new()
         {
             { "System.Boolean", "bool" },
-            { "System.Byte",    "byte" },
-            { "System.Char",    "char" },
+            { "System.Byte", "byte" },
+            { "System.Char", "char" },
             { "System.Decimal", "decimal" },
-            { "System.Double",  "double" },
-            { "System.Int16",   "short" },
-            { "System.Int32",   "int" },
-            { "System.Int64",   "long" },
-            { "System.Object",  "object" }, // Ambiguous: could be 'object' or 'dynamic' https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/built-in-types
-            { "System.SByte",   "sbyte" },
-            { "System.Single",  "float" },
-            { "System.String",  "string" },
-            { "System.UInt16",  "ushort" },
-            { "System.UInt32",  "uint" },
-            { "System.UInt64",  "ulong" },
-            { "System.Void",    "void" }
+            { "System.Double", "double" },
+            { "System.Int16", "short" },
+            { "System.Int32", "int" },
+            { "System.Int64", "long" },
+            { "System.Object", "object" }, // Ambiguous: could be 'object' or 'dynamic' https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/built-in-types
+            { "System.SByte", "sbyte" },
+            { "System.Single", "float" },
+            { "System.String", "string" },
+            { "System.UInt16", "ushort" },
+            { "System.UInt32", "uint" },
+            { "System.UInt64", "ulong" },
+            { "System.Void", "void" }
         };
 
         private DocsCommentsContainer DocsComments { get; }

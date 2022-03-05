@@ -1,9 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Company>Microsoft</Company>
-    <Authors>carlossanlop</Authors>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

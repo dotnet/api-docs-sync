@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 using ApiDocsSync.Libraries.Docs;
 using ApiDocsSync.Libraries.IntelliSenseXml;
@@ -32,19 +34,76 @@ namespace ApiDocsSync.Libraries
 
         }
 
+        public void CollectFiles()
+        {
+            Log.Info("Looking for IntelliSense xml files...");
+            foreach (FileInfo fileInfo in IntelliSenseXmlComments.EnumerateFiles())
+            {
+                XDocument? xDoc = null;
+                try
+                {
+                    xDoc = XDocument.Load(fileInfo.FullName);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Failed to load '{fileInfo.FullName}'. {ex}");
+                }
+
+                if (xDoc != null)
+                {
+                    IntelliSenseXmlComments.LoadIntellisenseXmlFile(xDoc, fileInfo.FullName);
+                }
+            }
+            Log.Success("Finished looking for IntelliSense xml files.");
+            Log.Line();
+
+            Log.Info("Looking for Docs xml files...");
+            foreach (FileInfo fileInfo in DocsComments.EnumerateFiles())
+            {
+                XDocument? xDoc = null;
+                Encoding? encoding = null;
+                try
+                {
+                    var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+                    var utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+                    using (StreamReader sr = new(fileInfo.FullName, utf8NoBom, detectEncodingFromByteOrderMarks: true))
+                    {
+                        xDoc = XDocument.Load(sr);
+                        encoding = sr.CurrentEncoding;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Failed to load '{fileInfo.FullName}'. {ex}");
+                }
+
+                if (xDoc != null && encoding != null)
+                {
+                    DocsComments.LoadDocsFile(xDoc, fileInfo.FullName, encoding);
+                }
+            }
+            Log.Success("Finished looking for Docs xml files.");
+            Log.Line();
+        }
+
+        public void LoadIntellisenseXmlFile(XDocument xDoc, string filePath) =>
+            IntelliSenseXmlComments.LoadIntellisenseXmlFile(xDoc, filePath);
+
+        public void LoadDocsFile(XDocument xDoc, string filePath, Encoding encoding) =>
+            DocsComments.LoadDocsFile(xDoc, filePath, encoding);
+
         public void Start()
         {
-            IntelliSenseXmlComments.CollectFiles();
-
             if (!IntelliSenseXmlComments.Members.Any())
             {
                 Log.Error("No IntelliSense xml comments found.");
+                return;
             }
 
-            DocsComments.CollectFiles();
             if (!DocsComments.Types.Any())
             {
                 Log.Error("No Docs Type APIs found.");
+                return;
             }
 
             PortMissingComments();

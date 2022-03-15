@@ -15,27 +15,12 @@ namespace ApiDocsSync.Libraries.Docs
     {
         private Configuration Config { get; set; }
 
-        private XDocument? xDoc = null;
-
         public readonly Dictionary<string, DocsType> Types = new();
         public readonly Dictionary<string, DocsMember> Members = new();
 
         public DocsCommentsContainer(Configuration config)
         {
             Config = config;
-        }
-
-        public void CollectFiles()
-        {
-            Log.Info("Looking for Docs xml files...");
-
-            foreach (FileInfo fileInfo in EnumerateFiles())
-            {
-                LoadFile(fileInfo);
-            }
-
-            Log.Success("Finished looking for Docs xml files.");
-            Log.Line();
         }
 
         public void Save()
@@ -95,19 +80,7 @@ namespace ApiDocsSync.Libraries.Docs
             }
         }
 
-        private bool HasAllowedDirName(DirectoryInfo dirInfo)
-        {
-            return !Configuration.ForbiddenBinSubdirectories.Contains(dirInfo.Name) && !dirInfo.Name.EndsWith(".Tests");
-        }
-
-        private bool HasAllowedFileName(FileInfo fileInfo)
-        {
-            return !fileInfo.Name.StartsWith("ns-") &&
-                fileInfo.Name != "index.xml" &&
-                fileInfo.Name != "_filter.xml";
-        }
-
-        private IEnumerable<FileInfo> EnumerateFiles()
+        internal IEnumerable<FileInfo> EnumerateFiles()
         {
             // Union avoids duplication
             var includedAssembliesAndNamespaces = Config.IncludedAssemblies.Union(Config.IncludedNamespaces);
@@ -164,32 +137,14 @@ namespace ApiDocsSync.Libraries.Docs
             }
         }
 
-        private void LoadFile(FileInfo fileInfo)
+        internal void LoadDocsFile(XDocument xDoc, string filePath, Encoding encoding)
         {
-            Encoding? encoding = null;
-            try
-            {
-                var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-                var utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
-                using (StreamReader sr = new(fileInfo.FullName, utf8NoBom, detectEncodingFromByteOrderMarks: true))
-                {
-                    xDoc = XDocument.Load(sr);
-                    encoding = sr.CurrentEncoding;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Failed to load '{fileInfo.FullName}'. {ex}");
-                return;
-            }
-
-            if (IsXmlMalformed(xDoc, fileInfo.FullName))
+            if (IsXmlMalformed(xDoc, filePath))
             {
                 return;
             }
 
-            DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root!, encoding);
+            DocsType docsType = new DocsType(filePath, xDoc, xDoc.Root!, encoding);
 
             bool add = false;
             bool addedAsInterface = false;
@@ -246,13 +201,13 @@ namespace ApiDocsSync.Libraries.Docs
                 {
                     foreach (XElement xeMember in xeMembers.Elements("Member"))
                     {
-                        DocsMember member = new DocsMember(fileInfo.FullName, docsType, xeMember);
+                        DocsMember member = new DocsMember(filePath, docsType, xeMember);
                         totalMembersAdded++;
                         Members.TryAdd(member.DocId, member); // is it OK this encounters duplicates?
                     }
                 }
 
-                string message = $"Type '{docsType.DocId}' added with {totalMembersAdded} member(s) included: {fileInfo.FullName}";
+                string message = $"Type '{docsType.DocId}' added with {totalMembersAdded} member(s) included: {filePath}";
                 if (addedAsInterface)
                 {
                     Log.Magenta("[Interface] - " + message);
@@ -266,6 +221,18 @@ namespace ApiDocsSync.Libraries.Docs
                     Log.Success(message);
                 }
             }
+        }
+
+        private bool HasAllowedDirName(DirectoryInfo dirInfo)
+        {
+            return !Configuration.ForbiddenBinSubdirectories.Contains(dirInfo.Name) && !dirInfo.Name.EndsWith(".Tests");
+        }
+
+        private bool HasAllowedFileName(FileInfo fileInfo)
+        {
+            return !fileInfo.Name.StartsWith("ns-") &&
+                fileInfo.Name != "index.xml" &&
+                fileInfo.Name != "_filter.xml";
         }
 
         private bool IsXmlMalformed(XDocument? xDoc, string fileName)

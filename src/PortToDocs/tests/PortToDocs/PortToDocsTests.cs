@@ -190,6 +190,7 @@ namespace ApiDocsSync.Libraries.Tests
             c.DirsIntelliSense.Add(new(Path.Join(targetDir, IntellisenseDir)));
 
             var porter = new ToDocsPorter(c);
+            porter.CollectFiles();
             porter.Start();
 
             Verify(targetDir);

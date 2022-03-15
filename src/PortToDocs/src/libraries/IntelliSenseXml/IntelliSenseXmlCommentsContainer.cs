@@ -36,8 +36,6 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
     {
         private Configuration Config { get; set; }
 
-        private XDocument? xDoc = null;
-
         // The IntelliSense xml files do not separate types from members, like ECMA xml files do - Everything is a member.
         public Dictionary<string, IntelliSenseXmlMember> Members = new();
 
@@ -46,20 +44,7 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
             Config = config;
         }
 
-        public void CollectFiles()
-        {
-            Log.Info("Looking for IntelliSense xml files...");
-
-            foreach (FileInfo fileInfo in EnumerateFiles())
-            {
-                LoadFile(fileInfo, printSuccess: true);
-            }
-
-            Log.Success("Finished looking for IntelliSense xml files.");
-            Log.Line();
-        }
-
-        private IEnumerable<FileInfo> EnumerateFiles()
+        internal IEnumerable<FileInfo> EnumerateFiles()
         {
             foreach (DirectoryInfo dirInfo in Config.DirsIntelliSense)
             {
@@ -85,19 +70,9 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
             }
         }
 
-        private void LoadFile(FileInfo fileInfo, bool printSuccess)
+        internal void LoadIntellisenseXmlFile(XDocument xDoc, string filePath)
         {
-            try
-            {
-                xDoc = XDocument.Load(fileInfo.FullName);
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Failed to load '{fileInfo.FullName}'. {ex}");
-                return;
-            }
-
-            if (!TryGetAssemblyName(xDoc, fileInfo.FullName, out string? assembly))
+            if (!TryGetAssemblyName(xDoc, filePath, out string? assembly))
             {
                 return;
             }
@@ -124,9 +99,9 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
                 }
             }
 
-            if (printSuccess && totalAdded > 0)
+            if (totalAdded > 0)
             {
-                Log.Success($"{totalAdded} IntelliSense xml member(s) added from xml file '{fileInfo.FullName}'");
+                Log.Success($"{totalAdded} IntelliSense xml member(s) added from xml file '{filePath}'");
             }
         }
 

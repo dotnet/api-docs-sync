@@ -18,10 +18,7 @@ namespace ApiDocsSync.Libraries.Docs
         public readonly Dictionary<string, DocsType> Types = new();
         public readonly Dictionary<string, DocsMember> Members = new();
 
-        public DocsCommentsContainer(Configuration config)
-        {
-            Config = config;
-        }
+        public DocsCommentsContainer(Configuration config) => Config = config;
 
         public void Save()
         {
@@ -36,7 +33,7 @@ namespace ApiDocsSync.Libraries.Docs
             }
 
             List<string> savedFiles = new();
-            foreach (var type in Types.Values.Where(x => x.Changed))
+            foreach (DocsType type in Types.Values.Where(x => x.Changed))
             {
                 Log.Info(false, $"Saving changes for {type.FilePath} ... ");
 
@@ -83,8 +80,8 @@ namespace ApiDocsSync.Libraries.Docs
         internal IEnumerable<FileInfo> EnumerateFiles()
         {
             // Union avoids duplication
-            var includedAssembliesAndNamespaces = Config.IncludedAssemblies.Union(Config.IncludedNamespaces);
-            var excludedAssembliesAndNamespaces = Config.ExcludedAssemblies.Union(Config.ExcludedNamespaces);
+            IEnumerable<string> includedAssembliesAndNamespaces = Config.IncludedAssemblies.Union(Config.IncludedNamespaces);
+            IEnumerable<string> excludedAssembliesAndNamespaces = Config.ExcludedAssemblies.Union(Config.ExcludedNamespaces);
 
             foreach (DirectoryInfo rootDir in Config.DirsDocsXml)
             {
@@ -144,7 +141,7 @@ namespace ApiDocsSync.Libraries.Docs
                 return;
             }
 
-            DocsType docsType = new DocsType(filePath, xDoc, xDoc.Root!, encoding);
+            DocsType docsType = new(filePath, xDoc, xDoc.Root!, encoding);
 
             bool add = false;
             bool addedAsInterface = false;
@@ -163,7 +160,6 @@ namespace ApiDocsSync.Libraries.Docs
                     // Interface files start with I, and have an 2nd alphabetic character
                     addedAsInterface = docsType.Name.Length >= 2 && docsType.Name[0] == 'I' && docsType.Name[1] >= 'A' && docsType.Name[1] <= 'Z';
                     add |= addedAsInterface;
-
                 }
 
                 bool containsAllowedAssembly = docsType.AssemblyInfos.Any(assemblyInfo =>
@@ -201,7 +197,7 @@ namespace ApiDocsSync.Libraries.Docs
                 {
                     foreach (XElement xeMember in xeMembers.Elements("Member"))
                     {
-                        DocsMember member = new DocsMember(filePath, docsType, xeMember);
+                        DocsMember member = new(filePath, docsType, xeMember);
                         totalMembersAdded++;
                         Members.TryAdd(member.DocId, member); // is it OK this encounters duplicates?
                     }
@@ -223,19 +219,15 @@ namespace ApiDocsSync.Libraries.Docs
             }
         }
 
-        private bool HasAllowedDirName(DirectoryInfo dirInfo)
-        {
-            return !Configuration.ForbiddenBinSubdirectories.Contains(dirInfo.Name) && !dirInfo.Name.EndsWith(".Tests");
-        }
+        private static bool HasAllowedDirName(DirectoryInfo dirInfo) =>
+            !Configuration.ForbiddenBinSubdirectories.Contains(dirInfo.Name) && !dirInfo.Name.EndsWith(".Tests", StringComparison.InvariantCultureIgnoreCase);
 
-        private bool HasAllowedFileName(FileInfo fileInfo)
-        {
-            return !fileInfo.Name.StartsWith("ns-") &&
+        private static bool HasAllowedFileName(FileInfo fileInfo) =>
+            !fileInfo.Name.StartsWith("ns-") &&
                 fileInfo.Name != "index.xml" &&
                 fileInfo.Name != "_filter.xml";
-        }
 
-        private bool IsXmlMalformed(XDocument? xDoc, string fileName)
+        private static bool IsXmlMalformed(XDocument? xDoc, string fileName)
         {
             if (xDoc == null)
             {

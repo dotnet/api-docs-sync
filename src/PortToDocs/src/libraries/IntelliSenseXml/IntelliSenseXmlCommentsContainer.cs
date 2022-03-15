@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Xml;
 using System.Xml.Linq;
 
 /*
@@ -39,10 +38,7 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
         // The IntelliSense xml files do not separate types from members, like ECMA xml files do - Everything is a member.
         public Dictionary<string, IntelliSenseXmlMember> Members = new();
 
-        public IntelliSenseXmlCommentsContainer(Configuration config)
-        {
-            Config = config;
-        }
+        public IntelliSenseXmlCommentsContainer(Configuration config) => Config = config;
 
         internal IEnumerable<FileInfo> EnumerateFiles()
         {
@@ -82,15 +78,15 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
             {
                 foreach (XElement xeMember in xeMembers.Elements("member"))
                 {
-                    IntelliSenseXmlMember member = new IntelliSenseXmlMember(xeMember, assembly);
+                    IntelliSenseXmlMember member = new(xeMember, assembly);
 
-                    if (Config.IncludedAssemblies.Any(included => member.Assembly.StartsWith(included)) &&
-                        !Config.ExcludedAssemblies.Any(excluded => member.Assembly.StartsWith(excluded)))
+                    if (Config.IncludedAssemblies.Any(included => member.Assembly.StartsWith(included, StringComparison.InvariantCultureIgnoreCase)) &&
+                        !Config.ExcludedAssemblies.Any(excluded => member.Assembly.StartsWith(excluded, StringComparison.InvariantCultureIgnoreCase)))
                     {
                         // No namespaces provided by the user means they want to port everything from that assembly
                         if (!Config.IncludedNamespaces.Any() ||
-                                (Config.IncludedNamespaces.Any(included => member.Namespace.StartsWith(included)) &&
-                                !Config.ExcludedNamespaces.Any(excluded => member.Namespace.StartsWith(excluded))))
+                                (Config.IncludedNamespaces.Any(included => member.Namespace.StartsWith(included, StringComparison.InvariantCultureIgnoreCase)) &&
+                                !Config.ExcludedNamespaces.Any(excluded => member.Namespace.StartsWith(excluded, StringComparison.InvariantCultureIgnoreCase))))
                         {
                             totalAdded++;
                             Members.TryAdd(member.Name, member); // is it OK this encounters duplicates?
@@ -106,7 +102,7 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
         }
 
         // Verifies the file is properly formed while attempting to retrieve the assembly name.
-        private bool TryGetAssemblyName(XDocument? xDoc, string fileName, [NotNullWhen(returnValue: true)] out string? assembly)
+        private static bool TryGetAssemblyName(XDocument? xDoc, string fileName, [NotNullWhen(returnValue: true)] out string? assembly)
         {
             assembly = null;
 

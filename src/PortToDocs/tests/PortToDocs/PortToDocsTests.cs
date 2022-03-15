@@ -19,27 +19,27 @@ namespace ApiDocsSync.Libraries.Tests
         // Verifies the basic case of porting all regular fields.
         public void Port_Basic()
         {
-            PortToDocs("Basic", GetConfiguration());
+            PortToDocsWithFileSystem("Basic", GetConfiguration());
         }
 
         [Fact]
         public void Port_DontAddMissingRemarks()
         {
-            PortToDocs("DontAddMissingRemarks", GetConfiguration());
+            PortToDocsWithFileSystem("DontAddMissingRemarks", GetConfiguration());
         }
 
         [Fact]
         // Verifies porting of APIs living in namespaces whose name match their assembly.
         public void Port_AssemblyAndNamespaceSame()
         {
-            PortToDocs("AssemblyAndNamespaceSame", GetConfiguration());
+            PortToDocsWithFileSystem("AssemblyAndNamespaceSame", GetConfiguration());
         }
 
         [Fact]
         // Verifies porting of APIs living in namespaces whose name does not match their assembly.
         public void Port_AssemblyAndNamespaceDifferent()
         {
-            PortToDocs("AssemblyAndNamespaceDifferent",
+            PortToDocsWithFileSystem("AssemblyAndNamespaceDifferent",
                        GetConfiguration(),
                        namespaceNames: new[] { TestData.TestNamespace });
         }
@@ -51,7 +51,7 @@ namespace ApiDocsSync.Libraries.Tests
         public void Port_Remarks_NoEII_NoInterfaceRemarks()
         {
             Configuration c = GetConfiguration(skipInterfaceImplementations: true, skipInterfaceRemarks: true);
-            PortToDocs("Remarks_NoEII_NoInterfaceRemarks", c);
+            PortToDocsWithFileSystem("Remarks_NoEII_NoInterfaceRemarks", c);
         }
 
         [Fact]
@@ -61,7 +61,7 @@ namespace ApiDocsSync.Libraries.Tests
         public void Port_Remarks_WithEII_WithInterfaceRemarks()
         {
             Configuration c = GetConfiguration(skipInterfaceImplementations: false, skipInterfaceRemarks: false);
-            PortToDocs("Remarks_WithEII_WithInterfaceRemarks", c);
+            PortToDocsWithFileSystem("Remarks_WithEII_WithInterfaceRemarks", c);
         }
 
         [Fact]
@@ -71,14 +71,14 @@ namespace ApiDocsSync.Libraries.Tests
         public void Port_Remarks_WithEII_NoInterfaceRemarks()
         {
             Configuration c = GetConfiguration(skipInterfaceImplementations: false, skipInterfaceRemarks: true);
-            PortToDocs("Remarks_WithEII_NoInterfaceRemarks", c);
+            PortToDocsWithFileSystem("Remarks_WithEII_NoInterfaceRemarks", c);
         }
 
         [Fact]
         // Verifies that new exceptions are ported.
         public void Port_Exceptions()
         {
-            PortToDocs("Exceptions", GetConfiguration());
+            PortToDocsWithFileSystem("Exceptions", GetConfiguration());
         }
 
         [Fact]
@@ -87,14 +87,14 @@ namespace ApiDocsSync.Libraries.Tests
         public void Port_Exception_ExistingCref()
         {
             Configuration c = GetConfiguration(portExceptionsExisting: true, exceptionCollisionThreshold: 60);
-            PortToDocs("Exception_ExistingCref", c);
+            PortToDocsWithFileSystem("Exception_ExistingCref", c);
         }
 
         [Fact]
         // Avoid porting enum field remarks
         public void Port_EnumRemarks()
         {
-            PortToDocs("EnumRemarks", GetConfiguration());
+            PortToDocsWithFileSystem("EnumRemarks", GetConfiguration());
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace ApiDocsSync.Libraries.Tests
         // The parent type is located in a different assembly.
         public void Port_InheritDoc()
         {
-            PortToDocs("InheritDoc",
+            PortToDocsWithFileSystem("InheritDoc",
                        GetConfiguration(),
                        assemblyNames: new[] { TestData.TestAssembly, "System" });
         }
@@ -158,7 +158,7 @@ namespace ApiDocsSync.Libraries.Tests
                 SkipInterfaceRemarks = skipInterfaceRemarks
             };
 
-        private static void PortToDocs(
+        private static void PortToDocsWithFileSystem(
                 string testName,
                 Configuration c,
                 string[] assemblyNames = null,

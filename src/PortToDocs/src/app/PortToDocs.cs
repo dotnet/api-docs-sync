@@ -11,6 +11,7 @@ namespace ApiDocsSync
         {
             Configuration config = Configuration.GetCLIArguments(args);
             ToDocsPorter porter = new(config);
+            porter.CollectFiles();
             porter.Start();
         }
     }

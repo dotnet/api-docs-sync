@@ -37,6 +37,8 @@ namespace ApiDocsSync.Libraries
         public void CollectFiles()
         {
             Log.Info("Looking for IntelliSense xml files...");
+            Config.VerifyIntellisenseXmlFiles();
+
             foreach (FileInfo fileInfo in IntelliSenseXmlComments.EnumerateFiles())
             {
                 XDocument? xDoc = null;
@@ -58,6 +60,8 @@ namespace ApiDocsSync.Libraries
             Log.Line();
 
             Log.Info("Looking for Docs xml files...");
+            Config.VerifyDocsFiles();
+
             foreach (FileInfo fileInfo in DocsComments.EnumerateFiles())
             {
                 XDocument? xDoc = null;

@@ -68,7 +68,6 @@ namespace ApiDocsSync.Libraries
 
         public readonly string BinLogPath = "output.binlog";
         public bool BinLogger { get; private set; } = false;
-        public FileInfo? CsProj { get; set; }
         public List<DirectoryInfo> DirsIntelliSense { get; } = new List<DirectoryInfo>();
         public List<DirectoryInfo> DirsDocsXml { get; } = new List<DirectoryInfo>();
         public bool DisablePrompts { get; set; } = true;

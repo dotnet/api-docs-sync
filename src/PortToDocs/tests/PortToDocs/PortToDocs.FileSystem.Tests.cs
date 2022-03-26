@@ -192,6 +192,7 @@ namespace ApiDocsSync.Libraries.Tests
             var porter = new ToDocsPorter(c);
             porter.CollectFiles();
             porter.Start();
+            porter.SaveToDisk();
 
             Verify(targetDir);
         }

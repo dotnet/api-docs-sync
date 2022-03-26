@@ -13,6 +13,8 @@ namespace ApiDocsSync
             ToDocsPorter porter = new(config);
             porter.CollectFiles();
             porter.Start();
+            porter.SaveToDisk();
+            porter.PrintSummary();
         }
     }
 }

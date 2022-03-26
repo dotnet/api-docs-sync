@@ -111,9 +111,74 @@ namespace ApiDocsSync.Libraries
             }
 
             PortMissingComments();
-            DocsComments.Save();
+        }
+
+        public void SaveToDisk() => DocsComments.SaveToDisk();
+
+        // Prints a final summary of the execution findings.
+        public void PrintSummary()
+        {
             PrintUndocumentedAPIs();
-            PrintSummary();
+
+            Log.Line();
+            Log.Info($"Total modified files: {ModifiedFiles.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string file in ModifiedFiles)
+                {
+                    Log.Success($"    - {file}");
+                }
+                Log.Line();
+            }
+
+            Log.Info($"Total modified types: {ModifiedTypes.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string type in ModifiedTypes)
+                {
+                    Log.Success($"    - {type}");
+                }
+                Log.Line();
+            }
+
+            Log.Info($"Total modified APIs: {ModifiedAPIs.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string api in ModifiedAPIs)
+                {
+                    Log.Success($"    - {api}");
+                }
+            }
+
+            Log.Line();
+            Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string api in ProblematicAPIs)
+                {
+                    Log.Warning($"    - {api}");
+                }
+                Log.Line();
+            }
+
+            Log.Info($"Total added exceptions: {AddedExceptions.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string exception in AddedExceptions)
+                {
+                    Log.Success($"    - {exception}");
+                }
+                Log.Line();
+            }
+
+            Log.Info(false, "Total modified individual elements: ");
+            Log.Success($"{TotalModifiedIndividualElements}");
+
+            Log.Line();
+            Log.Success("---------");
+            Log.Success("FINISHED!");
+            Log.Success("---------");
+            Log.Line();
 
         }
 
@@ -1135,71 +1200,6 @@ namespace ApiDocsSync.Libraries
 
                 Log.Line();
             }
-        }
-
-        // Prints a final summary of the execution findings.
-        private void PrintSummary()
-        {
-            Log.Line();
-            Log.Info($"Total modified files: {ModifiedFiles.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string file in ModifiedFiles)
-                {
-                    Log.Success($"    - {file}");
-                }
-                Log.Line();
-            }
-
-            Log.Info($"Total modified types: {ModifiedTypes.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string type in ModifiedTypes)
-                {
-                    Log.Success($"    - {type}");
-                }
-                Log.Line();
-            }
-
-            Log.Info($"Total modified APIs: {ModifiedAPIs.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string api in ModifiedAPIs)
-                {
-                    Log.Success($"    - {api}");
-                }
-            }
-
-            Log.Line();
-            Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string api in ProblematicAPIs)
-                {
-                    Log.Warning($"    - {api}");
-                }
-                Log.Line();
-            }
-
-            Log.Info($"Total added exceptions: {AddedExceptions.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string exception in AddedExceptions)
-                {
-                    Log.Success($"    - {exception}");
-                }
-                Log.Line();
-            }
-
-            Log.Info(false, "Total modified individual elements: ");
-            Log.Success($"{TotalModifiedIndividualElements}");
-
-            Log.Line();
-            Log.Success("---------");
-            Log.Success("FINISHED!");
-            Log.Success("---------");
-            Log.Line();
-
         }
 
         private struct MissingComments

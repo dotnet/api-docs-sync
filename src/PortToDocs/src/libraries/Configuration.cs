@@ -68,7 +68,6 @@ namespace ApiDocsSync.Libraries
 
         public readonly string BinLogPath = "output.binlog";
         public bool BinLogger { get; private set; } = false;
-        public FileInfo? CsProj { get; set; }
         public List<DirectoryInfo> DirsIntelliSense { get; } = new List<DirectoryInfo>();
         public List<DirectoryInfo> DirsDocsXml { get; } = new List<DirectoryInfo>();
         public bool DisablePrompts { get; set; } = true;
@@ -587,22 +586,28 @@ namespace ApiDocsSync.Libraries
                 Log.ErrorAndExit("You missed an argument value.");
             }
 
-            if (config.DirsDocsXml == null)
-            {
-                Log.ErrorAndExit($"You must specify a path to the dotnet-api-docs xml folder using '-{nameof(Mode.Docs)}'.");
-            }
-
-            if (config.DirsIntelliSense.Count == 0)
-            {
-                Log.ErrorAndExit($"You must specify at least one IntelliSense & DLL folder using '-{nameof(Mode.IntelliSense)}'.");
-            }
-
             if (config.IncludedAssemblies.Count == 0)
             {
                 Log.ErrorAndExit($"You must specify at least one assembly with {nameof(IncludedAssemblies)}.");
             }
 
             return config;
+        }
+
+        internal void VerifyIntellisenseXmlFiles()
+        {
+            if (DirsIntelliSense.Count == 0)
+            {
+                Log.ErrorAndExit($"You must specify at least one IntelliSense & DLL folder using '-{nameof(Mode.IntelliSense)}'.");
+            }
+        }
+
+        internal void VerifyDocsFiles()
+        {
+            if (DirsDocsXml.Count == 0)
+            {
+                Log.ErrorAndExit($"You must specify a path to the dotnet-api-docs xml folder using '-{nameof(Mode.Docs)}'.");
+            }
         }
 
         // Tries to parse the user argument string as boolean, and if it fails, exits the program.

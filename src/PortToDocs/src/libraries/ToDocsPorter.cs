@@ -37,6 +37,8 @@ namespace ApiDocsSync.Libraries
         public void CollectFiles()
         {
             Log.Info("Looking for IntelliSense xml files...");
+            Config.VerifyIntellisenseXmlFiles();
+
             foreach (FileInfo fileInfo in IntelliSenseXmlComments.EnumerateFiles())
             {
                 XDocument? xDoc = null;
@@ -58,6 +60,8 @@ namespace ApiDocsSync.Libraries
             Log.Line();
 
             Log.Info("Looking for Docs xml files...");
+            Config.VerifyDocsFiles();
+
             foreach (FileInfo fileInfo in DocsComments.EnumerateFiles())
             {
                 XDocument? xDoc = null;
@@ -107,9 +111,74 @@ namespace ApiDocsSync.Libraries
             }
 
             PortMissingComments();
-            DocsComments.Save();
+        }
+
+        public void SaveToDisk() => DocsComments.SaveToDisk();
+
+        // Prints a final summary of the execution findings.
+        public void PrintSummary()
+        {
             PrintUndocumentedAPIs();
-            PrintSummary();
+
+            Log.Line();
+            Log.Info($"Total modified files: {ModifiedFiles.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string file in ModifiedFiles)
+                {
+                    Log.Success($"    - {file}");
+                }
+                Log.Line();
+            }
+
+            Log.Info($"Total modified types: {ModifiedTypes.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string type in ModifiedTypes)
+                {
+                    Log.Success($"    - {type}");
+                }
+                Log.Line();
+            }
+
+            Log.Info($"Total modified APIs: {ModifiedAPIs.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string api in ModifiedAPIs)
+                {
+                    Log.Success($"    - {api}");
+                }
+            }
+
+            Log.Line();
+            Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string api in ProblematicAPIs)
+                {
+                    Log.Warning($"    - {api}");
+                }
+                Log.Line();
+            }
+
+            Log.Info($"Total added exceptions: {AddedExceptions.Count}");
+            if (Config.PrintSummaryDetails)
+            {
+                foreach (string exception in AddedExceptions)
+                {
+                    Log.Success($"    - {exception}");
+                }
+                Log.Line();
+            }
+
+            Log.Info(false, "Total modified individual elements: ");
+            Log.Success($"{TotalModifiedIndividualElements}");
+
+            Log.Line();
+            Log.Success("---------");
+            Log.Success("FINISHED!");
+            Log.Success("---------");
+            Log.Line();
 
         }
 
@@ -434,7 +503,7 @@ namespace ApiDocsSync.Libraries
         // Ports all the parameter descriptions for the specified API if any of them is undocumented.
         private void TryPortMissingParamsForAPI(IDocsAPI dApiToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
         {
-            if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeParams ||
+            if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeParams /* Params of a Type */ ||
                 dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberParams)
             {
                 return;
@@ -559,34 +628,86 @@ namespace ApiDocsSync.Libraries
         // Ports all the type parameter descriptions for the specified API if any of them is undocumented.
         private void TryPortMissingTypeParamsForAPI(IDocsAPI dApiToUpdate, IntelliSenseXmlMember? tsMemberToPort, DocsMember? interfacedMember)
         {
-            if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeTypeParams ||
+
+            if (dApiToUpdate.Kind == APIKind.Type && !Config.PortTypeTypeParams /* TypeParams of a Type */ ||
                 dApiToUpdate.Kind == APIKind.Member && !Config.PortMemberTypeParams)
             {
                 return;
             }
 
+            bool created;
+            bool isEII = false;
+            string name;
+            string value;
+
             if (tsMemberToPort != null)
             {
-                foreach (IntelliSenseXmlTypeParam tsTypeParam in tsMemberToPort.TypeParams)
+                foreach (DocsTypeParam dTypeParam in dApiToUpdate.TypeParams)
                 {
-                    bool isEII = false;
-                    string name = string.Empty;
-                    string value = string.Empty;
-
-                    DocsTypeParam? dTypeParam = dApiToUpdate.TypeParams.FirstOrDefault(x => x.Name == tsTypeParam.Name);
-
-                    if (dTypeParam == null)
-                    {
-                        ProblematicAPIs.AddIfNotExists($"Can't find intellisense typeparam in docs: TypeParam=[{tsTypeParam.Name}] in Member=[{dApiToUpdate.DocId}]");
-                        dTypeParam = dApiToUpdate.AddTypeParam(tsTypeParam.Name, XmlHelper.GetNodesInPlainText(tsTypeParam.XETypeParam));
-                    }
-
-                    // But it can still be empty, try to retrieve it
                     if (dTypeParam.Value.IsDocsEmpty())
                     {
-                        // try to port IntelliSense xml comments
-                        if (!tsTypeParam.Value.IsDocsEmpty())
+                        created = false;
+                        isEII = false;
+                        name = string.Empty;
+                        value = string.Empty;
+
+                        IntelliSenseXmlTypeParam? tsTypeParam = tsMemberToPort.TypeParams.FirstOrDefault(x => x.Name == dTypeParam.Name);
+
+                        // When not found, it's a bug in Docs (typeparam name not the same as source/ref), so need to ask the user to indicate correct name
+                        if (tsTypeParam == null)
                         {
+                            string msg;
+                            if (tsMemberToPort.TypeParams.Count() == 0)
+                            {
+                                msg = $"There were no IntelliSense xml comments for typeparam {dTypeParam.Name} in Member DocId {dApiToUpdate.DocId}";
+                                ProblematicAPIs.AddIfNotExists(msg);
+                                Log.Warning(msg);
+                            }
+                            else if (tsMemberToPort.TypeParams.Count() != dApiToUpdate.TypeParams.Count())
+                            {
+                                msg = $"The total number of typeparams does not match between IntelliSense and Docs members {dApiToUpdate.DocId}";
+                                ProblematicAPIs.AddIfNotExists(msg);
+                                Log.Warning(msg);
+                            }
+                            else
+                            {
+                                created = TryPromptTypeParam(dTypeParam, tsMemberToPort, out IntelliSenseXmlTypeParam? newTsTypeParam);
+                                if (newTsTypeParam == null)
+                                {
+                                    msg = $"The typeparam {dTypeParam.Name} was not found in IntelliSense xml for {dApiToUpdate.DocId}";
+                                    ProblematicAPIs.AddIfNotExists(msg);
+                                    Log.Error(msg);
+                                }
+                                else
+                                {
+                                    // Now attempt to document it
+                                    if (!newTsTypeParam.Value.IsDocsEmpty())
+                                    {
+                                        // try to port IntelliSense xml comments
+                                        dTypeParam.Value = newTsTypeParam.Value;
+                                        name = newTsTypeParam.Name;
+                                        value = newTsTypeParam.Value;
+                                    }
+                                    // or try to find if it implements a documented interface
+                                    else if (interfacedMember != null)
+                                    {
+                                        DocsTypeParam? interfacedTypeParam = interfacedMember.TypeParams.FirstOrDefault(x => x.Name == newTsTypeParam.Name || x.Name == dTypeParam.Name);
+                                        if (interfacedTypeParam != null)
+                                        {
+                                            dTypeParam.Value = interfacedTypeParam.Value;
+                                            name = interfacedTypeParam.Name;
+                                            value = interfacedTypeParam.Value;
+                                            isEII = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // Attempt to port
+                        else if (!tsTypeParam.Value.IsDocsEmpty())
+                        {
+                            // try to port IntelliSense xml comments
+                            dTypeParam.Value = tsTypeParam.Value;
                             name = tsTypeParam.Name;
                             value = tsTypeParam.Value;
                         }
@@ -596,18 +717,35 @@ namespace ApiDocsSync.Libraries
                             DocsTypeParam? interfacedTypeParam = interfacedMember.TypeParams.FirstOrDefault(x => x.Name == dTypeParam.Name);
                             if (interfacedTypeParam != null)
                             {
+                                dTypeParam.Value = interfacedTypeParam.Value;
                                 name = interfacedTypeParam.Name;
                                 value = interfacedTypeParam.Value;
                                 isEII = true;
                             }
                         }
-                    }
 
-                    if (!value.IsDocsEmpty())
+
+                        if (!value.IsDocsEmpty())
+                        {
+                            PrintModifiedMember($"typeparam '{name}'", dApiToUpdate.FilePath, dApiToUpdate.DocId, isEII);
+                            TotalModifiedIndividualElements++;
+                        }
+                    }
+                }
+            }
+            else if (interfacedMember != null)
+            {
+                foreach (DocsTypeParam dTypeParam in dApiToUpdate.TypeParams)
+                {
+                    if (dTypeParam.Value.IsDocsEmpty())
                     {
-                        dTypeParam.Value = value;
-                        PrintModifiedMember($"typeparam '{name}'", dTypeParam.ParentAPI.FilePath, dApiToUpdate.DocId, isEII);
-                        TotalModifiedIndividualElements++;
+                        DocsTypeParam? interfacedTypeParam = interfacedMember.TypeParams.FirstOrDefault(x => x.Name == dTypeParam.Name);
+                        if (interfacedTypeParam != null && !interfacedTypeParam.Value.IsDocsEmpty())
+                        {
+                            dTypeParam.Value = interfacedTypeParam.Value;
+                            PrintModifiedMember($"typeparam '{dTypeParam.Name}'", dApiToUpdate.FilePath, dApiToUpdate.DocId, isEII);
+                            TotalModifiedIndividualElements++;
+                        }
                     }
                 }
             }
@@ -806,6 +944,111 @@ namespace ApiDocsSync.Libraries
             return created;
         }
 
+        // If a Param is found in a DocsType or a DocsMember that did not exist in the IntelliSense xml member, it's possible the param was unexpectedly saved in the IntelliSense xml comments with a different name, so the user gets prompted to look for it.
+        private bool TryPromptTypeParam(DocsTypeParam oldDTypeParam, IntelliSenseXmlMember tsMember, out IntelliSenseXmlTypeParam? newTsTypeParam)
+        {
+            newTsTypeParam = null;
+
+            if (Config.DisablePrompts)
+            {
+                Log.Error($"Prompts disabled. Will not process the '{oldDTypeParam.Name}' typeparam.");
+                return false;
+            }
+
+            bool created = false;
+            int option = -1;
+            while (option == -1)
+            {
+                Log.Error($"Problem in typeparam '{oldDTypeParam.Name}' in member '{tsMember.Name}' in file '{oldDTypeParam.ParentAPI.FilePath}'");
+                Log.Error($"The typeparam probably exists in code, but the exact name was not found in Docs. What would you like to do?");
+                Log.Warning("    0 - Exit program.");
+                Log.Info("    1 - Select the correct IntelliSense xml typeparam from the existing ones.");
+                Log.Info("    2 - Ignore this typeparam and continue.");
+                Log.Warning("      Note:Make sure to double check the affected Docs file after the tool finishes executing.");
+                Log.Cyan(false, "Your answer [0,1,2]: ");
+
+                if (!int.TryParse(Console.ReadLine(), out option))
+                {
+                    Log.Error("Not a number. Try again.");
+                    option = -1;
+                }
+                else
+                {
+                    switch (option)
+                    {
+                        case 0:
+                            {
+                                Log.Info("Goodbye!");
+                                Environment.Exit(0);
+                                break;
+                            }
+
+                        case 1:
+                            {
+                                int typeParamSelection = -1;
+                                while (typeParamSelection == -1)
+                                {
+                                    Log.Info($"IntelliSense xml typeparams found in member '{tsMember.Name}':");
+                                    Log.Warning("    0 - Exit program.");
+                                    Log.Info("    1 - Ignore this typeparam and continue.");
+                                    int typeParamCounter = 2;
+                                    foreach (IntelliSenseXmlTypeParam typeParam in tsMember.TypeParams)
+                                    {
+                                        Log.Info($"    {typeParamCounter} - {typeParam.Name}");
+                                        typeParamCounter++;
+                                    }
+
+                                    Log.Cyan(false, $"Your answer to match typeparam '{oldDTypeParam.Name}'? [0..{typeParamCounter - 1}]: ");
+
+                                    if (!int.TryParse(Console.ReadLine(), out typeParamSelection))
+                                    {
+                                        Log.Error("Not a number. Try again.");
+                                        typeParamSelection = -1;
+                                    }
+                                    else if (typeParamSelection < 0 || typeParamSelection >= typeParamCounter)
+                                    {
+                                        Log.Error("Invalid selection. Try again.");
+                                        typeParamSelection = -1;
+                                    }
+                                    else if (typeParamSelection == 0)
+                                    {
+                                        Log.Info("Goodbye!");
+                                        Environment.Exit(0);
+                                    }
+                                    else if (typeParamSelection == 1)
+                                    {
+                                        Log.Info("Skipping this typeparam.");
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        newTsTypeParam = tsMember.TypeParams[typeParamSelection - 2];
+                                        Log.Success($"Selected: {newTsTypeParam.Name}");
+                                    }
+                                }
+
+                                break;
+                            }
+
+                        case 2:
+                            {
+                                Log.Info("Skipping this typeparam.");
+                                break;
+                            }
+
+                        default:
+                            {
+                                Log.Error("Invalid selection. Try again.");
+                                option = -1;
+                                break;
+                            }
+                    }
+                }
+            }
+
+            return created;
+        }
+
         /// <summary>
         /// Standard formatted print message for a modified element.
         /// </summary>
@@ -957,71 +1200,6 @@ namespace ApiDocsSync.Libraries
 
                 Log.Line();
             }
-        }
-
-        // Prints a final summary of the execution findings.
-        private void PrintSummary()
-        {
-            Log.Line();
-            Log.Info($"Total modified files: {ModifiedFiles.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string file in ModifiedFiles)
-                {
-                    Log.Success($"    - {file}");
-                }
-                Log.Line();
-            }
-
-            Log.Info($"Total modified types: {ModifiedTypes.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string type in ModifiedTypes)
-                {
-                    Log.Success($"    - {type}");
-                }
-                Log.Line();
-            }
-
-            Log.Info($"Total modified APIs: {ModifiedAPIs.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string api in ModifiedAPIs)
-                {
-                    Log.Success($"    - {api}");
-                }
-            }
-
-            Log.Line();
-            Log.Info($"Total problematic APIs: {ProblematicAPIs.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string api in ProblematicAPIs)
-                {
-                    Log.Warning($"    - {api}");
-                }
-                Log.Line();
-            }
-
-            Log.Info($"Total added exceptions: {AddedExceptions.Count}");
-            if (Config.PrintSummaryDetails)
-            {
-                foreach (string exception in AddedExceptions)
-                {
-                    Log.Success($"    - {exception}");
-                }
-                Log.Line();
-            }
-
-            Log.Info(false, "Total modified individual elements: ");
-            Log.Success($"{TotalModifiedIndividualElements}");
-
-            Log.Line();
-            Log.Success("---------");
-            Log.Success("FINISHED!");
-            Log.Success("---------");
-            Log.Line();
-
         }
 
         private struct MissingComments

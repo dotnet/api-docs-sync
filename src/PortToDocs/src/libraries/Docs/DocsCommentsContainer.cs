@@ -20,7 +20,7 @@ namespace ApiDocsSync.Libraries.Docs
 
         public DocsCommentsContainer(Configuration config) => Config = config;
 
-        public void Save()
+        public void SaveToDisk()
         {
             if (!Config.Save)
             {

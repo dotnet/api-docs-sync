@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 
 namespace ApiDocsSync.Libraries.Tests
 {
-    public class PortToDocsTests : BasePortTests
+    public class PortToDocs_FileSystem_Tests : BasePortTests
     {
-        public PortToDocsTests(ITestOutputHelper output) : base(output)
+        public PortToDocs_FileSystem_Tests(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -192,6 +192,7 @@ namespace ApiDocsSync.Libraries.Tests
             var porter = new ToDocsPorter(c);
             porter.CollectFiles();
             porter.Start();
+            porter.SaveToDisk();
 
             Verify(targetDir);
         }

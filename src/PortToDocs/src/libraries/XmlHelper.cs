@@ -33,6 +33,29 @@ namespace ApiDocsSync.Libraries
             { "></see>",        " />" }
         };
 
+        private static readonly Dictionary<string, string> _replaceableNormalElementRegexPatterns = new Dictionary<string, string>
+        {
+            // Replace primitives: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/built-in-types
+            { @"\<(see|seealso){1} cref\=""bool""[ ]*\/\>",    "<see cref=\"T:System.Boolean\" />" },
+            { @"\<(see|seealso){1} cref\=""byte""[ ]*\/\>",    "<see cref=\"T:System.Byte\" />" },
+            { @"\<(see|seealso){1} cref\=""sbyte""[ ]*\/\>",   "<see cref=\"T:System.SByte\" />" },
+            { @"\<(see|seealso){1} cref\=""char""[ ]*\/\>",    "<see cref=\"T:System.Char\" />" },
+            { @"\<(see|seealso){1} cref\=""decimal""[ ]*\/\>", "<see cref=\"T:System.Decimal\" />" },
+            { @"\<(see|seealso){1} cref\=""double""[ ]*\/\>",  "<see cref=\"T:System.Double\" />" },
+            { @"\<(see|seealso){1} cref\=""float""[ ]*\/\>",   "<see cref=\"T:System.Single\" />" },
+            { @"\<(see|seealso){1} cref\=""int""[ ]*\/\>",     "<see cref=\"T:System.Int32\" />" },
+            { @"\<(see|seealso){1} cref\=""uint""[ ]*\/\>",    "<see cref=\"T:System.UInt32\" />" },
+            { @"\<(see|seealso){1} cref\=""nint""[ ]*\/\>",    "<see cref=\"T:System.IntPtr\" />" },
+            { @"\<(see|seealso){1} cref\=""nuint""[ ]*\/\>",   "<see cref=\"T:System.UIntPtr\" />" },
+            { @"\<(see|seealso){1} cref\=""long""[ ]*\/\>",    "<see cref=\"T:System.Int64\" />" },
+            { @"\<(see|seealso){1} cref\=""ulong""[ ]*\/\>",   "<see cref=\"T:System.UInt64\" />" },
+            { @"\<(see|seealso){1} cref\=""short""[ ]*\/\>",   "<see cref=\"T:System.Int16\" />" },
+            { @"\<(see|seealso){1} cref\=""ushort""[ ]*\/\>",  "<see cref=\"T:System.UInt16\" />" },
+            { @"\<(see|seealso){1} cref\=""object""[ ]*\/\>",  "<see cref=\"T:System.Object\" />" },
+            { @"\<(see|seealso){1} cref\=""dynamic""[ ]*\/\>", "<see langword=\"dynamic\" />" },
+            { @"\<(see|seealso){1} cref\=""string""[ ]*\/\>",  "<see cref=\"T:System.String\" />" },
+        };
+
         private static readonly Dictionary<string, string> _replaceableMarkdownPatterns = new Dictionary<string, string> {
             { " null ",                      " `null` " },
             { "'null'",                      "`null`" },
@@ -64,17 +87,35 @@ namespace ApiDocsSync.Libraries
         };
 
         private static readonly Dictionary<string, string> _replaceableExceptionPatterns = new Dictionary<string, string>{
-
             { "<para>",  "\r\n" },
             { "</para>", "" }
         };
 
         private static readonly Dictionary<string, string> _replaceableMarkdownRegexPatterns = new Dictionary<string, string> {
-            { @"\<typeparamref name\=""(?'typeParamrefNameContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${typeParamrefNameContents}`" },
-            { @"\<paramref name\=""(?'paramrefNameContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${paramrefNameContents}`" },
+            // Replace primitives: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/built-in-types
+            { @"\<(see|seealso){1} cref\=""bool""[ ]*\/\>",    "`bool`" },
+            { @"\<(see|seealso){1} cref\=""byte""[ ]*\/\>",    "`byte`" },
+            { @"\<(see|seealso){1} cref\=""sbyte""[ ]*\/\>",   "`sbyte`" },
+            { @"\<(see|seealso){1} cref\=""char""[ ]*\/\>",    "`char`" },
+            { @"\<(see|seealso){1} cref\=""decimal""[ ]*\/\>", "`decimal`" },
+            { @"\<(see|seealso){1} cref\=""double""[ ]*\/\>",  "`double`" },
+            { @"\<(see|seealso){1} cref\=""float""[ ]*\/\>",   "`float`" },
+            { @"\<(see|seealso){1} cref\=""int""[ ]*\/\>",     "`int`" },
+            { @"\<(see|seealso){1} cref\=""uint""[ ]*\/\>",    "`uint`" },
+            { @"\<(see|seealso){1} cref\=""nint""[ ]*\/\>",    "`nint`" },
+            { @"\<(see|seealso){1} cref\=""nuint""[ ]*\/\>",   "`nuint`" },
+            { @"\<(see|seealso){1} cref\=""long""[ ]*\/\>",    "`long`" },
+            { @"\<(see|seealso){1} cref\=""ulong""[ ]*\/\>",   "`ulong`" },
+            { @"\<(see|seealso){1} cref\=""short""[ ]*\/\>",   "`short`" },
+            { @"\<(see|seealso){1} cref\=""ushort""[ ]*\/\>",  "`ushort`" },
+            { @"\<(see|seealso){1} cref\=""object""[ ]*\/\>",  "`object`" },
+            { @"\<(see|seealso){1} cref\=""dynamic""[ ]*\/\>", "`dynamic`" },
+            { @"\<(see|seealso){1} cref\=""string""[ ]*\/\>",  "`string`" },
+            // Full DocId
+            { @"\<(see|seealso){1} cref\=""([a-zA-Z0-9]{1}\:)?(?'seeContents'[a-zA-Z0-9\._\-\{\}\<\>\(\)\,\#\@\&\*\+]+)""[ ]*\/\>",      @"<xref:${seeContents}>" },
+            // Params, typeparams, langwords
+            { @"\<(typeparamref|paramref){1} name\=""(?'refNameContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${refNameContents}`" },
             { @"\<see langword\=""(?'seeLangwordContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${seeLangwordContents}`" },
-            { @"\<seealso cref\=""([a-zA-Z0-9]{1}\:)?(?'seeAlsoContents'.+)""[ ]*\/\>",      @"<xref:${seeAlsoContents}>" },
-            { @"\<see cref\=""([a-zA-Z0-9]{1}\:)?(?'seeCrefContents'.+)""[ ]*\/\>",      @"<xref:${seeCrefContents}>" },
         };
 
         public static string GetAttributeValue(XElement parent, string name)
@@ -149,7 +190,7 @@ namespace ApiDocsSync.Libraries
 
             XElement xeFormat = new XElement("format");
 
-            string updatedValue = SubstituteRemarksRegexPatterns(newValue);
+            string updatedValue = SubstituteRegexPatterns(newValue, _replaceableMarkdownRegexPatterns);
             updatedValue = ReplaceMarkdownPatterns(updatedValue).Trim();
 
             string remarksTitle = string.Empty;
@@ -197,6 +238,7 @@ namespace ApiDocsSync.Libraries
 
             string updatedValue = removeUndesiredEndlines ? RemoveUndesiredEndlines(newValue) : newValue;
             updatedValue = ReplaceNormalElementPatterns(updatedValue);
+            updatedValue = SubstituteRegexPatterns(updatedValue, _replaceableNormalElementRegexPatterns);
 
             // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed by replacing the nodes.
             XElement parsedElement;
@@ -246,11 +288,6 @@ namespace ApiDocsSync.Libraries
             value = Regex.Replace(value, @"((?'undesiredEndlinePrefix'[^\.\:])(\r\n)+[ \t]*)", @"${undesiredEndlinePrefix} ");
 
             return value.Trim();
-        }
-
-        private static string SubstituteRemarksRegexPatterns(string value)
-        {
-            return SubstituteRegexPatterns(value, _replaceableMarkdownRegexPatterns);
         }
 
         private static string ReplaceMarkdownPatterns(string value)

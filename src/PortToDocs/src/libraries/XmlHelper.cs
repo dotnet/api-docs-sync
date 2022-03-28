@@ -34,17 +34,6 @@ namespace ApiDocsSync.Libraries
         };
 
         private static readonly Dictionary<string, string> _replaceableMarkdownPatterns = new Dictionary<string, string> {
-            { "<see langword=\"null\"/>",    "`null`" },
-            { "<see langword=\"null\" />",   "`null`" },
-            { "<see langword=\"true\"/>",    "`true`" },
-            { "<see langword=\"true\" />",   "`true`" },
-            { "<see langword=\"false\"/>",   "`false`" },
-            { "<see langword=\"false\" />",  "`false`" },
-            { "<see cref=\"T:",              "<xref:" },
-            { "<see cref=\"F:",              "<xref:" },
-            { "<see cref=\"M:",              "<xref:" },
-            { "<see cref=\"P:",              "<xref:" },
-            { "<see cref=\"",                "<xref:" },
             { " null ",                      " `null` " },
             { "'null'",                      "`null`" },
             { " null.",                      " `null`." },
@@ -81,8 +70,11 @@ namespace ApiDocsSync.Libraries
         };
 
         private static readonly Dictionary<string, string> _replaceableMarkdownRegexPatterns = new Dictionary<string, string> {
-            { @"\<paramref name\=""(?'paramrefContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${paramrefContents}`" },
-            { @"\<seealso cref\=""(?'seealsoContents'.+)""[ ]*\/\>",      @"seealsoContents" },
+            { @"\<typeparamref name\=""(?'typeParamrefNameContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${typeParamrefNameContents}`" },
+            { @"\<paramref name\=""(?'paramrefNameContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${paramrefNameContents}`" },
+            { @"\<see langword\=""(?'seeLangwordContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${seeLangwordContents}`" },
+            { @"\<seealso cref\=""([a-zA-Z0-9]{1}\:)?(?'seeAlsoContents'.+)""[ ]*\/\>",      @"<xref:${seeAlsoContents}>" },
+            { @"\<see cref\=""([a-zA-Z0-9]{1}\:)?(?'seeCrefContents'.+)""[ ]*\/\>",      @"<xref:${seeCrefContents}>" },
         };
 
         public static string GetAttributeValue(XElement parent, string name)

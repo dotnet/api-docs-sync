@@ -104,6 +104,566 @@ namespace ApiDocsSync.Libraries.Tests
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
         }
 
+        [Fact]
+        public void See_Cref()
+        {
+            // References to other APIs, using <see cref="DocId"/> in intellisense xml, need to be transformed to <see cref="X:DocId"/> in docs xml (notice the prefix), or <xref:DocId> in markdown.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>See <see cref=""T:MyNamespace.MyType""/>.</summary>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <summary>The summary of MyMethod. See <see cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
+      <remarks>See <see cref=""M:MyNamespace.MyType.MyMethod"" />.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>See <see cref=""T:MyNamespace.MyType"" />.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>The summary of MyMethod. See <see cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+See <xref:MyNamespace.MyType.MyMethod>.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+        }
+
+        [Fact]
+        public void See_Cref_Primitive()
+        {
+            // Need to make sure that see crefs pointing to primitives are also converted properly.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>Type summary.</summary>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <summary>Summary: <see cref=""bool""/>, <see cref=""byte""/>, <see cref=""sbyte""/>, <see cref=""char""/>, <see cref=""decimal""/>, <see cref=""double""/>, <see cref=""float""/>, <see cref=""int""/>, <see cref=""uint""/>, <see cref=""nint""/>, <see cref=""nuint""/>, <see cref=""long""/>, <see cref=""ulong""/>, <see cref=""short""/>, <see cref=""ushort""/>, <see cref=""object""/>, <see cref=""dynamic""/>, <see cref=""string""/>.</summary>
+      <remarks>Remarks: <see cref=""bool""/>, <see cref=""byte""/>, <see cref=""sbyte""/>, <see cref=""char""/>, <see cref=""decimal""/>, <see cref=""double""/>, <see cref=""float""/>, <see cref=""int""/>, <see cref=""uint""/>, <see cref=""nint""/>, <see cref=""nuint""/>, <see cref=""long""/>, <see cref=""ulong""/>, <see cref=""short""/>, <see cref=""ushort""/>, <see cref=""object""/>, <see cref=""dynamic""/>, <see cref=""string""/>.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            // Notice that `dynamic` is converted to langword, to prevent converting it to System.Object.
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>Type summary.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>Summary: <see cref=""T:System.Boolean"" />, <see cref=""T:System.Byte"" />, <see cref=""T:System.SByte"" />, <see cref=""T:System.Char"" />, <see cref=""T:System.Decimal"" />, <see cref=""T:System.Double"" />, <see cref=""T:System.Single"" />, <see cref=""T:System.Int32"" />, <see cref=""T:System.UInt32"" />, <see cref=""T:System.IntPtr"" />, <see cref=""T:System.UIntPtr"" />, <see cref=""T:System.Int64"" />, <see cref=""T:System.UInt64"" />, <see cref=""T:System.Int16"" />, <see cref=""T:System.UInt16"" />, <see cref=""T:System.Object"" />, <see langword=""dynamic"" />, <see cref=""T:System.String"" />.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+Remarks: `bool`, `byte`, `sbyte`, `char`, `decimal`, `double`, `float`, `int`, `uint`, `nint`, `nuint`, `long`, `ulong`, `short`, `ushort`, `object`, `dynamic`, `string`.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+        }
+
+        [Fact]
+        public void SeeAlso_Cref()
+        {
+            // Normally, references to other APIs are indicated with <see cref="X:DocId"/> in xml, or with <xref:DocId> in markdown. But there are some rare cases where <seealso cref="X:DocId"/> is used, and we need to make sure to handle them just as see crefs.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>See <seealso cref=""T:MyNamespace.MyType""/>.</summary>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <summary>The summary of MyMethod. See <seealso cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
+      <remarks>See <seealso cref=""M:MyNamespace.MyType.MyMethod"" />.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>See <seealso cref=""T:MyNamespace.MyType"" />.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>The summary of MyMethod. See <seealso cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+See <xref:MyNamespace.MyType.MyMethod>.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+        }
+
+        [Fact]
+        public void See_Langword()
+        {
+            // Reserved words are indicated with <see langword="word" />. They need to be copied as <see langword="word" /> in xml, or transformed to `word` in markdown.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>Langword <see langword=""null""/>.</summary>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <summary>The summary of MyMethod. Langword <see langword=""false""/>.</summary>
+      <remarks>Langword <see langword=""true""/>.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>Langword <see langword=""null"" />.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>The summary of MyMethod. Langword <see langword=""false"" />.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+Langword `true`.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+        }
+
+        [Fact]
+        public void ParamRefName()
+        {
+            // Parameter references are indicated with <paramref name="paramName" />. They need to be copied as <paramref name="paramName" /> in xml, or transformed to `paramName` in markdown.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>Type summary.</summary>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod(System.String)"">
+      <summary>The summary of MyMethod. Paramref <paramref name=""myParam""/>.</summary>
+      <param name=""myParam"">My parameter description.</param>
+      <remarks>Paramref <paramref name=""myParam""/>.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod(System.String)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam"" Type=""System.String"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam"">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>Type summary.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod(System.String)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam"" Type=""System.String"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam"">My parameter description.</param>
+        <summary>The summary of MyMethod. Paramref <paramref name=""myParam"" />.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+Paramref `myParam`.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+        }
+
+        [Fact]
+        public void TypeParamRefName()
+        {
+            // TypeParameter references are indicated with <typeparamref name="typeParamName" />. They need to be copied as <typeparamref name="typeParamName" /> in xml, or transformed to `typeParamName` in markdown.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType`1"">
+      <typeparam name=""T"">Description of the typeparam of the type.</typeparam>
+      <summary>Type summary. Typeparamref <typeparamref name=""T""/>.</summary>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod``1"">
+      <summary>The summary of MyMethod. Typeparamref <typeparamref name=""T""/>.</summary>
+      <typeparam name=""T"">Description of the typeparam of the method.</typeparam>
+      <remarks>Typeparamref <typeparamref name=""T""/>.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType&lt;T&gt;"" FullName=""MyNamespace.MyType&lt;T&gt;"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType`1"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <TypeParameters>
+    <TypeParameter Name=""T"">
+      <Constraints>
+        <BaseTypeName>System.ValueType</BaseTypeName>
+      </Constraints>
+    </TypeParameter>
+  </TypeParameters>
+  <Docs>
+    <typeparam name=""T"">To be added.</typeparam>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod&lt;T&gt;"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod``1"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <TypeParameters>
+        <TypeParameter Name=""T"">
+          <Constraints>
+            <BaseTypeName>System.ValueType</BaseTypeName>
+          </Constraints>
+        </TypeParameter>
+      </TypeParameters>
+      <Docs>
+        <typeparam name=""T"">To be added.</typeparam>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType&lt;T&gt;"" FullName=""MyNamespace.MyType&lt;T&gt;"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType`1"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <TypeParameters>
+    <TypeParameter Name=""T"">
+      <Constraints>
+        <BaseTypeName>System.ValueType</BaseTypeName>
+      </Constraints>
+    </TypeParameter>
+  </TypeParameters>
+  <Docs>
+    <typeparam name=""T"">Description of the typeparam of the type.</typeparam>
+    <summary>Type summary. Typeparamref <typeparamref name=""T"" />.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod&lt;T&gt;"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod``1"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <TypeParameters>
+        <TypeParameter Name=""T"">
+          <Constraints>
+            <BaseTypeName>System.ValueType</BaseTypeName>
+          </Constraints>
+        </TypeParameter>
+      </TypeParameters>
+      <Docs>
+        <typeparam name=""T"">Description of the typeparam of the method.</typeparam>
+        <summary>The summary of MyMethod. Typeparamref <typeparamref name=""T"" />.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+Typeparamref `T`.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+        }
+
         private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs)
         {
             Configuration configuration = new Configuration();

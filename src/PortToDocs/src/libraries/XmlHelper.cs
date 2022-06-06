@@ -112,7 +112,9 @@ namespace ApiDocsSync.Libraries
             { @"\<(see|seealso){1} cref\=""dynamic""[ ]*\/\>", "`dynamic`" },
             { @"\<(see|seealso){1} cref\=""string""[ ]*\/\>",  "`string`" },
             // Full DocId
-            { @"\<(see|seealso){1} cref\=""([a-zA-Z0-9]{1}\:)?(?'seeContents'[a-zA-Z0-9\._\-\{\}\<\>\(\)\,\#\@\&\*\+]+)""[ ]*\/\>",      @"<xref:${seeContents}>" },
+            { @"\<(see|seealso){1} cref\=""([a-zA-Z0-9]{1}\:)?(?'seeContents'[a-zA-Z0-9\._\-\{\}\<\>\(\)\,\#\@\&\*\+\`]+)""[ ]*\/\>",      @"<xref:${seeContents}>" },
+            // Replace backticks
+            { @"`", @"%60" },
             // Params, typeparams, langwords
             { @"\<(typeparamref|paramref){1} name\=""(?'refNameContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${refNameContents}`" },
             { @"\<see langword\=""(?'seeLangwordContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${seeLangwordContents}`" },

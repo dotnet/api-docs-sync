@@ -278,6 +278,101 @@ Remarks: `bool`, `byte`, `sbyte`, `char`, `decimal`, `double`, `float`, `int`, `
         }
 
         [Fact]
+        public void See_Cref_Generic()
+        {
+            // References to other APIs in remarks, should be converted to xref in markdown. Make sure generic APIs get converted properly. 
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyGenericType`1"">
+      <typeparam name=""T"">I am the type of MyGenericType.</typeparam>
+      <summary>I have a funny suffix in my full name.</summary>
+    </member>
+    <member name=""M:MyNamespace.MyGenericType`1.MyMethod``2(System.Object)"">
+      <typeparam name=""T"">The type T of the method.</typeparam>
+      <typeparam name=""U"">The type U of the method.</typeparam>
+      <summary>I have a reference to the generic type <see cref=""T:MyNamespace.MyGenericType`1""/> and to myself <see cref=""M:MyNamespace.MyGenericType`1.MyMethod``2(System.Object)""/>.</summary>
+      <remarks>I have a reference to the generic type <see cref=""T:MyNamespace.MyGenericType`1""/> and to myself <see cref=""M:MyNamespace.MyGenericType`1.MyMethod``2(System.Object)""/>.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyGenericType&lt;T&gt;"" FullName=""MyNamespace.MyGenericType&lt;T&gt;"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyGenericType`1"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <typeparam name=""T"">To be added.</typeparam>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod&lt;T,U&gt;"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyGenericType`1.MyMethod``2(System.Object)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <typeparam name=""T"">To be added.</typeparam>
+        <typeparam name=""U"">To be added.</typeparam>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyGenericType&lt;T&gt;"" FullName=""MyNamespace.MyGenericType&lt;T&gt;"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyGenericType`1"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <typeparam name=""T"">I am the type of MyGenericType.</typeparam>
+    <summary>I have a funny suffix in my full name.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod&lt;T,U&gt;"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyGenericType`1.MyMethod``2(System.Object)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <typeparam name=""T"">The type T of the method.</typeparam>
+        <typeparam name=""U"">The type U of the method.</typeparam>
+        <summary>I have a reference to the generic type <see cref=""T:MyNamespace.MyGenericType`1"" /> and to myself <see cref=""M:MyNamespace.MyGenericType`1.MyMethod``2(System.Object)"" />.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and to myself <xref:MyNamespace.MyGenericType%601.MyMethod%60%602(System.Object)>.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+        }
+
+        [Fact]
         public void SeeAlso_Cref()
         {
             // Normally, references to other APIs are indicated with <see cref="X:DocId"/> in xml, or with <xref:DocId> in markdown. But there are some rare cases where <seealso cref="X:DocId"/> is used, and we need to make sure to handle them just as see crefs.

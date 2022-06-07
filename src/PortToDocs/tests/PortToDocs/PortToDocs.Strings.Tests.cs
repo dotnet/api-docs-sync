@@ -278,6 +278,125 @@ Remarks: `bool`, `byte`, `sbyte`, `char`, `decimal`, `double`, `float`, `int`, `
         }
 
         [Fact]
+        public void See_Cref_Ctor_Remark()
+        {
+            // References to constructors, which look like
+            // <see cref="M:Foo.Bar.#ctor"/> or <see cref="M:Foo.Bar.#ctor(System.Type)"/> in intellisense xml,
+            // need to be transformed to <xref:Foo.Bar.%23ctor> or <xref:Foo.Bar.%23ctor(System.Type)> in markdown.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>They type summary.</summary>
+    </member>
+    <member name=""M:MyNamespace.MyType.#ctor"">
+      <summary>Summary of parameterless constructor.</summary>
+      <remarks>A link to itself: <see cref=""M:MyNamespace.MyType.#ctor""/>.</remarks>
+    </member>
+    <member name=""M:MyNamespace.MyType.#ctor(System.Object)"">
+      <param name=""myParam"">Parameter summary.</param>
+      <summary>Summary of constructor with parameter.</summary>
+      <remarks>A link to itself: <see cref=""M:MyNamespace.MyType.#ctor(System.Object)""/>.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName="".ctor"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.#ctor"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="".ctor"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.#ctor(System.Object)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <param name=""myParam"">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>They type summary.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName="".ctor"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.#ctor"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <summary>Summary of parameterless constructor.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+A link to itself: <xref:MyNamespace.MyType.%23ctor>.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="".ctor"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.#ctor(System.Object)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <Docs>
+        <param name=""myParam"">Parameter summary.</param>
+        <summary>Summary of constructor with parameter.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+A link to itself: <xref:MyNamespace.MyType.%23ctor(System.Object)>.
+
+          ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+        }
+
+        [Fact]
         public void See_Cref_Generic()
         {
             // References to other APIs in remarks, should be converted to xref in markdown. Make sure generic APIs get converted properly. 

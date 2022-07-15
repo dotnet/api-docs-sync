@@ -23,7 +23,6 @@ namespace ApiDocsSync.Libraries
             IncludedNamespaces,
             IncludedTypes,
             Initial,
-            Save,
             SkipInterfaceImplementations,
             SkipInterfaceRemarks
         }
@@ -60,7 +59,6 @@ namespace ApiDocsSync.Libraries
         public HashSet<string> IncludedAssemblies { get; } = new HashSet<string>();
         public HashSet<string> IncludedNamespaces { get; } = new HashSet<string>();
         public HashSet<string> IncludedTypes { get; } = new HashSet<string>();
-        public bool Save { get; set; } = false;
         public bool SkipInterfaceImplementations { get; set; } = false;
         public bool SkipInterfaceRemarks { get; set; } = true;
 
@@ -310,10 +308,6 @@ namespace ApiDocsSync.Libraries
                                     mode = Mode.IncludedTypes;
                                     break;
 
-                                case "-SAVE":
-                                    mode = Mode.Save;
-                                    break;
-
                                 case "-SKIPINTERFACEIMPLEMENTATIONS":
                                     mode = Mode.SkipInterfaceImplementations;
                                     break;
@@ -326,13 +320,6 @@ namespace ApiDocsSync.Libraries
                                     Log.ErrorAndExit($"Unrecognized argument: {arg}");
                                     break;
                             }
-                            break;
-                        }
-
-                    case Mode.Save:
-                        {
-                            config.Save = ParseOrExit(arg, "Save");
-                            mode = Mode.Initial;
                             break;
                         }
 

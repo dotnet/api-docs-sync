@@ -224,7 +224,7 @@ Options:
     -h | -Help              no arguments        Displays this help message. If used, all other arguments are ignored and the program exits.
 
     -BinLog                 bool                Default is false (binlog file generation is disabled).
-                                                When set to true, will output a diagnostics binlog file if using '-Direction ToTripleSlash'.
+                                                When set to true, will output a diagnostics binlog file.
 
     -ExcludedAssemblies     string list         Default is empty (does not ignore any assemblies/namespaces).
                                                 Comma separated list (no spaces) of specific .NET assemblies/namespaces to ignore.
@@ -250,12 +250,6 @@ Options:
                                                 Comma separated list (no spaces) of specific types to include.
                                                     Usage example:
                                                         -IncludedTypes FileStream,DirectoryInfo
-
-    -Save                       bool            Default is false (does not save changes).
-                                                When using -Direction ToDocs, indicates whether you want to save the Docs xml file changes.
-                                                When using -Direction ToTripleSlash, this parameter is always true, so don't specify it.
-                                                    Usage example:
-                                                        -Save true
 
     -SkipInterfaceImplementations       bool    Default is false (includes interface implementations).
                                                 Whether you want the original interface documentation to be considered to fill the
@@ -284,7 +278,6 @@ Options:
 
         Example:
             PortToTripleSlash \
-                -Direction ToTripleSlash \
                 -CsProj D:\runtime\src\libraries\System.IO.Compression.Brotli\src\System.IO.Compression.Brotli.csproj \
                 -Docs D:\dotnet-api-docs\xml \
                 -IncludedAssemblies System.IO.Compression.Brotli \

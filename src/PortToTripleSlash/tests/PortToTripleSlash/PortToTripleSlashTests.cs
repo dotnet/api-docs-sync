@@ -43,7 +43,6 @@ namespace ApiDocsSync.Libraries.Tests
             Configuration c = new()
             {
                 CsProj = new FileInfo(testData.ProjectFilePath),
-                Save = save,
                 SkipInterfaceImplementations = skipInterfaceImplementations
             };
 

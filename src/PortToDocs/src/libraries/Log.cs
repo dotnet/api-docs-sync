@@ -228,7 +228,7 @@ Options:
     -h | -Help              no arguments        Displays this help message. If used, all other arguments are ignored and the program exits.
 
     -BinLog                 bool                Default is false (binlog file generation is disabled).
-                                                When set to true, will output a diagnostics binlog file if using '-Direction ToTripleSlash'.
+                                                When set to true, will output a diagnostics binlog file.
 
     -DisablePrompts         bool                Default is true (prompts are disabled).
                                                 Avoids prompting the user for input to correct some particular errors.
@@ -347,8 +347,7 @@ Options:
                                                         -PrintUndoc true
 
     -Save                       bool            Default is false (does not save changes).
-                                                When using -Direction ToDocs, indicates whether you want to save the Docs xml file changes.
-                                                When using -Direction ToTripleSlash, this parameter is always true, so don't specify it.
+                                                Indicates whether you want to save the Docs xml file changes.
                                                     Usage example:
                                                         -Save true
 

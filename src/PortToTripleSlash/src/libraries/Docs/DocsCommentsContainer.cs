@@ -40,16 +40,6 @@ namespace ApiDocsSync.Libraries.Docs
 
         public void Save()
         {
-            if (!Config.Save)
-            {
-                Log.Line();
-                Log.Error("[No files were saved]");
-                Log.Warning($"Did you forget to specify '-{nameof(Config.Save)} true'?");
-                Log.Line();
-
-                return;
-            }
-
             List<string> savedFiles = new();
             foreach (var type in Types.Values.Where(x => x.Changed))
             {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -13,21 +15,21 @@ namespace ApiDocsSync.Libraries.Tests
         {
         }
 
-        [Fact]
-        public void Port_Basic()
-        {
-            PortToTripleSlash("Basic");
-        }
+        // Tests failing due to: https://github.com/dotnet/roslyn/issues/61454
+
+        // Project.OpenProjectAsync - C:\Users\carlos\AppData\Local\Temp\dmeyjbwb.vtc\Project\MyAssembly.csproj
+        // Failure - Msbuild failed when processing the file 'C:\Users\carlos\AppData\Local\Temp\dmeyjbwb.vtc\Project\MyAssembly.csproj' with message: C:\Program Files\dotnet\sdk\6.0.302\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets: (90, 5): The "ProcessFrameworkReferences" task failed unexpectedly.
+        // System.IO.FileLoadException: Could not load file or assembly 'NuGet.Frameworks, Version=6.2.1.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Could not find or load a specific file. (0x80131621)
+        // File name: 'NuGet.Frameworks, Version=6.2.1.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 
         [Fact]
-        public void Port_Generics()
-        {
-            PortToTripleSlash("Generics");
-        }
+        public Task Port_Basic() => PortToTripleSlashAsync("Basic");
 
-        private static void PortToTripleSlash(
+        [Fact]
+        public Task Port_Generics() => PortToTripleSlashAsync("Generics");
+
+        private static async Task PortToTripleSlashAsync(
             string testDataDir,
-            bool save = true,
             bool skipInterfaceImplementations = true,
             string assemblyName = TestData.TestAssembly,
             string namespaceName = TestData.TestNamespace)
@@ -42,8 +44,9 @@ namespace ApiDocsSync.Libraries.Tests
 
             Configuration c = new()
             {
-                CsProj = new FileInfo(testData.ProjectFilePath),
-                SkipInterfaceImplementations = skipInterfaceImplementations
+                CsProj = Path.GetFullPath(testData.ProjectFilePath),
+                SkipInterfaceImplementations = skipInterfaceImplementations,
+                BinLogPath = testData.BinLogPath,
             };
 
             c.IncludedAssemblies.Add(assemblyName);
@@ -55,7 +58,17 @@ namespace ApiDocsSync.Libraries.Tests
 
             c.DirsDocsXml.Add(testData.DocsDir);
 
-            ToTripleSlashPorter.Start(c);
+            CancellationTokenSource cts = new();
+
+            VSLoader.LoadVSInstance();
+            c.Loader = new MSBuildLoader(c.BinLogPath);
+
+            await c.Loader.LoadMainProjectAsync(c.CsProj, c.IsMono, cts.Token);
+
+            ToTripleSlashPorter porter = new(c);
+            porter.CollectFiles();
+            await porter.MatchSymbolsAsync(throwOnSymbolsNotFound: true, cts.Token);
+            await porter.PortAsync(throwOnSymbolsNotFound: true, cts.Token);
 
             Verify(testData);
         }

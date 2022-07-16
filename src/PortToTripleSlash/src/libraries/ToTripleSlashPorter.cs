@@ -4,181 +4,205 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using ApiDocsSync.Libraries.Docs;
 using ApiDocsSync.Libraries.RoslynTripleSlash;
-using Microsoft.Build.Locator;
-using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
 
 namespace ApiDocsSync.Libraries
 {
     public class ToTripleSlashPorter
     {
-        private class ProjectInformation
-        {
-            public Project Project { get; private set; }
-            public Compilation Compilation { get; private set; }
-            public bool IsMono { get; private set; }
-
-            public ProjectInformation(Project project, Compilation compilation, bool isMono)
-            {
-                Project = project;
-                Compilation = compilation;
-                IsMono = isMono;
-            }
-        }
-
-        private class LocationInformation
-        {
-            public DocsType Api { get; private set; }
-            public SyntaxTree Tree { get; set; }
-            public SemanticModel Model { get; set; }
-
-            public LocationInformation(DocsType api, Location location, Compilation compilation)
-            {
-                Api = api;
-                Tree = location.SourceTree ?? throw new NullReferenceException($"Tree null for '{api.FullName}'");
-                Model = compilation.GetSemanticModel(Tree);
-            }
-        }
+        private readonly string _pathSrcCoreclr = Path.Combine("src", "coreclr");
+        private readonly string _systemPrivateCoreLib = "SYSTEM.PRIVATE.CORELIB";
 
         private readonly Configuration _config;
         private readonly DocsCommentsContainer _docsComments;
 
-        private readonly Dictionary<string, LocationInformation> _resolvedLocations = new();
-
-        private const string AllowedWarningMessage = "Found project reference without a matching metadata reference";
-        private static readonly string s_pathSrcCoreclr = Path.Combine("src", "coreclr");
-
-        private static readonly string s_systemPrivateCoreLib = "SYSTEM.PRIVATE.CORELIB";
-
-        private static readonly Dictionary<string, string> s_workspaceProperties = new() { { "RuntimeFlavor", "Mono" } };
-
-        private static readonly Dictionary<string, MSBuildWorkspace> s_workspaces = new();
-        private static readonly Dictionary<string, MSBuildWorkspace> s_workspacesMono = new();
-
-        private static readonly Dictionary<string, Project> s_projects = new();
-        private static readonly Dictionary<string, Compilation> s_compilations = new();
-
-        private static readonly Dictionary<string, Project> s_projectsMono = new();
-        private static readonly Dictionary<string, Compilation> s_compilationsMono = new();
-
-        // If enabled via CLI arguments, a binlog file will be generated when running this tool.
-        BinaryLogger? _binLogger = null;
-        private BinaryLogger? BinLogger
-        {
-            get
-            {
-                if (_config.BinLogger)
-                {
-                    if (_binLogger == null)
-                    {
-                        Log.Info("Enabling the collection of a binlog file...");
-                        _binLogger = new BinaryLogger()
-                        {
-                            Parameters = Path.Combine(Environment.CurrentDirectory, _config.BinLogPath),
-                            Verbosity = Microsoft.Build.Framework.LoggerVerbosity.Diagnostic,
-                            CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed
-                        };
-                    }
-                }
-
-                return _binLogger;
-            }
-        }
-
         // Initializes a new porter instance with the specified configuration.
-        private ToTripleSlashPorter(Configuration config)
+        public ToTripleSlashPorter(Configuration config)
         {
             _config = config;
             _docsComments = new DocsCommentsContainer(config);
         }
 
         /// <summary>
-        /// Starts the porting process using the specified CLI arguments.
-        /// This includes:
-        /// - Loading a Visual Studio instance.
-        /// - Loading the assembly loader.
-        /// - Creating an instance of this porter.
-        /// - Loading the Docs xmls.
-        /// - Linding the source code for each one of the loaded xml types.
-        /// - Porting the xml docs to triple slash.
+        /// Performs the full porting process:
+        /// - Collects the docs xml files.
+        /// - For every xml file, collects the symbols from the found projects.
+        /// - Ports the DocsType documentation to every symbol found.
         /// </summary>
-        /// <param name="config">The configuration collected from the CLI arguments.</param>
-        public static void Start(Configuration config)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            // IMPORTANT: Need to load the MSBuild property BEFORE calling the ToTripleSlashPorter constructor.
-            LoadVSInstance();
+            CollectFiles();
 
-            ToTripleSlashPorter porter = new(config);
-            porter.Port();
-        }
-
-        // Collects the Docs xml files, the source code files, and ports the xml comments to triple slash.
-        private void Port()
-        {
-            _docsComments.CollectFiles();
             if (!_docsComments.Types.Any())
             {
                 Log.Error("No Docs Type APIs found. Is the Docs xml path correct? Exiting.");
                 Environment.Exit(0);
             }
-            Log.Info("Reading source code projects...");
-
-            // Load and store the main project
-            ProjectInformation mainProjectInfo = GetProjectInfo(_config.CsProj!.FullName, isMono: false);
 
             foreach (DocsType docsType in _docsComments.Types.Values)
             {
-                // If the symbol is not found in the current compilation, nothing to do - It means the Docs
-                // for APIs from an unrelated namespace were loaded for this compilation's assembly
-                if (!TryGetNamedSymbol(mainProjectInfo.Compilation, docsType.TypeName, out INamedTypeSymbol? symbol))
-                {
-                    Log.Info($"Type symbol '{docsType.FullName}' not found in compilation for '{_config.CsProj.FullName}'.");
-                    continue;
-                }
-
-                // Make sure at least one syntax tree of this symbol can be found in the current project's compilation
-                if (!symbol.Locations.Any())
-                {
-                    throw new NullReferenceException($"The symbol for the type '{docsType.FullName}' had no locations in '{_config.CsProj.FullName}'.");
-                }
-
-                Log.Cyan($"Type symbol '{docsType.FullName}' found in compilation for '{_config.CsProj.FullName}'.");
-
-                // Otherwise, port the exact same comments in each location
-                AddSymbolLocationsToResolvedLocations(mainProjectInfo, symbol, docsType);
-
-                Log.Info($"Also trying to find '{symbol.Name}' in the referenced projects of project '{_config.CsProj.FullName}'...");
-                FindSymbolInReferencedProjects(docsType, mainProjectInfo.Project.ProjectReferences);
+                Log.Info($"Looking for symbol locations for {docsType.TypeName}...");
+                docsType.SymbolLocations = await CollectSymbolLocationsAsync(docsType.TypeName, cancellationToken).ConfigureAwait(false);
+                Log.Info($"Finished looking for symbol locations for {docsType.TypeName}. Now attempting to port...");
+                await PortAsync(docsType, throwOnSymbolsNotFound: false, cancellationToken).ConfigureAwait(false);
             }
-
-            PortDocsForResolvedSymbols();
         }
 
-        private void AddSymbolLocationsToResolvedLocations(ProjectInformation projectInfo, INamedTypeSymbol symbol, DocsType docsType)
+        /// <summary>
+        ///  Collects the docs xml files.
+        /// </summary>
+        public void CollectFiles()
+        {
+            _docsComments.CollectFiles();
+            if (!_docsComments.Types.Any())
+            {
+                throw new Exception("No docs type APIs found.");
+            }
+        }
+
+        /// <summary>
+        /// Iterates through all the xml files and collects symbols from the found projects for each one.
+        /// </summary>
+        public async Task MatchSymbolsAsync(bool throwOnSymbolsNotFound, CancellationToken cancellationToken)
+        {
+            Debug.Assert(_docsComments.Types.Any());
+            Log.Info("Looking for symbol locations for all Docs types...");
+            foreach (DocsType docsType in _docsComments.Types.Values)
+            {
+                docsType.SymbolLocations = await CollectSymbolLocationsAsync(docsType.TypeName, cancellationToken).ConfigureAwait(false);
+                if (throwOnSymbolsNotFound)
+                {
+                    VerifySymbolLocations(docsType);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Iterates through all the found xml files and ports their documentation to the locations of all its found symbols.
+        /// </summary>
+        public async Task PortAsync(bool throwOnSymbolsNotFound, CancellationToken cancellationToken)
+        {
+            Debug.Assert(_docsComments.Types.Any());
+            Log.Info($"Now attempting to port all found symbols...");
+            foreach (DocsType docsType in _docsComments.Types.Values)
+            {
+                await PortAsync(docsType, throwOnSymbolsNotFound, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Ports the documentation of the specified xml file to the locations of all its found symbols.
+        /// </summary>
+        internal async Task PortAsync(DocsType docsType, bool throwOnSymbolsNotFound, CancellationToken cancellationToken)
+        {
+            if (throwOnSymbolsNotFound)
+            {
+                VerifySymbolLocations(docsType);
+            }
+            else if (docsType.SymbolLocations == null || !docsType.SymbolLocations.Any())
+            {
+                Log.Warning($"No symbols found for '{docsType.TypeName}'. Skipping.");
+                return;
+            }
+
+            Log.Cyan($"Porting comments for '{docsType.TypeName}'. Locations: {docsType.SymbolLocations!.Count}...");
+            foreach (ResolvedLocation resolvedLocation in docsType.SymbolLocations)
+            {
+                Log.Info($"Porting docs for tree '{resolvedLocation.Tree.FilePath}'...");
+                TripleSlashSyntaxRewriter rewriter = new(_docsComments, resolvedLocation.Model);
+                SyntaxNode? newRoot = rewriter.Visit(resolvedLocation.Tree.GetRoot(cancellationToken));
+                if (newRoot == null)
+                {
+                    throw new Exception($"Returned null root node for {docsType.TypeName} in {resolvedLocation.Tree.FilePath}");
+                }
+
+                await File.WriteAllTextAsync(resolvedLocation.Tree.FilePath, newRoot.ToFullString(), cancellationToken).ConfigureAwait(false);
+                Log.Success($"Docs ported to '{docsType.TypeName}'.");
+            }
+        }
+
+        private static void VerifySymbolLocations(DocsType docsType)
+        {
+            if (docsType.SymbolLocations == null)
+            {
+                throw new Exception($"Symbol locations null for '{docsType.TypeName}'.");
+            }
+            else if (!docsType.SymbolLocations.Any())
+            {
+                throw new Exception($"No symbols found for '{docsType.TypeName}'");
+            }
+        }
+
+        private async Task<List<ResolvedLocation>?> CollectSymbolLocationsAsync(string docsTypeName, CancellationToken cancellationToken)
+        {
+            Debug.Assert(_config.Loader != null);
+            ResolvedProject? mainProject = _config.Loader.MainProject;
+            Debug.Assert(mainProject != null);
+
+            // If the symbol is not found in the current compilation, nothing to do - It means the Docs
+            // for APIs from an unrelated namespace were loaded for this compilation's assembly
+            if (!TryGetNamedSymbol(mainProject.Compilation, docsTypeName, out INamedTypeSymbol? symbol))
+            {
+                Log.Info($"Type symbol '{docsTypeName}' not found in compilation for '{_config.CsProj}'.");
+                return null;
+            }
+
+            // Make sure at least one syntax tree of this symbol can be found in the current project's compilation
+            if (!symbol.Locations.Any())
+            {
+                throw new Exception($"The symbol for the type '{docsTypeName}' had no locations in '{_config.CsProj}'.");
+            }
+
+            Log.Cyan($"Type symbol '{docsTypeName}' found in compilation for '{_config.CsProj}'.");
+
+            // Otherwise, port the exact same comments in each location
+            List<ResolvedLocation> resolvedLocations = new();
+            GetMatchingLocationsForSymbolInProject(resolvedLocations, mainProject, symbol.Locations, docsTypeName);
+
+            Log.Info($"Also trying to find '{symbol.Name}' in the referenced projects of project '{_config.CsProj}'...");
+            await FindSymbolInReferencedProjectsAsync(resolvedLocations, docsTypeName, mainProject.Project.ProjectReferences, cancellationToken).ConfigureAwait(false);
+
+            return resolvedLocations;
+        }
+
+        private static void GetMatchingLocationsForSymbolInProject(List<ResolvedLocation> resolvedLocations, ResolvedProject resolvedProject, ImmutableArray<Location> symbolLocations, string docsTypeName)
         {
             int n = 0;
-            foreach (Location location in symbol.Locations)
+            foreach (Location location in symbolLocations)
             {
-                string path = location.SourceTree != null ? location.SourceTree.FilePath : location.ToString();
-                if (IsLocationTreeInCompilationTrees(location, projectInfo.Compilation))
+                if (location.SourceTree == null)
                 {
-                    Log.Info($"Symbol '{symbol.Name}' found in location '{path}'.");
-                    LocationInformation info = new(docsType, location, projectInfo.Compilation);
-                    AddToResolvedSymbols(info);
+                    Log.Error($"Location tree was null for {docsTypeName}. Skipping...");
+                }
+                else if (IsLocationTreeInCompilationTrees(location.SourceTree, resolvedProject.Compilation))
+                {
+                    Log.Info($"Symbol '{docsTypeName}' located in '{location.SourceTree.FilePath}'.");
+                    if (resolvedLocations.Any(rl => rl.Tree.FilePath == location.SourceTree.FilePath))
+                    {
+                        Log.Info($"Tree '{location.SourceTree.FilePath}' was already added for symbol '{docsTypeName}'. Skipping.");
+                    }
+                    else
+                    {
+                        ResolvedLocation resolvedLocation = new(docsTypeName, resolvedProject, location, location.SourceTree);
+                        Log.Success($"Adding tree '{resolvedLocation.Tree.FilePath}' for '{docsTypeName}'...");
+                        resolvedLocations.Add(resolvedLocation);
+                    }
                 }
                 else
                 {
-                    Log.Info(false, $"Symbol '{symbol.Name}' not found in locations of project '{path}'.");
-                    if (n < symbol.Locations.Length)
+                    Log.Info(false, $"Symbol '{docsTypeName}' not found in compilation trees of '{location.SourceTree.FilePath}'.");
+                    if (n < symbolLocations.Length)
                     {
                         Log.Info(true, " Trying the next location...");
                     }
@@ -189,7 +213,7 @@ namespace ApiDocsSync.Libraries
 
         // Tries to find the specified type among the source code files of all the specified projects.
         // If not found, logs a warning message.
-        private void FindSymbolInReferencedProjects(DocsType docsType, IEnumerable<ProjectReference> projectReferences)
+        private async Task FindSymbolInReferencedProjectsAsync(List<ResolvedLocation> resolvedLocations, string docsTypeName, IEnumerable<ProjectReference> projectReferences, CancellationToken cancellationToken)
         {
             int n = 0;
             foreach (ProjectReference projectReference in projectReferences)
@@ -200,7 +224,7 @@ namespace ApiDocsSync.Libraries
 
                 // Skip looking in projects whose namespace that were explicitly excluded or not explicitly included
                 // The only exception is System.Private.CoreLib, which we should always explore
-                if (projectNamespaceToUpper != s_systemPrivateCoreLib)
+                if (projectNamespaceToUpper != _systemPrivateCoreLib)
                 {
                     if (_config.ExcludedNamespaces.Any(x => x.StartsWith(projectNamespace)))
                     {
@@ -214,28 +238,32 @@ namespace ApiDocsSync.Libraries
                     }
                 }
 
-                if (TryFindSymbolInReferencedProject(projectPath, docsType.TypeName, isMono: false, out ProjectInformation? projectInfo, out INamedTypeSymbol? symbol))
+                (ResolvedProject? resolvedProject, INamedTypeSymbol? symbol) = await TryFindSymbolInReferencedProjectAsync(projectPath, docsTypeName, isMono: false, cancellationToken).ConfigureAwait(false);
+                if (resolvedProject != null && symbol != null)
                 {
-                    Log.Cyan($"Symbol '{docsType.FullName}' found in referenced project '{projectPath}'.");
+                    Log.Cyan($"Symbol '{docsTypeName}' found in referenced project '{projectPath}'.");
 
                     // Do not look in referenced projects
                     Log.Info($"Looking for symbol '{symbol.Name}' in all locations of '{projectPath}'...");
-                    AddSymbolLocationsToResolvedLocations(projectInfo, symbol, docsType);
+                    GetMatchingLocationsForSymbolInProject(resolvedLocations, resolvedProject, symbol.Locations, docsTypeName);
 
                     string monoProjectPath = Regex.Replace(projectPath, @"src(?<separator>[\\\/]{1})coreclr", "src${separator}mono");
 
                     // If the symbol was found in corelib, try to also find it in mono
-                    if (projectNamespaceToUpper == s_systemPrivateCoreLib &&
-                        projectPath.Contains(s_pathSrcCoreclr) &&
-                        TryFindSymbolInReferencedProject(monoProjectPath, docsType.TypeName, isMono: true, out ProjectInformation? monoProjectInfo, out INamedTypeSymbol? monoSymbol))
+                    if (projectNamespaceToUpper == _systemPrivateCoreLib &&
+                        projectPath.Contains(_pathSrcCoreclr))
                     {
-                        Log.Info($"Symbol '{monoSymbol.Name}' was also found in Mono locations of project '{monoProjectInfo.Project.FilePath}'.");
-                        AddSymbolLocationsToResolvedLocations(monoProjectInfo, monoSymbol, docsType);
+                        (ResolvedProject? monoProject, INamedTypeSymbol? monoSymbol) = await TryFindSymbolInReferencedProjectAsync(monoProjectPath, docsTypeName, isMono: true, cancellationToken).ConfigureAwait(false);
+                        if (monoProject != null && monoSymbol != null)
+                        {
+                            Log.Info($"Symbol '{monoSymbol.Name}' was also found in Mono locations of project '{monoProject.Project.FilePath}'.");
+                            GetMatchingLocationsForSymbolInProject(resolvedLocations, monoProject, monoSymbol.Locations, docsTypeName);
+                        }
                     }
                 }
                 else
                 {
-                    Log.Info(false, $"Symbol for '{docsType.FullName}' not found in referenced project '{projectPath}'.");
+                    Log.Info(false, $"Symbol for '{docsTypeName}' not found in referenced project '{projectPath}'.");
                     if (n < projectReferences.Count())
                     {
                         Log.Info(true, $" Trying the next project...");
@@ -246,54 +274,22 @@ namespace ApiDocsSync.Libraries
         }
 
         // Checks if the specified tree can be found among the collection of trees of the specified compilation.
-        private bool IsLocationTreeInCompilationTrees(Location location, Compilation compilation)
-        {
-            return location.SourceTree is not null &&
-                   compilation.SyntaxTrees.FirstOrDefault(x => x.FilePath == location.SourceTree.FilePath) is not null;
-        }
-
-        // Adds the specified SymbolInformation object to the ResolvedSymbols dictionary, if it has not yet been added.
-        private void AddToResolvedSymbols(LocationInformation info)
-        {
-            string key = info.Tree.FilePath; // This ensures we have a unique key for symbols that are also found in mono
-            if (!_resolvedLocations.TryAdd(key, info))
-            {
-                Log.Info($"Skipping symbol tree already added for '{key}'.");
-            }
-            else
-            {
-                Log.Success($"Symbol tree added for '{key}'.");
-            }
-        }
+        private static bool IsLocationTreeInCompilationTrees(SyntaxTree tree, Compilation compilation) =>
+            compilation.SyntaxTrees.FirstOrDefault(x => x.FilePath == tree.FilePath) is not null;
 
         // Tries to find the specified type among the source code files of the specified project.
         // Returns false if not found.
-        private bool TryFindSymbolInReferencedProject(
-            string projectPath,
-            string apiFullName,
-            bool isMono,
-            [NotNullWhen(returnValue: true)] out ProjectInformation? pi,
-            [NotNullWhen(returnValue: true)] out INamedTypeSymbol? symbol)
+        private async Task<(ResolvedProject?, INamedTypeSymbol?)> TryFindSymbolInReferencedProjectAsync(
+            string projectPath, string apiFullName, bool isMono, CancellationToken cancellationToken)
         {
-            symbol = null;
-            return TryGetProjectInfo(projectPath, isMono: isMono, out pi) &&
-                   TryGetNamedSymbol(pi.Compilation, apiFullName, out symbol);
-        }
-
-        // Copies the Docs xml documentation of all the found symbols to their respective source code locations.
-        private void PortDocsForResolvedSymbols()
-        {
-            Log.Info("Porting comments from Docs to triple slash...");
-            foreach ((string filePath, LocationInformation info) in _resolvedLocations)
+            Debug.Assert(_config.Loader != null);
+            ResolvedProject? project = await _config.Loader.LoadProjectAsync(projectPath, isMono, cancellationToken).ConfigureAwait(false);
+            INamedTypeSymbol? symbol = null;
+            if (project != null)
             {
-                Log.Info($"Porting docs for '{filePath}'...");
-                TripleSlashSyntaxRewriter rewriter = new(_docsComments, info.Model);
-                SyntaxNode newRoot = rewriter.Visit(info.Tree.GetRoot())
-                    ?? throw new NullReferenceException($"Returned null root node for {info.Api.FullName} in {info.Tree.FilePath}");
-
-                File.WriteAllText(info.Tree.FilePath, newRoot.ToFullString());
-                Log.Success($"Docs ported to '{filePath}'.");
+                TryGetNamedSymbol(project.Compilation, apiFullName, out symbol);
             }
+            return (project, symbol);
         }
 
         // Retrieves the location of the specified path using reflection.
@@ -322,267 +318,10 @@ namespace ApiDocsSync.Libraries
             [NotNullWhen(returnValue: true)] out INamedTypeSymbol? actualSymbol)
         {
             // Try to find the symbol in the current compilation
-            actualSymbol =
-                compilation.GetTypeByMetadataName(symbolFullName) ??
-                compilation.Assembly.GetTypeByMetadataName(symbolFullName);
+            actualSymbol = compilation.GetTypeByMetadataName(symbolFullName) ??
+                           compilation.Assembly.GetTypeByMetadataName(symbolFullName);
 
             return actualSymbol != null;
         }
-
-        // Tries to retrieve the project info for the specified path.
-        // Returns true if found. Logs a warning message and returns false otherwise.
-        private bool TryGetProjectInfo(
-            string projectPath,
-            bool isMono,
-            [NotNullWhen(returnValue: true)] out ProjectInformation? pi)
-        {
-            pi = null;
-            try
-            {
-                pi = GetProjectInfo(projectPath, isMono);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Log.DarkYellow(e.Message);
-            }
-            return false;
-        }
-
-        // Retrieves the project info for the specified path.
-        // If any diagnostic error messages are captured after each step (workspace load, project load, compilation load), an exception is thrown.
-        private ProjectInformation GetProjectInfo(string projectPath, bool isMono)
-        {
-            MSBuildWorkspace workspace = GetOrAddWorkspace(
-                isMono ? s_workspacesMono : s_workspaces,
-                isMono ? s_workspaceProperties : null,
-                projectPath);
-
-            Project project = GetOrAddProject(
-                workspace,
-                isMono ? s_projectsMono : s_projects,
-                projectPath);
-
-            Compilation compilation = GetOrAddCompilation(
-                workspace,
-                project,
-                isMono ? s_compilationsMono : s_compilations,
-                projectPath);
-
-            ProjectInformation pd = new(project, compilation, isMono);
-
-            return pd;
-        }
-
-        private MSBuildWorkspace GetOrAddWorkspace(Dictionary<string, MSBuildWorkspace> workspaces, Dictionary<string, string>? properties, string projectPath)
-        {
-            MSBuildWorkspace workspace;
-
-            if (!workspaces.ContainsKey(projectPath))
-            {
-                if (properties == null)
-                {
-                    workspace = MSBuildWorkspace.Create();
-                }
-                else
-                {
-                    workspace = MSBuildWorkspace.Create(properties);
-                }
-                workspace.AssociateFileExtensionWithLanguage("ilproj", LanguageNames.CSharp);
-                CheckDiagnostics(workspace, $"MSBuildWorkspace.Create" + properties == null ? "" : " - Mono");
-                workspaces[projectPath] = workspace;
-            }
-            else
-            {
-                workspace = workspaces[projectPath];
-            }
-
-            return workspace;
-        }
-
-        private Project GetOrAddProject(MSBuildWorkspace workspace, Dictionary<string, Project> projects, string projectPath)
-        {
-            Project project;
-            if (!projects.ContainsKey(projectPath))
-            {
-                project = workspace.OpenProjectAsync(projectPath, msbuildLogger: BinLogger).Result
-                    ?? throw new NullReferenceException($"Could not find the project: {projectPath}");
-                Log.Info($"Opened the project '{projectPath}'.");
-
-                CheckDiagnostics(workspace, $"workspace.OpenProjectAsync - {projectPath}");
-
-                projects[projectPath] = project;
-            }
-            else
-            {
-                project = projects[projectPath];
-            }
-            return project;
-        }
-
-        private Compilation GetOrAddCompilation(MSBuildWorkspace workspace, Project project, Dictionary<string, Compilation> compilations, string projectPath)
-        {
-            Compilation compilation;
-            if (!compilations.ContainsKey(projectPath))
-            {
-                compilation = project.GetCompilationAsync().Result
-                    ?? throw new NullReferenceException("The project's compilation was null.");
-                Log.Info($"Obtained the compilation for '{projectPath}'.");
-
-                CheckDiagnostics(workspace, $"project.GetCompilationAsync - {projectPath}");
-
-                compilations[projectPath] = compilation;
-            }
-            else
-            {
-                compilation = compilations[projectPath];
-            }
-            return compilation;
-        }
-
-        // If the workspace captured any error diagnostic messages, prints all of them and then throws.
-        private static void CheckDiagnostics(MSBuildWorkspace workspace, string stepName)
-        {
-            ImmutableList<WorkspaceDiagnostic> diagnostics = workspace.Diagnostics;
-            if (diagnostics.Any())
-            {
-                List<string> allMsgs = new();
-
-                foreach (WorkspaceDiagnostic diagnostic in diagnostics)
-                {
-                    if (!diagnostic.Message.Contains(AllowedWarningMessage))
-                    {
-                        allMsgs.Add($"    {diagnostic.Kind} - {diagnostic.Message}");
-                    }
-                    else
-                    {
-                        Log.Info($"Acceptable diagnostic message found in '{stepName}': {diagnostic.Kind} - {diagnostic.Message}");
-                    }
-                }
-
-                if (allMsgs.Count > 0)
-                {
-                    Log.Error($"Diagnostic messages found in {stepName}:");
-                    foreach (string msg in allMsgs)
-                    {
-                        Log.Error(msg);
-                    }
-
-                    throw new Exception("Diagnostic errors found.");
-                }
-            }
-        }
-
-        #region MSBuild loading logic
-
-        private static readonly Dictionary<string, Assembly> s_pathsToAssemblies = new(StringComparer.OrdinalIgnoreCase);
-        private static readonly Dictionary<string, Assembly> s_namesToAssemblies = new();
-
-        private static readonly object s_guard = new();
-
-        // Loads the external VS instance using the correct MSBuild dependency, which differs from the one used by this process.
-        public static VisualStudioInstance LoadVSInstance()
-        {
-            VisualStudioInstance[] vsBuildInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
-
-            // https://github.com/dotnet/api-docs-sync/issues/69
-            // Prefer the latest stable instance if there is one
-            VisualStudioInstance instance = vsBuildInstances
-                .Where(b => !b.MSBuildPath.Contains("-preview")).OrderByDescending(b => b.Version).FirstOrDefault() ??
-                vsBuildInstances.First();
-
-            // Unit tests execute this multiple times
-            // Ensure we only register once
-            if (MSBuildLocator.CanRegister)
-            {
-                RegisterAssemblyLoader(instance.MSBuildPath);
-                MSBuildLocator.RegisterInstance(instance);
-            }
-
-            return instance;
-        }
-
-        // Register an assembly loader that will load assemblies with higher version than what was requested.
-        private static void RegisterAssemblyLoader(string searchPath)
-        {
-            AssemblyLoadContext.Default.Resolving += (AssemblyLoadContext context, AssemblyName assemblyName) =>
-            {
-                lock (s_guard)
-                {
-                    if (s_namesToAssemblies.TryGetValue(assemblyName.FullName, out Assembly? cachedAssembly))
-                    {
-                        return cachedAssembly;
-                    }
-
-                    Assembly? assembly = TryResolveAssemblyFromPaths(context, assemblyName, searchPath, s_pathsToAssemblies);
-
-                    // Cache assembly
-                    if (assembly != null)
-                    {
-                        string? name = assembly.FullName;
-                        if (name is null)
-                        {
-                            throw new Exception($"Could not get name for assembly '{assembly}'");
-                        }
-
-                        s_pathsToAssemblies[assembly.Location] = assembly;
-                        s_namesToAssemblies[name] = assembly;
-                    }
-
-                    return assembly;
-                }
-            };
-        }
-
-        // Tries to find and return the specified assembly by looking in all the known locations where it could be found.
-        private static Assembly? TryResolveAssemblyFromPaths(AssemblyLoadContext context, AssemblyName assemblyName, string searchPath, Dictionary<string, Assembly>? knownAssemblyPaths = null)
-        {
-            foreach (string? cultureSubfolder in string.IsNullOrEmpty(assemblyName.CultureName)
-                // If no culture is specified, attempt to load directly from
-                // the known dependency paths.
-                ? new[] { string.Empty }
-                // Search for satellite assemblies in culture subdirectories
-                // of the assembly search directories, but fall back to the
-                // bare search directory if that fails.
-                : new[] { assemblyName.CultureName, string.Empty })
-            {
-                foreach (string? extension in new[] { "ni.dll", "ni.exe", "dll", "exe" })
-                {
-                    string candidatePath = Path.Combine(searchPath, cultureSubfolder, $"{assemblyName.Name}.{extension}");
-
-                    bool isAssemblyLoaded = knownAssemblyPaths?.ContainsKey(candidatePath) == true;
-                    if (isAssemblyLoaded || !File.Exists(candidatePath))
-                    {
-                        continue;
-                    }
-
-                    AssemblyName candidateAssemblyName = AssemblyLoadContext.GetAssemblyName(candidatePath);
-                    if (candidateAssemblyName.Version < assemblyName.Version)
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        Assembly assembly = context.LoadFromAssemblyPath(candidatePath);
-                        return assembly;
-                    }
-                    catch
-                    {
-                        if (assemblyName.Name != null)
-                        {
-                            // We were unable to load the assembly from the file path. It is likely that
-                            // a different version of the assembly has already been loaded into the context.
-                            // Be forgiving and attempt to load assembly by name without specifying a version.
-                            return context.LoadFromAssemblyName(new AssemblyName(assemblyName.Name));
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        #endregion
     }
 }

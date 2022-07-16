@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 
 namespace ApiDocsSync.Libraries.Docs
 {
@@ -32,6 +33,8 @@ namespace ApiDocsSync.Libraries.Docs
             FileEncoding = encoding;
             AssemblyInfos.AddRange(XERoot.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)));
         }
+
+        public List<ResolvedLocation>? SymbolLocations { get; set; }
 
         public XDocument XDoc { get; set; }
 

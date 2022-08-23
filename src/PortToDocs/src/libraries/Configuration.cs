@@ -25,6 +25,7 @@ namespace ApiDocsSync.Libraries
             IncludedTypes,
             Initial,
             IntelliSense,
+            MarkdownRemarks,
             PortExceptionsExisting,
             PortExceptionsNew,
             PortMemberParams,
@@ -78,6 +79,7 @@ namespace ApiDocsSync.Libraries
         public HashSet<string> IncludedAssemblies { get; } = new HashSet<string>();
         public HashSet<string> IncludedNamespaces { get; } = new HashSet<string>();
         public HashSet<string> IncludedTypes { get; } = new HashSet<string>();
+        public bool MarkdownRemarks { get; set; } = false;
         public bool PortExceptionsExisting { get; set; } = false;
         public bool PortExceptionsNew { get; set; } = true;
         public bool PortMemberParams { get; set; } = true;
@@ -358,6 +360,10 @@ namespace ApiDocsSync.Libraries
                                     mode = Mode.IntelliSense;
                                     break;
 
+                                case "-MARKDOWNREMARKS":
+                                    mode = Mode.MarkdownRemarks;
+                                    break;
+
                                 case "-PORTEXCEPTIONSEXISTING":
                                     mode = Mode.PortExceptionsExisting;
                                     break;
@@ -450,6 +456,13 @@ namespace ApiDocsSync.Libraries
                                 Log.Info($"  -  {dirPath}");
                             }
 
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.MarkdownRemarks:
+                        {
+                            config.MarkdownRemarks = ParseOrExit(arg, "Port remarks in markdown");
                             mode = Mode.Initial;
                             break;
                         }

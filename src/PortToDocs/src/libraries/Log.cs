@@ -272,6 +272,11 @@ Options:
                                                     Usage example:
                                                         -IncludedTypes FileStream,DirectoryInfo
 
+    -MarkdownRemarks            bool            Default is false (does not port remarks in markdown).
+                                                When set to true, the remarks are ported to Docs using markdown language
+                                                inside a CDATA element.
+                                                When set to false, the remarks are ported in the default ECMAXml format.
+
     -PortExceptionsExisting     bool            Default is false (does not find and append existing exceptions).
                                                 Enable or disable finding, porting and appending summaries from existing exceptions.
                                                 Setting this to true can result in a lot of noise because there is

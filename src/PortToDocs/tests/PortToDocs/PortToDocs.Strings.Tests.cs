@@ -187,7 +187,11 @@ See <xref:MyNamespace.MyType.MyMethod>.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -273,8 +277,11 @@ Remarks: `bool`, `byte`, `sbyte`, `char`, `decimal`, `double`, `float`, `int`, `
     </Member>
   </Members>
 </Type>";
-
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -393,7 +400,11 @@ A link to itself: <xref:MyNamespace.MyType.%23ctor(System.Object)>.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -488,7 +499,11 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -574,7 +589,11 @@ See <xref:MyNamespace.MyType.MyMethod>.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -660,7 +679,11 @@ Langword `true`.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -755,7 +778,11 @@ Paramref `myParam`.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -875,12 +902,16 @@ Typeparamref `T`.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
-        private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs)
+        private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs, Configuration configuration = null)
         {
-            Configuration configuration = new Configuration();
+            configuration ??= new Configuration();
             configuration.IncludedAssemblies.Add(TestData.TestAssembly);
             var porter = new ToDocsPorter(configuration);
 

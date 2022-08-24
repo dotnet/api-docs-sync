@@ -341,6 +341,18 @@ Options:
                                                     Usage example:
                                                         -PortTypeTypeParams false
 
+    -PreserveInheritDocTag      bool            Default is true (preserves and ports the inheritdoc tag).
+                                                If set to true, and an intellisense xml API has an inheritdoc element,
+                                                then the element itself is ported to the docs xml API. If the intellisense
+                                                xml API is missing any elements, their documentation is considered inherited,
+                                                and the docs xml elements will remain empty ('To be added.'). MS Docs will
+                                                show the interface or base type documentation automatically.
+                                                If set to false, the inheritdoc element is not ported, and instead the
+                                                tool will locate the interface or base type and port all the documentation strings.
+                                                Regardless of the value of this command line option, if individual elements are
+                                                documented in the intellisense xml, even though there is an inheritdoc tag found,
+                                                these strings will always get ported to the docs xml.
+
     -PrintSummaryDetails        bool            Default is false (does not print summary details).
                                                 Prints the list of APIs that got modified by the tool.
                                                     Usage example:

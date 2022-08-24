@@ -11,6 +11,8 @@ namespace ApiDocsSync.Libraries.Docs
 {
     internal abstract class DocsAPI : IDocsAPI
     {
+        private string? _docId;
+        private string? _docIdUnprefixed;
         private List<DocsParam>? _params;
         private List<DocsParameter>? _parameters;
         private List<DocsTypeParameter>? _typeParameters;
@@ -32,7 +34,11 @@ namespace ApiDocsSync.Libraries.Docs
 
         public abstract bool Changed { get; set; }
         public string FilePath { get; set; } = string.Empty;
-        public abstract string DocId { get; }
+
+        public string DocId => _docId ??= GetApiSignatureDocId().AsEscapedDocId();
+
+        public string DocIdUnprefixed => _docIdUnprefixed ??= DocId[2..];
+
 
         /// <summary>
         /// The Parameter elements found inside the Parameters section.
@@ -140,7 +146,7 @@ namespace ApiDocsSync.Libraries.Docs
                 {
                     if (Docs != null)
                     {
-                        _seeAlsoCrefs = Docs.Elements("seealso").Select(x => XmlHelper.GetAttributeValue(x, "cref").DocIdEscaped()).ToList();
+                        _seeAlsoCrefs = Docs.Elements("seealso").Select(x => XmlHelper.GetAttributeValue(x, "cref").AsEscapedDocId()).ToList();
                     }
                     else
                     {
@@ -159,7 +165,7 @@ namespace ApiDocsSync.Libraries.Docs
                 {
                     if (Docs != null)
                     {
-                        _altMemberCrefs = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref").DocIdEscaped()).ToList();
+                        _altMemberCrefs = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref").AsEscapedDocId()).ToList();
                     }
                     else
                     {
@@ -238,6 +244,10 @@ namespace ApiDocsSync.Libraries.Docs
             Changed = true;
             return new DocsTypeParam(this, typeParam);
         }
+
+        // For Types, these elements are called TypeSignature.
+        // For Members, these elements are called MemberSignature.
+        protected abstract string GetApiSignatureDocId();
 
         protected string GetNodesInPlainText(string name)
         {

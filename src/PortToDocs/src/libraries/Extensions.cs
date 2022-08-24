@@ -11,7 +11,7 @@ namespace ApiDocsSync.Libraries
         // Adds a string to a list of strings if the element is not there yet. The method makes sure to escape unexpected curly brackets to prevent formatting exceptions.
         public static void AddIfNotExists(this List<string> list, string element)
         {
-            string cleanedElement = element.DocIdEscaped();
+            string cleanedElement = element.AsEscapedDocId();
             if (!list.Contains(cleanedElement))
             {
                 list.Add(cleanedElement);
@@ -47,7 +47,7 @@ namespace ApiDocsSync.Libraries
 
         // Some API DocIDs with types contain "{" and "}" to enclose the typeparam, which causes
         // an exception to be thrown when trying to embed the string in a formatted string.
-        public static string DocIdEscaped(this string docId) =>
+        public static string AsEscapedDocId(this string docId) =>
             docId
             .Replace("{", "{{")
             .Replace("}", "}}")

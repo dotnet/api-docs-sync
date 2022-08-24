@@ -19,20 +19,20 @@ namespace ApiDocsSync.Libraries.Tests
         // Verifies the basic case of porting all regular fields.
         public void Port_Basic()
         {
-            PortToDocsWithFileSystem("Basic", GetConfiguration());
+            PortToDocsWithFileSystem("Basic", new Configuration() { MarkdownRemarks = true, Save = true });
         }
 
         [Fact]
         public void Port_DontAddMissingRemarks()
         {
-            PortToDocsWithFileSystem("DontAddMissingRemarks", GetConfiguration());
+            PortToDocsWithFileSystem("DontAddMissingRemarks", new Configuration() { MarkdownRemarks = true, Save = true });
         }
 
         [Fact]
         // Verifies porting of APIs living in namespaces whose name match their assembly.
         public void Port_AssemblyAndNamespaceSame()
         {
-            PortToDocsWithFileSystem("AssemblyAndNamespaceSame", GetConfiguration());
+            PortToDocsWithFileSystem("AssemblyAndNamespaceSame", new Configuration() { MarkdownRemarks = true, Save = true });
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace ApiDocsSync.Libraries.Tests
         public void Port_AssemblyAndNamespaceDifferent()
         {
             PortToDocsWithFileSystem("AssemblyAndNamespaceDifferent",
-                       GetConfiguration(),
+                       new Configuration() { MarkdownRemarks = true, Save = true },
                        namespaceNames: new[] { TestData.TestNamespace });
         }
 
@@ -50,7 +50,13 @@ namespace ApiDocsSync.Libraries.Tests
         // No interface strings should be ported.
         public void Port_Remarks_NoEII_NoInterfaceRemarks()
         {
-            Configuration c = GetConfiguration(skipInterfaceImplementations: true, skipInterfaceRemarks: true);
+            Configuration c = new Configuration()
+            {
+                MarkdownRemarks = true,
+                SkipInterfaceImplementations = true,
+                SkipInterfaceRemarks = true,
+                Save = true
+            };
             PortToDocsWithFileSystem("Remarks_NoEII_NoInterfaceRemarks", c);
         }
 
@@ -60,7 +66,13 @@ namespace ApiDocsSync.Libraries.Tests
         // Ports EII message and interface method remarks.
         public void Port_Remarks_WithEII_WithInterfaceRemarks()
         {
-            Configuration c = GetConfiguration(skipInterfaceImplementations: false, skipInterfaceRemarks: false);
+            Configuration c = new Configuration()
+            {
+                MarkdownRemarks = true,
+                SkipInterfaceImplementations = false,
+                SkipInterfaceRemarks = false,
+                Save = true
+            };
             PortToDocsWithFileSystem("Remarks_WithEII_WithInterfaceRemarks", c);
         }
 
@@ -70,7 +82,13 @@ namespace ApiDocsSync.Libraries.Tests
         // Ports EII message but no interface method remarks.
         public void Port_Remarks_WithEII_NoInterfaceRemarks()
         {
-            Configuration c = GetConfiguration(skipInterfaceImplementations: false, skipInterfaceRemarks: true);
+            Configuration c = new Configuration()
+            {
+                MarkdownRemarks = true,
+                SkipInterfaceImplementations = false,
+                SkipInterfaceRemarks = true,
+                Save = true
+            };
             PortToDocsWithFileSystem("Remarks_WithEII_NoInterfaceRemarks", c);
         }
 
@@ -78,7 +96,7 @@ namespace ApiDocsSync.Libraries.Tests
         // Verifies that new exceptions are ported.
         public void Port_Exceptions()
         {
-            PortToDocsWithFileSystem("Exceptions", GetConfiguration());
+            PortToDocsWithFileSystem("Exceptions", new Configuration() { MarkdownRemarks = true, Save = true });
         }
 
         [Fact]
@@ -86,7 +104,13 @@ namespace ApiDocsSync.Libraries.Tests
         // language review, does not get ported if its above the difference threshold.
         public void Port_Exception_ExistingCref()
         {
-            Configuration c = GetConfiguration(portExceptionsExisting: true, exceptionCollisionThreshold: 60);
+            Configuration c = new Configuration()
+            {
+                MarkdownRemarks = true,
+                PortExceptionsExisting = true,
+                ExceptionCollisionThreshold = 60,
+                Save = true
+            };
             PortToDocsWithFileSystem("Exception_ExistingCref", c);
         }
 
@@ -94,7 +118,7 @@ namespace ApiDocsSync.Libraries.Tests
         // Avoid porting enum field remarks
         public void Port_EnumRemarks()
         {
-            PortToDocsWithFileSystem("EnumRemarks", GetConfiguration());
+            PortToDocsWithFileSystem("EnumRemarks", new Configuration() { MarkdownRemarks = true, Save = true });
         }
 
         [Fact]
@@ -103,7 +127,7 @@ namespace ApiDocsSync.Libraries.Tests
         public void Port_InheritDoc()
         {
             PortToDocsWithFileSystem("InheritDoc",
-                       GetConfiguration(),
+                       new Configuration() { MarkdownRemarks = true, Save = true },
                        assemblyNames: new[] { TestData.TestAssembly, "System" });
         }
 
@@ -135,28 +159,6 @@ namespace ApiDocsSync.Libraries.Tests
                 DirectoryRecursiveCopy(subdir.FullName, tempPath);
             }
         }
-
-        private static Configuration GetConfiguration(
-            bool disablePrompts = true,
-            bool printUndoc = false,
-            bool save = true,
-            bool skipInterfaceImplementations = true,
-            bool skipInterfaceRemarks = true,
-            bool portTypeRemarks = true,
-            bool portMemberRemarks = true,
-            bool portExceptionsExisting = false,
-            int exceptionCollisionThreshold = 70) => new()
-            {
-                DisablePrompts = disablePrompts,
-                ExceptionCollisionThreshold = exceptionCollisionThreshold,
-                PortExceptionsExisting = portExceptionsExisting,
-                PortMemberRemarks = portMemberRemarks,
-                PortTypeRemarks = portTypeRemarks,
-                PrintUndoc = printUndoc,
-                Save = save,
-                SkipInterfaceImplementations = skipInterfaceImplementations,
-                SkipInterfaceRemarks = skipInterfaceRemarks
-            };
 
         private static void PortToDocsWithFileSystem(
                 string testName,

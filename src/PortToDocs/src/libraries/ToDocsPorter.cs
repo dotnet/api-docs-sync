@@ -494,7 +494,10 @@ namespace ApiDocsSync.Libraries
 
             if (dApiToUpdate.Remarks.IsDocsEmpty() && !remarks.IsDocsEmpty())
             {
-                dApiToUpdate.Remarks = remarks!;
+                dApiToUpdate.Remarks = Config.MarkdownRemarks ?
+                    XmlHelper.GetFormattedAsMarkdown(remarks!, dApiToUpdate is DocsMember) :
+                    XmlHelper.GetFormattedAsXml(remarks!, removeUndesiredEndlines: true);
+
                 PrintModifiedMember("remarks", dApiToUpdate.FilePath, dApiToUpdate.DocId, isEII);
                 TotalModifiedIndividualElements++;
             }

@@ -143,7 +143,7 @@ namespace ApiDocsSync.Libraries.Docs
             }
             set
             {
-                SaveFormattedAsMarkdown("remarks", value, addIfMissing: !value.IsDocsEmpty(), isMember: true);
+                SaveAsIs("remarks", value, addIfMissing: !value.IsDocsEmpty());
             }
         }
 

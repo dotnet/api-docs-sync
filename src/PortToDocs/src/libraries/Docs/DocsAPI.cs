@@ -257,20 +257,20 @@ namespace ApiDocsSync.Libraries.Docs
             return string.Empty;
         }
 
+        protected void SaveAsIs(string name, string value, bool addIfMissing)
+        {
+            if (TryGetElement(name, addIfMissing, out XElement? element))
+            {
+                XmlHelper.SaveAsIs(element, value);
+                Changed = true;
+            }
+        }
+
         protected void SaveFormattedAsXml(string name, string value, bool addIfMissing)
         {
             if (TryGetElement(name, addIfMissing, out XElement? element))
             {
                 XmlHelper.SaveFormattedAsXml(element, value);
-                Changed = true;
-            }
-        }
-
-        protected void SaveFormattedAsMarkdown(string name, string value, bool addIfMissing, bool isMember)
-        {
-            if (TryGetElement(name, addIfMissing, out XElement? element))
-            {
-                XmlHelper.SaveFormattedAsMarkdown(element, value, isMember);
                 Changed = true;
             }
         }

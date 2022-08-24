@@ -187,7 +187,11 @@ See <xref:MyNamespace.MyType.MyMethod>.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -273,8 +277,11 @@ Remarks: `bool`, `byte`, `sbyte`, `char`, `decimal`, `double`, `float`, `int`, `
     </Member>
   </Members>
 </Type>";
-
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -393,7 +400,11 @@ A link to itself: <xref:MyNamespace.MyType.%23ctor(System.Object)>.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -488,7 +499,11 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -574,7 +589,11 @@ See <xref:MyNamespace.MyType.MyMethod>.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -660,7 +679,11 @@ Langword `true`.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -755,7 +778,11 @@ Paramref `myParam`.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -875,12 +902,93 @@ Typeparamref `T`.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            Configuration configuration = new Configuration()
+            {
+                MarkdownRemarks = true
+            };
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
-        private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs)
+        [Fact]
+        public void XmlRemarks()
         {
-            Configuration configuration = new Configuration();
+            // The default formatting for remarks is xml
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <remarks>Remarks for type <see cref=""T:MyNamespace.MyType""/>.</remarks>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <remarks>Remarks for <see cref=""M:MyNamespace.MyType.MyMethod""/>.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>Remarks for type <see cref=""T:MyNamespace.MyType"" />.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>Remarks for <see cref=""M:MyNamespace.MyType.MyMethod"" />.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, new Configuration());
+        }
+
+        private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs, Configuration configuration = null)
+        {
+            configuration ??= new Configuration();
             configuration.IncludedAssemblies.Add(TestData.TestAssembly);
             var porter = new ToDocsPorter(configuration);
 

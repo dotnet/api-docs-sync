@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
 using Xunit;
@@ -101,7 +102,7 @@ namespace ApiDocsSync.Libraries.Tests
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs);
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, new Configuration());
         }
 
         [Fact]
@@ -986,23 +987,42 @@ Typeparamref `T`.
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, new Configuration());
         }
 
-        private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs, Configuration configuration = null)
+        private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs, Configuration configuration)
+        {
+            List<StringTestData> docFiles = new();
+
+            StringTestData docFile = new(originalDocs, expectedDocs);
+            docFiles.Add(docFile);
+
+            TestWithStrings(originalIntellisense, docFiles, configuration);
+        }
+
+        private static void TestWithStrings(string originalIntellisense, List<StringTestData> docFiles, Configuration configuration)
         {
             configuration ??= new Configuration();
-            configuration.IncludedAssemblies.Add(TestData.TestAssembly);
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
             var porter = new ToDocsPorter(configuration);
 
             XDocument xIntellisense = XDocument.Parse(originalIntellisense);
             porter.LoadIntellisenseXmlFile(xIntellisense, "IntelliSense.xml");
 
-            XDocument xDocs = XDocument.Parse(originalDocs);
-            var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-            porter.LoadDocsFile(xDocs, "Docs.xml", encoding: utf8NoBom);
+            UTF8Encoding utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
+
+            int i = 0;
+            foreach (StringTestData docFile in docFiles)
+            {
+                porter.LoadDocsFile(docFile.XDoc, $"Doc{i}.xml", encoding: utf8NoBom);
+                i++;
+            }
 
             porter.Start();
 
-            string actualDocs = xDocs.ToString();
-            Assert.Equal(expectedDocs, actualDocs);
+            foreach (StringTestData docFile in docFiles)
+            {
+                Assert.Equal(docFile.Expected, docFile.Actual);
+            }
         }
     }
+
+
 }

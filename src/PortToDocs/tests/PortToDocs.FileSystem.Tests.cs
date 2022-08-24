@@ -41,7 +41,7 @@ namespace ApiDocsSync.Libraries.Tests
         {
             PortToDocsWithFileSystem("AssemblyAndNamespaceDifferent",
                        new Configuration() { MarkdownRemarks = true, Save = true },
-                       namespaceNames: new[] { TestData.TestNamespace });
+                       namespaceNames: new[] { FileTestData.TestNamespace });
         }
 
         [Fact]
@@ -128,10 +128,10 @@ namespace ApiDocsSync.Libraries.Tests
         {
             PortToDocsWithFileSystem("InheritDoc",
                        new Configuration() { MarkdownRemarks = true, Save = true },
-                       assemblyNames: new[] { TestData.TestAssembly, "System" });
+                       assemblyNames: new[] { FileTestData.TestAssembly, "System" });
         }
 
-        private static readonly string TestDataRootDir = Path.Join("..", "..", "..", "PortToDocs", "TestData");
+        private static readonly string TestDataRootDir = Path.Join("..", "..", "..", "TestData");
         private static readonly string IntellisenseDir = "intellisense";
         private static readonly string XmlExpectedDir = "xml_expected";
         private static readonly string XmlActualDir = "xml";
@@ -166,7 +166,7 @@ namespace ApiDocsSync.Libraries.Tests
                 string[] assemblyNames = null,
                 string[] namespaceNames = null) // Most namespaces have the same assembly name
         {
-            assemblyNames ??= new string[] { TestData.TestAssembly };
+            assemblyNames ??= new string[] { FileTestData.TestAssembly };
             namespaceNames ??= Array.Empty<string>();
 
             using TestDirectory testDirectory = new();

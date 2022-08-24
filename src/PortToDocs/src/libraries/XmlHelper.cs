@@ -182,19 +182,19 @@ namespace ApiDocsSync.Libraries
             return string.Join("", element.Nodes()).Trim();
         }
 
-        public static void SaveFormattedAsMarkdown(XElement element, string newValue, bool isMember)
+        public static string GetFormattedAsXml(string value, bool removeUndesiredEndlines)
         {
-            if (element == null)
-            {
-                throw new Exception("A null element was passed when attempting to save formatted as markdown");
-            }
+            string updatedValue = removeUndesiredEndlines ? RemoveUndesiredEndlines(value) : value;
+            updatedValue = ReplaceNormalElementPatterns(updatedValue);
+            updatedValue = SubstituteRegexPatterns(updatedValue, _replaceableNormalElementRegexPatterns);
+            return updatedValue;
+        }
 
-            // Empty value because SaveChildElement will add a child to the parent, not replace it
-            element.Value = string.Empty;
-
+        public static string GetFormattedAsMarkdown(string value, bool isMember)
+        {
             XElement xeFormat = new XElement("format");
 
-            string updatedValue = SubstituteRegexPatterns(newValue, _replaceableMarkdownRegexPatterns);
+            string updatedValue = SubstituteRegexPatterns(value, _replaceableMarkdownRegexPatterns);
             updatedValue = ReplaceMarkdownPatterns(updatedValue).Trim();
 
             string remarksTitle = string.Empty;
@@ -210,23 +210,35 @@ namespace ApiDocsSync.Libraries
             // Attribute at the end, otherwise it would be replaced by ReplaceAll
             xeFormat.SetAttributeValue("type", "text/markdown");
 
-            element.Add(xeFormat);
+            return xeFormat.ToString();
         }
 
-        public static void AddChildFormattedAsMarkdown(XElement parent, XElement child, string childValue, bool isMember)
+        public static void SaveAsIs(XElement element, string newValue)
         {
-            if (parent == null)
+            if (element == null)
             {
-                throw new Exception("A null parent was passed when attempting to add child formatted as markdown.");
+                throw new Exception("A null element was passed when attempting to save text into it.");
             }
 
-            if (child == null)
+            element.Value = string.Empty;
+
+            var attributes = element.Attributes();
+
+            // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed by replacing the nodes.
+            XElement parsedElement;
+            try
             {
-                throw new Exception("A null child was passed when attempting to add child formatted as markdown.");
+                parsedElement = XElement.Parse("<x>" + newValue + "</x>");
+            }
+            catch (XmlException)
+            {
+                parsedElement = XElement.Parse("<x>" + newValue.Replace("<", "&lt;").Replace(">", "&gt;") + "</x>");
             }
 
-            SaveFormattedAsMarkdown(child, childValue, isMember);
-            parent.Add(child);
+            element.ReplaceNodes(parsedElement.Nodes());
+
+            // Ensure attributes are preserved after replacing nodes
+            element.ReplaceAttributes(attributes);
         }
 
         public static void SaveFormattedAsXml(XElement element, string newValue, bool removeUndesiredEndlines = true)
@@ -240,9 +252,7 @@ namespace ApiDocsSync.Libraries
 
             var attributes = element.Attributes();
 
-            string updatedValue = removeUndesiredEndlines ? RemoveUndesiredEndlines(newValue) : newValue;
-            updatedValue = ReplaceNormalElementPatterns(updatedValue);
-            updatedValue = SubstituteRegexPatterns(updatedValue, _replaceableNormalElementRegexPatterns);
+            string updatedValue = GetFormattedAsXml(newValue, removeUndesiredEndlines);
 
             // Workaround: <x> will ensure XElement does not complain about having an invalid xml object inside. Those tags will be removed by replacing the nodes.
             XElement parsedElement;

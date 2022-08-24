@@ -229,8 +229,8 @@ namespace ApiDocsSync.Libraries
 
                 if (dTypeToUpdate.Changed)
                 {
-                    ModifiedTypes.AddIfNotExists(docId);
-                    ModifiedFiles.AddIfNotExists(dTypeToUpdate.FilePath);
+                    ModifiedTypes.Add(docId);
+                    ModifiedFiles.Add(dTypeToUpdate.FilePath);
                 }
             }
         }
@@ -315,8 +315,8 @@ namespace ApiDocsSync.Libraries
 
                 if (dMemberToUpdate.Changed)
                 {
-                    ModifiedAPIs.AddIfNotExists(dMemberToUpdate.DocId);
-                    ModifiedFiles.AddIfNotExists(dMemberToUpdate.FilePath);
+                    ModifiedAPIs.Add(dMemberToUpdate.DocId);
+                    ModifiedFiles.Add(dMemberToUpdate.FilePath);
                 }
             }
         }
@@ -537,13 +537,13 @@ namespace ApiDocsSync.Libraries
                             if (tsMemberToPort.Params.Count() == 0)
                             {
                                 msg = $"There were no IntelliSense xml comments for param {dParam.Name} in Member DocId {dApiToUpdate.DocId}";
-                                ProblematicAPIs.AddIfNotExists(msg);
+                                ProblematicAPIs.Add(msg);
                                 Log.Warning(msg);
                             }
                             else if (tsMemberToPort.Params.Count() != dApiToUpdate.Params.Count())
                             {
                                 msg = $"The total number of params does not match between IntelliSense and Docs members {dApiToUpdate.DocId}";
-                                ProblematicAPIs.AddIfNotExists(msg);
+                                ProblematicAPIs.Add(msg);
                                 Log.Warning(msg);
                             }
                             else
@@ -552,7 +552,7 @@ namespace ApiDocsSync.Libraries
                                 if (newTsParam == null)
                                 {
                                     msg = $"The param {dParam.Name} was not found in IntelliSense xml for {dApiToUpdate.DocId}";
-                                    ProblematicAPIs.AddIfNotExists(msg);
+                                    ProblematicAPIs.Add(msg);
                                     Log.Error(msg);
                                 }
                                 else
@@ -663,13 +663,13 @@ namespace ApiDocsSync.Libraries
                             if (tsMemberToPort.TypeParams.Count() == 0)
                             {
                                 msg = $"There were no IntelliSense xml comments for typeparam {dTypeParam.Name} in Member DocId {dApiToUpdate.DocId}";
-                                ProblematicAPIs.AddIfNotExists(msg);
+                                ProblematicAPIs.Add(msg);
                                 Log.Warning(msg);
                             }
                             else if (tsMemberToPort.TypeParams.Count() != dApiToUpdate.TypeParams.Count())
                             {
                                 msg = $"The total number of typeparams does not match between IntelliSense and Docs members {dApiToUpdate.DocId}";
-                                ProblematicAPIs.AddIfNotExists(msg);
+                                ProblematicAPIs.Add(msg);
                                 Log.Warning(msg);
                             }
                             else
@@ -678,7 +678,7 @@ namespace ApiDocsSync.Libraries
                                 if (newTsTypeParam == null)
                                 {
                                     msg = $"The typeparam {dTypeParam.Name} was not found in IntelliSense xml for {dApiToUpdate.DocId}";
-                                    ProblematicAPIs.AddIfNotExists(msg);
+                                    ProblematicAPIs.Add(msg);
                                     Log.Error(msg);
                                 }
                                 else
@@ -811,7 +811,7 @@ namespace ApiDocsSync.Libraries
                     // First time adding the cref
                     if (dException == null && Config.PortExceptionsNew)
                     {
-                        AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
+                        AddedExceptions.Add($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
                         string text = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(tsException.XEException));
                         dException = dMemberToUpdate.AddException(tsException.Cref, text);
                         created = true;
@@ -823,7 +823,7 @@ namespace ApiDocsSync.Libraries
                         string value = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(formattedException));
                         if (!dException.WordCountCollidesAboveThreshold(value, Config.ExceptionCollisionThreshold))
                         {
-                            AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
+                            AddedExceptions.Add($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
                             dException.AppendException(value);
                             created = true;
                         }

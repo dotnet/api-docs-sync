@@ -8,16 +8,6 @@ namespace ApiDocsSync.Libraries
     // Provides generic extension methods.
     internal static class Extensions
     {
-        // Adds a string to a list of strings if the element is not there yet. The method makes sure to escape unexpected curly brackets to prevent formatting exceptions.
-        public static void AddIfNotExists(this List<string> list, string element)
-        {
-            string cleanedElement = element.AsEscapedDocId();
-            if (!list.Contains(cleanedElement))
-            {
-                list.Add(cleanedElement);
-            }
-        }
-
         // Removes the specified substrings from another string
         public static string RemoveSubstrings(this string oldString, params string[] stringsToRemove)
         {

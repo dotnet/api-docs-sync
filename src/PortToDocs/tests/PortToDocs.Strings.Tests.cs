@@ -1201,6 +1201,7 @@ Typeparamref `T`.
             };
 
             Configuration configuration = new();
+            configuration.PreserveInheritDocTag = true;
             configuration.IncludedAssemblies.Add("MyAssembly");
             configuration.IncludedAssemblies.Add("System");
 
@@ -1468,11 +1469,279 @@ Typeparamref `T`.
             };
 
             Configuration configuration = new();
-            configuration.SkipInterfaceRemarks = false;
+            configuration.PreserveInheritDocTag = true;
             configuration.IncludedAssemblies.Add("MyAssembly");
 
             TestWithStrings(intellisense, docFiles, configuration);
         }
+
+        // [Fact]
+        // TODO: Implement functionality for PreserveInheritDocTag=false
+        //public void IgnoreInheritDoc()
+        private void IgnoreInheritDoc()
+        {
+            // If PreserveInheritDocTag is set to false, then if the inheritdoc tag is found,
+            // all the documentation strings are copied from the ancestors, and the inheritdoc tag
+            // is not added to the docs xml.
+
+            string intellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.IMyInterface"">
+      <summary>The IMyInterface summary.</summary>
+      <remarks>The IMyInterface remarks.</remarks>
+    </member>
+    <member name=""M:MyNamespace.IMyInterface.MyMethod(System.String,System.Int32)"">
+      <summary>The IMyInterface.MyMethod summary.</summary>
+      <remarks>The IMyInterface.MyMethod remarks.</remarks>
+      <param name=""myParam1"">The IMyInterface.MyMethod myParam1 description.</param>
+      <param name=""myParam2"">The IMyInterface.MyMethod myParam2 description.</param>
+    </member>
+    <member name=""F:MyNamespace.IMyInterface.MyField"">
+      <summary>The IMyInterface.MyField summary.</summary>
+      <remarks>The IMyInterface.MyField remarks.</remarks>
+    </member>
+    <member name=""T:MyNamespace.MyType"">
+      <summary></summary>
+      <inheritdoc/>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod(System.String,System.Int32)"">
+      <param name=""myParam2"">The MyType.MyMethod myParam2 description.</param>
+      <summary>The MyType.MyMethod summary.</summary>
+      <inheritdoc/>
+    </member>
+    <member name=""F:MyNamespace.MyType.MyField"">
+      <summary></summary>
+      <remarks>The MyType.MyField remarks.</remarks>
+      <inheritdoc cref=""F:MyNamespace.IMyInterface.MyField"" />
+    </member>
+  </members>
+</doc>";
+
+            string interfaceOriginalDocs = @"<Type Name=""IMyInterface"" FullName=""MyNamespace.IMyInterface"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.IMyInterface"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.IMyInterface.MyMethod(System.String,System.Int32)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam1"" Type=""System.String"" />
+        <Parameter Name=""myParam2"" Type=""System.Int32"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam1"">To be added.</param>
+        <param name=""myParam2"">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=""MyField"">
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.IMyInterface.MyField"" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <MemberValue>1</MemberValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string interfaceExpectedDocs = @"<Type Name=""IMyInterface"" FullName=""MyNamespace.IMyInterface"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.IMyInterface"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>The IMyInterface summary.</summary>
+    <remarks>The IMyInterface remarks.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.IMyInterface.MyMethod(System.String,System.Int32)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam1"" Type=""System.String"" />
+        <Parameter Name=""myParam2"" Type=""System.Int32"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam1"">The IMyInterface.MyMethod myParam1 description.</param>
+        <param name=""myParam2"">The IMyInterface.MyMethod myParam2 description.</param>
+        <summary>The IMyInterface.MyMethod summary.</summary>
+        <remarks>The IMyInterface.MyMethod remarks.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=""MyField"">
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.IMyInterface.MyField"" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <MemberValue>1</MemberValue>
+      <Docs>
+        <summary>The IMyInterface.MyField summary.</summary>
+        <remarks>The IMyInterface.MyField remarks.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Interfaces>
+    <Interface>
+      <InterfaceName>MyNamespace.IMyInterface</InterfaceName>
+    </Interface>
+  </Interfaces>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod(System.String,System.Int32)"" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:MyNamespace.MyInterface.MyMethod(System.String,System.Int32)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam1"" Type=""System.String"" />
+        <Parameter Name=""myParam2"" Type=""System.Int32"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam1"">To be added.</param>
+        <param name=""myParam2"">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=""MyField"">
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.MyType.MyField"" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <MemberValue>1</MemberValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Interfaces>
+    <Interface>
+      <InterfaceName>MyNamespace.IMyInterface</InterfaceName>
+    </Interface>
+  </Interfaces>
+  <Docs>
+    <summary>The IMyInterface summary.</summary>
+    <remarks>The IMyInterface remarks.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod(System.String,System.Int32)"" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:MyNamespace.MyInterface.MyMethod(System.String,System.Int32)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam1"" Type=""System.String"" />
+        <Parameter Name=""myParam2"" Type=""System.Int32"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam1"">The IMyInterface.MyMethod myParam1 description.</param>
+        <param name=""myParam2"">The MyType.MyMethod myParam2 description.</param>
+        <summary>The MyType.MyMethod summary.</summary>
+        <remarks>The IMyInterface.MyMethod remarks.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=""MyField"">
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.MyType.MyField"" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <MemberValue>1</MemberValue>
+      <Docs>
+        <summary>The IMyInterface.MyField summary.</summary>
+        <remarks>The MyType.MyField remarks.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            List<StringTestData> docFiles = new()
+            {
+                new StringTestData(originalDocs, expectedDocs),
+                new StringTestData(interfaceOriginalDocs, interfaceExpectedDocs)
+            };
+
+            Configuration configuration = new();
+            configuration.PreserveInheritDocTag = false;
+            configuration.IncludedAssemblies.Add("MyAssembly");
+
+            TestWithStrings(intellisense, docFiles, configuration);
+        }
+
 
         private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs, Configuration configuration) =>
             TestWithStrings(originalIntellisense, new List<StringTestData>() { new StringTestData(originalDocs, expectedDocs) }, configuration);

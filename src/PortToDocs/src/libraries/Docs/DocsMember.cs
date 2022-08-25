@@ -29,6 +29,9 @@ namespace ApiDocsSync.Libraries.Docs
             get => ParentType.Changed;
             set => ParentType.Changed |= value;
         }
+        public bool IsProperty => MemberType == "Property";
+
+        public bool IsMethod => MemberType == "Method";
 
         public string MemberName
         {
@@ -131,11 +134,11 @@ namespace ApiDocsSync.Libraries.Docs
         {
             get
             {
-                return (MemberType == "Property") ? GetNodesInPlainText("value") : string.Empty;
+                return (IsProperty) ? GetNodesInPlainText("value") : string.Empty;
             }
             set
             {
-                if (MemberType == "Property")
+                if (IsProperty)
                 {
                     SaveFormattedAsXml("value", value, addIfMissing: true);
                 }

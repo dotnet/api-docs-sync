@@ -21,6 +21,8 @@ namespace ApiDocsSync.Libraries.Docs
         private List<string>? _seeAlsoCrefs;
         private List<string>? _altMemberCrefs;
         private List<DocsRelated>? _relateds;
+        private XElement? _xInheritDoc = null;
+        private string? _inheritDocCref = null;
 
         protected readonly XElement XERoot;
 
@@ -194,6 +196,69 @@ namespace ApiDocsSync.Libraries.Docs
                 return _relateds;
             }
         }
+
+        private XElement? XInheritDoc
+        {
+            get
+            {
+                return _xInheritDoc ??= Docs.Elements("inheritdoc").FirstOrDefault();
+            }
+            set
+            {
+                _xInheritDoc = value;
+            }
+        }
+
+        public string InheritDocCref
+        {
+            get
+            {
+                if (_inheritDocCref == null)
+                {
+                    _inheritDocCref = string.Empty;
+                    if (InheritDoc && XInheritDoc != null)
+                    {
+                        XAttribute? xInheritDocCref = XInheritDoc.Attribute("cref");
+                        if (xInheritDocCref != null)
+                        {
+                            _inheritDocCref = xInheritDocCref.Value.AsEscapedDocId();
+                        }
+                    }
+                }
+                return _inheritDocCref;
+            }
+            set
+            {
+                // Null to remove
+                if (value == null)
+                {
+                    XInheritDoc = null;
+                    _inheritDocCref = null;
+                }
+                // Non-null to add
+                else
+                {
+                    _inheritDocCref = value.AsEscapedDocId(); // Can be empty string too
+                    if (XInheritDoc == null) // Not found in Docs
+                    {
+                        XInheritDoc = new XElement("inheritdoc");
+                        Docs.Add(XInheritDoc);
+                    }
+                    // Only set cref if non-empty
+                    if (_inheritDocCref.Length == 0)
+                    {
+                        XInheritDoc.RemoveAttributes();
+                    }
+                    else
+                    {
+                        XInheritDoc.SetAttributeValue("cref", value);
+                    }
+                }
+                Changed = true;
+            }
+        }
+
+        public bool InheritDoc => XInheritDoc != null;
 
         public abstract string Summary { get; set; }
         public abstract string ReturnType { get; }

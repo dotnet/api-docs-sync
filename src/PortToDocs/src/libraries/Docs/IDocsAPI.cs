@@ -10,10 +10,12 @@ namespace ApiDocsSync.Libraries.Docs
     {
         public abstract APIKind Kind { get; }
         public abstract bool IsUndocumented { get; }
+        public abstract bool InheritDoc { get; }
         public abstract bool Changed { get; set; }
         public abstract string FilePath { get; set; }
         public abstract string DocId { get; }
         public abstract string DocIdUnprefixed { get; }
+        public abstract string InheritDocCref { get; }
         public abstract XElement Docs { get; }
         public abstract List<DocsParameter> Parameters { get; }
         public abstract List<DocsParam> Params { get; }

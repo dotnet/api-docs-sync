@@ -29,7 +29,7 @@ namespace ApiDocsSync.Libraries.Tests
   </assembly>
   <members>
     <member name=""T:MyNamespace.MyType"">
-      <summary>This is the type summary.</summary>
+      <summary>This is the summary.</summary>
     </member>
     <member name=""M:MyNamespace.MyType.MyTypeParamMethod``1"">
       <typeparam name=""TRenamedValue"">The renamed typeparam of MyTypeParamMethod.</typeparam>
@@ -77,7 +77,7 @@ namespace ApiDocsSync.Libraries.Tests
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
   <Docs>
-    <summary>This is the type summary.</summary>
+    <summary>This is the summary.</summary>
     <remarks>To be added.</remarks>
   </Docs>
   <Members>
@@ -102,7 +102,10 @@ namespace ApiDocsSync.Libraries.Tests
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, new Configuration());
+            Configuration configuration = new();
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         [Fact]
@@ -188,10 +191,12 @@ See <xref:MyNamespace.MyType.MyMethod>.
   </Members>
 </Type>";
 
-            Configuration configuration = new Configuration()
+            Configuration configuration = new()
             {
                 MarkdownRemarks = true
             };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
@@ -278,10 +283,13 @@ Remarks: `bool`, `byte`, `sbyte`, `char`, `decimal`, `double`, `float`, `int`, `
     </Member>
   </Members>
 </Type>";
-            Configuration configuration = new Configuration()
+
+            Configuration configuration = new()
             {
                 MarkdownRemarks = true
             };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
@@ -299,7 +307,7 @@ Remarks: `bool`, `byte`, `sbyte`, `char`, `decimal`, `double`, `float`, `int`, `
   </assembly>
   <members>
     <member name=""T:MyNamespace.MyType"">
-      <summary>They type summary.</summary>
+      <summary>They summary.</summary>
     </member>
     <member name=""M:MyNamespace.MyType.#ctor"">
       <summary>Summary of parameterless constructor.</summary>
@@ -355,7 +363,7 @@ Remarks: `bool`, `byte`, `sbyte`, `char`, `decimal`, `double`, `float`, `int`, `
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
   <Docs>
-    <summary>They type summary.</summary>
+    <summary>They summary.</summary>
     <remarks>To be added.</remarks>
   </Docs>
   <Members>
@@ -401,10 +409,13 @@ A link to itself: <xref:MyNamespace.MyType.%23ctor(System.Object)>.
   </Members>
 </Type>";
 
-            Configuration configuration = new Configuration()
+
+            Configuration configuration = new()
             {
                 MarkdownRemarks = true
             };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
@@ -500,10 +511,13 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
   </Members>
 </Type>";
 
-            Configuration configuration = new Configuration()
+
+            Configuration configuration = new()
             {
                 MarkdownRemarks = true
             };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
@@ -590,10 +604,13 @@ See <xref:MyNamespace.MyType.MyMethod>.
   </Members>
 </Type>";
 
-            Configuration configuration = new Configuration()
+
+            Configuration configuration = new()
             {
                 MarkdownRemarks = true
             };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
@@ -680,10 +697,13 @@ Langword `true`.
   </Members>
 </Type>";
 
-            Configuration configuration = new Configuration()
+
+            Configuration configuration = new()
             {
                 MarkdownRemarks = true
             };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
@@ -779,10 +799,13 @@ Paramref `myParam`.
   </Members>
 </Type>";
 
-            Configuration configuration = new Configuration()
+
+            Configuration configuration = new()
             {
                 MarkdownRemarks = true
             };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
@@ -903,10 +926,13 @@ Typeparamref `T`.
   </Members>
 </Type>";
 
-            Configuration configuration = new Configuration()
+
+            Configuration configuration = new()
             {
                 MarkdownRemarks = true
             };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
@@ -984,35 +1010,493 @@ Typeparamref `T`.
   </Members>
 </Type>";
 
-            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, new Configuration());
-        }
-
-        private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs, Configuration configuration)
-        {
-            List<StringTestData> docFiles = new();
-
-            StringTestData docFile = new(originalDocs, expectedDocs);
-            docFiles.Add(docFile);
-
-            TestWithStrings(originalIntellisense, docFiles, configuration);
-        }
-
-        private static void TestWithStrings(string originalIntellisense, List<StringTestData> docFiles, Configuration configuration)
-        {
-            configuration ??= new Configuration();
+            Configuration configuration = new()
+            {
+                MarkdownRemarks = false
+            };
             configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
+        [Fact]
+        public void FullInheritDoc()
+        {
+            string intellisenseParentType = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>System</name>
+  </assembly>
+  <members>
+    <member name=""T:System.MyParentType"">
+      <summary>This is the summary of the MyParentType class.</summary>
+      <remarks>These are the remarks of the MyParentType class.</remarks>
+    </member>
+    <member name=""M:System.MyParentType.MyMethod"">
+      <summary>This is the summary of the MyParentType.MyMethod method.</summary>
+      <remarks>These are the remarks of the MyParentType.MyMethod method.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string intellisenseChildType = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <inheritdoc/>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <inheritdoc cref=""M:System.MyParentType.MyMethod""/>
+    </member>
+  </members>
+</doc>";
+
+            string originalBaseType = @"<Type Name=""MyParentType"" FullName=""System.MyParentType"">
+  <TypeSignature Language=""DocId"" Value=""T:System.MyParentType"" />
+  <AssemblyInfo>
+    <AssemblyName>System</AssemblyName>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>System.MyParentType</BaseTypeName>
+  </Base>
+  <Interfaces />
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:System.MyParentType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <Implements />
+      <AssemblyInfo>
+        <AssemblyName>System</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedBaseType = @"<Type Name=""MyParentType"" FullName=""System.MyParentType"">
+  <TypeSignature Language=""DocId"" Value=""T:System.MyParentType"" />
+  <AssemblyInfo>
+    <AssemblyName>System</AssemblyName>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>System.MyParentType</BaseTypeName>
+  </Base>
+  <Interfaces />
+  <Docs>
+    <summary>This is the summary of the MyParentType class.</summary>
+    <remarks>These are the remarks of the MyParentType class.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:System.MyParentType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <Implements />
+      <AssemblyInfo>
+        <AssemblyName>System</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>This is the summary of the MyParentType.MyMethod method.</summary>
+        <remarks>These are the remarks of the MyParentType.MyMethod method.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string originalChildType = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>System.MyParentType</BaseTypeName>
+  </Base>
+  <Interfaces />
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <Implements />
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedChildType = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>System.MyParentType</BaseTypeName>
+  </Base>
+  <Interfaces />
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+    <inheritdoc />
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <Implements />
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref=""M:System.MyParentType.MyMethod"" />
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            List<string> intellisenseFiles = new()
+            {
+                intellisenseParentType,
+                intellisenseChildType
+            };
+
+            List<StringTestData> docFiles = new()
+            {
+                new StringTestData(originalBaseType, expectedBaseType),
+                new StringTestData(originalChildType, expectedChildType)
+            };
+
+            Configuration configuration = new();
+            configuration.IncludedAssemblies.Add("MyAssembly");
+            configuration.IncludedAssemblies.Add("System");
+
+            TestWithStrings(intellisenseFiles, docFiles, configuration);
+        }
+
+        [Fact]
+        public void PartialInheritDoc()
+        {
+            // The <inheritdoc/> tag can be used to inherit documentation without having to port it.
+            // The exception to the rule are any items with explicit intellisense, which will always be ported.
+
+            string intellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.IMyInterface"">
+      <summary>The IMyInterface summary.</summary>
+      <remarks>The IMyInterface remarks.</remarks>
+    </member>
+    <member name=""M:MyNamespace.IMyInterface.MyMethod(System.String,System.Int32)"">
+      <summary>The IMyInterface.MyMethod summary.</summary>
+      <remarks>The IMyInterface.MyMethod remarks.</remarks>
+      <param name=""myParam1"">The IMyInterface.MyMethod myParam1 description.</param>
+      <param name=""myParam2"">The IMyInterface.MyMethod myParam2 description.</param>
+    </member>
+    <member name=""F:MyNamespace.IMyInterface.MyField"">
+      <summary>The IMyInterface.MyField summary.</summary>
+      <remarks>The IMyInterface.MyField remarks.</remarks>
+    </member>
+    <member name=""T:MyNamespace.MyType"">
+      <summary></summary>
+      <inheritdoc/>
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod(System.String,System.Int32)"">
+      <param name=""myParam2"">The MyType.MyMethod myParam2 description.</param>
+      <summary>The MyType.MyMethod summary.</summary>
+      <inheritdoc/>
+    </member>
+    <member name=""F:MyNamespace.MyType.MyField"">
+      <summary></summary>
+      <remarks>The MyType.MyField remarks.</remarks>
+      <inheritdoc cref=""F:MyNamespace.IMyInterface.MyField"" />
+    </member>
+  </members>
+</doc>";
+
+            string interfaceOriginalDocs = @"<Type Name=""IMyInterface"" FullName=""MyNamespace.IMyInterface"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.IMyInterface"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.IMyInterface.MyMethod(System.String,System.Int32)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam1"" Type=""System.String"" />
+        <Parameter Name=""myParam2"" Type=""System.Int32"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam1"">To be added.</param>
+        <param name=""myParam2"">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=""MyField"">
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.IMyInterface.MyField"" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <MemberValue>1</MemberValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string interfaceExpectedDocs = @"<Type Name=""IMyInterface"" FullName=""MyNamespace.IMyInterface"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.IMyInterface"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>The IMyInterface summary.</summary>
+    <remarks>The IMyInterface remarks.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.IMyInterface.MyMethod(System.String,System.Int32)"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam1"" Type=""System.String"" />
+        <Parameter Name=""myParam2"" Type=""System.Int32"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam1"">The IMyInterface.MyMethod myParam1 description.</param>
+        <param name=""myParam2"">The IMyInterface.MyMethod myParam2 description.</param>
+        <summary>The IMyInterface.MyMethod summary.</summary>
+        <remarks>The IMyInterface.MyMethod remarks.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=""MyField"">
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.IMyInterface.MyField"" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <MemberValue>1</MemberValue>
+      <Docs>
+        <summary>The IMyInterface.MyField summary.</summary>
+        <remarks>The IMyInterface.MyField remarks.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Interfaces>
+    <Interface>
+      <InterfaceName>MyNamespace.IMyInterface</InterfaceName>
+    </Interface>
+  </Interfaces>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod(System.String,System.Int32)"" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:MyNamespace.MyInterface.MyMethod(System.String,System.Int32)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam1"" Type=""System.String"" />
+        <Parameter Name=""myParam2"" Type=""System.Int32"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam1"">To be added.</param>
+        <param name=""myParam2"">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=""MyField"">
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.MyType.MyField"" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <MemberValue>1</MemberValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Interfaces>
+    <Interface>
+      <InterfaceName>MyNamespace.IMyInterface</InterfaceName>
+    </Interface>
+  </Interfaces>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+    <inheritdoc />
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod(System.String,System.Int32)"" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:MyNamespace.MyInterface.MyMethod(System.String,System.Int32)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name=""myParam1"" Type=""System.String"" />
+        <Parameter Name=""myParam2"" Type=""System.Int32"" />
+      </Parameters>
+      <Docs>
+        <param name=""myParam1"">To be added.</param>
+        <param name=""myParam2"">The MyType.MyMethod myParam2 description.</param>
+        <summary>The MyType.MyMethod summary.</summary>
+        <remarks>To be added.</remarks>
+        <inheritdoc />
+      </Docs>
+    </Member>
+    <Member MemberName=""MyField"">
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.MyType.MyField"" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <MemberValue>1</MemberValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>The MyType.MyField remarks.</remarks>
+        <inheritdoc cref=""F:MyNamespace.IMyInterface.MyField"" />
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            List<StringTestData> docFiles = new()
+            {
+                new StringTestData(originalDocs, expectedDocs),
+                new StringTestData(interfaceOriginalDocs, interfaceExpectedDocs)
+            };
+
+            Configuration configuration = new();
+            configuration.SkipInterfaceRemarks = false;
+            configuration.IncludedAssemblies.Add("MyAssembly");
+
+            TestWithStrings(intellisense, docFiles, configuration);
+        }
+
+        private static void TestWithStrings(string originalIntellisense, string originalDocs, string expectedDocs, Configuration configuration) =>
+            TestWithStrings(originalIntellisense, new List<StringTestData>() { new StringTestData(originalDocs, expectedDocs) }, configuration);
+
+        private static void TestWithStrings(string originalIntellisense, List<StringTestData> docFiles, Configuration configuration) =>
+            TestWithStrings(new List<string>() { originalIntellisense }, docFiles, configuration);
+
+        private static void TestWithStrings(List<string> intellisenseFiles, List<StringTestData> docFiles, Configuration configuration)
+        {
             var porter = new ToDocsPorter(configuration);
 
-            XDocument xIntellisense = XDocument.Parse(originalIntellisense);
-            porter.LoadIntellisenseXmlFile(xIntellisense, "IntelliSense.xml");
+            int iFileNumber = 0;
+            foreach (string intellisenseFile in intellisenseFiles)
+            {
+                XDocument xIntellisense = XDocument.Parse(intellisenseFile);
+                porter.LoadIntellisenseXmlFile(xIntellisense, $"IntelliSense{iFileNumber++}.xml");
+            }
 
             UTF8Encoding utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
 
-            int i = 0;
+            int dFileNumber = 0;
             foreach (StringTestData docFile in docFiles)
             {
-                porter.LoadDocsFile(docFile.XDoc, $"Doc{i}.xml", encoding: utf8NoBom);
-                i++;
+                porter.LoadDocsFile(docFile.XDoc, $"Doc{dFileNumber++}.xml", encoding: utf8NoBom);
             }
 
             porter.Start();

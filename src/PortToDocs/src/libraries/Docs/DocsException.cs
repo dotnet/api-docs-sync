@@ -16,24 +16,12 @@ namespace ApiDocsSync.Libraries.Docs
             get; private set;
         }
 
-        public string Cref
-        {
-            get
-            {
-                return XmlHelper.GetAttributeValue(XEException, "cref").DocIdEscaped();
-            }
-        }
+        public string Cref => XmlHelper.GetAttributeValue(XEException, "cref").AsEscapedDocId();
 
         public string Value
         {
-            get
-            {
-                return XmlHelper.GetNodesInPlainText(XEException);
-            }
-            private set
-            {
-                XmlHelper.SaveFormattedAsXml(XEException, value);
-            }
+            get => XmlHelper.GetNodesInPlainText(XEException);
+            private set => XmlHelper.SaveFormattedAsXml(XEException, value);
         }
 
         public string OriginalValue { get; private set; }

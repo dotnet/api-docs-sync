@@ -12,7 +12,6 @@ namespace ApiDocsSync.Libraries.Docs
     {
         private string? _memberName;
         private List<DocsMemberSignature>? _memberSignatures;
-        private string? _docId;
         private List<DocsException>? _exceptions;
 
         public DocsMember(string filePath, DocsType parentType, XElement xeMember)
@@ -30,6 +29,9 @@ namespace ApiDocsSync.Libraries.Docs
             get => ParentType.Changed;
             set => ParentType.Changed |= value;
         }
+        public bool IsProperty => MemberType == "Property";
+
+        public bool IsMethod => MemberType == "Method";
 
         public string MemberName
         {
@@ -52,25 +54,6 @@ namespace ApiDocsSync.Libraries.Docs
                     _memberSignatures = XERoot.Elements("MemberSignature").Select(x => new DocsMemberSignature(x)).ToList();
                 }
                 return _memberSignatures;
-            }
-        }
-
-        public override string DocId
-        {
-            get
-            {
-                if (_docId == null)
-                {
-                    _docId = string.Empty;
-                    DocsMemberSignature? ms = MemberSignatures.FirstOrDefault(x => x.Language == "DocId");
-                    if (ms == null)
-                    {
-                        string message = string.Format("Could not find a DocId MemberSignature for '{0}'", MemberName);
-                        throw new Exception(message);
-                    }
-                    _docId = ms.Value.DocIdEscaped();
-                }
-                return _docId;
             }
         }
 
@@ -151,11 +134,11 @@ namespace ApiDocsSync.Libraries.Docs
         {
             get
             {
-                return (MemberType == "Property") ? GetNodesInPlainText("value") : string.Empty;
+                return (IsProperty) ? GetNodesInPlainText("value") : string.Empty;
             }
             set
             {
-                if (MemberType == "Property")
+                if (IsProperty)
                 {
                     SaveFormattedAsXml("value", value, addIfMissing: true);
                 }
@@ -198,6 +181,16 @@ namespace ApiDocsSync.Libraries.Docs
             Docs.Add(exception);
             Changed = true;
             return new DocsException(this, exception);
+        }
+
+        protected override string GetApiSignatureDocId()
+        {
+            DocsMemberSignature? dts = MemberSignatures.FirstOrDefault(x => x.Language == "DocId");
+            if (dts == null)
+            {
+                throw new FormatException($"DocId TypeSignature not found for {MemberName}");
+            }
+            return dts.Value;
         }
     }
 }

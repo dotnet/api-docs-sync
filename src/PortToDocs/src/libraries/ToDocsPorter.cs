@@ -205,17 +205,17 @@ namespace ApiDocsSync.Libraries
             {
                 IntelliSenseXmlMember tsActualTypeToPort = tsTypeToPort;
 
-                MissingComments mc = default;
+                MissingComments mc = new()
+                {
+                    Summary = tsActualTypeToPort.Summary,
+                    Returns = tsActualTypeToPort.Returns,
+                    Remarks = tsActualTypeToPort.Remarks
+                };
+
                 // Rare case where the base type or interface docs should be used
                 if (tsTypeToPort.InheritDoc)
                 {
-                    mc = GetMissingCommentsForTypeFromInheritDoc(dTypeToUpdate, tsTypeToPort);
-                }
-                else
-                {
-                    mc.Summary = tsActualTypeToPort.Summary;
-                    mc.Returns = tsActualTypeToPort.Returns;
-                    mc.Remarks = tsActualTypeToPort.Remarks;
+                    GetMissingCommentsForTypeFromInheritDoc(mc, dTypeToUpdate, tsTypeToPort);
                 }
 
                 TryPortMissingSummaryForAPI(dTypeToUpdate, mc.Summary);
@@ -229,71 +229,45 @@ namespace ApiDocsSync.Libraries
 
                 if (dTypeToUpdate.Changed)
                 {
-                    ModifiedTypes.AddIfNotExists(docId);
-                    ModifiedFiles.AddIfNotExists(dTypeToUpdate.FilePath);
+                    ModifiedTypes.Add(docId);
+                    ModifiedFiles.Add(dTypeToUpdate.FilePath);
                 }
             }
-        }
-
-        private MissingComments GetMissingCommentsForTypeFromInheritDoc(DocsType dTypeToUpdate, IntelliSenseXmlMember tsTypeToPort)
-        {
-            MissingComments mc = default;
-
-            // See if there is an inheritdoc cref indicating the exact member to use for docs
-            if (!string.IsNullOrEmpty(tsTypeToPort.InheritDocCref))
-            {
-                if (IntelliSenseXmlComments.Members.TryGetValue(tsTypeToPort.InheritDocCref, out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
-                {
-                    mc.Summary = tsInheritedMember.Summary;
-                    mc.Returns = tsInheritedMember.Returns;
-                    mc.Remarks = tsInheritedMember.Remarks;
-                }
-            }
-            // Look for the base type from which this one inherits
-            else if (!string.IsNullOrEmpty(dTypeToUpdate.BaseTypeName) &&
-                DocsComments.Types.TryGetValue($"T:{dTypeToUpdate.BaseTypeName}", out DocsType? dBaseType) && dBaseType != null)
-            {
-                // If the base type is undocumented, try to document it
-                // so there's something to extract for the child type
-                if (dBaseType.IsUndocumented)
-                {
-                    PortMissingCommentsForType(dBaseType);
-                }
-
-                mc.Summary = dBaseType.Summary;
-                mc.Returns = dBaseType.Returns;
-                mc.Remarks = dBaseType.Remarks;
-            }
-
-            return mc;
         }
 
         // Tries to find an IntelliSense xml element from which to port documentation for the specified Docs member.
         private void PortMissingCommentsForMember(DocsMember dMemberToUpdate)
         {
             DocsMember? dInterfacedMember = null;
-            bool isProperty = dMemberToUpdate.MemberType == "Property";
-            bool isMethod = dMemberToUpdate.MemberType == "Method";
 
-            MissingComments mc = default;
-            if (IntelliSenseXmlComments.Members.TryGetValue(dMemberToUpdate.DocId, out IntelliSenseXmlMember? tsMemberToPort) && tsMemberToPort != null)
+            bool isProperty = dMemberToUpdate.IsProperty;
+            bool isMethod = dMemberToUpdate.IsMethod;
+
+            MissingComments mc = new();
+            if (IntelliSenseXmlComments.Members.TryGetValue(dMemberToUpdate.DocId,
+                out IntelliSenseXmlMember? tsMemberToPort) && tsMemberToPort != null)
             {
-                // Rare case where the base type or interface docs should be used
+                mc.Summary = tsMemberToPort.Summary;
+                if (isMethod)
+                {
+                    mc.Returns = tsMemberToPort.Returns;
+                }
+                mc.Remarks = tsMemberToPort.Remarks;
+                if (isProperty)
+                {
+                    mc.Property = GetPropertyValue(tsMemberToPort.Value, tsMemberToPort.Returns);
+                }
+
+                // Rare case where the base type or interface docs should be used,
+                // but only for elements that aren't explicitly documented in the actual API
                 if (tsMemberToPort.InheritDoc)
                 {
-                    mc = GetMissingCommentsForMemberFromInheritDoc(dMemberToUpdate, tsMemberToPort, isProperty, isMethod);
-                }
-                else
-                {
-                    mc.Summary = tsMemberToPort.Summary;
-                    mc.Returns = isMethod ? tsMemberToPort.Returns : null;
-                    mc.Remarks = tsMemberToPort.Remarks;
-                    mc.Property = isProperty ? GetPropertyValue(tsMemberToPort.Value, tsMemberToPort.Returns) : null;
+                    GetMissingCommentsForMemberFromInheritDoc(mc, dMemberToUpdate, tsMemberToPort);
                 }
             }
             else if (TryGetEIIMember(dMemberToUpdate, out dInterfacedMember) && dInterfacedMember != null)
             {
-                mc = GetMissingCommentsForMemberFromInterface(dMemberToUpdate, dInterfacedMember, isProperty, isMethod);
+                mc = GetMissingCommentsForMemberFromInterface(mc, dMemberToUpdate, dInterfacedMember);
             }
 
             if (tsMemberToPort != null || dInterfacedMember != null)
@@ -315,74 +289,129 @@ namespace ApiDocsSync.Libraries
 
                 if (dMemberToUpdate.Changed)
                 {
-                    ModifiedAPIs.AddIfNotExists(dMemberToUpdate.DocId);
-                    ModifiedFiles.AddIfNotExists(dMemberToUpdate.FilePath);
+                    ModifiedAPIs.Add(dMemberToUpdate.DocId);
+                    ModifiedFiles.Add(dMemberToUpdate.FilePath);
                 }
             }
         }
 
-        private MissingComments GetMissingCommentsForMemberFromInheritDoc(DocsMember dMemberToUpdate, IntelliSenseXmlMember tsMemberToPort, bool isProperty, bool isMethod)
+        private void GetMissingCommentsForTypeFromInheritDoc(MissingComments mc, DocsType dTypeToUpdate, IntelliSenseXmlMember tsTypeToPort)
         {
-            MissingComments mc = default;
+            if (Config.PreserveInheritDocTag)
+            {
+                // Creates the inheritdoc XElement if it does not exist
+                dTypeToUpdate.InheritDocCref = tsTypeToPort.InheritDocCref;
+                // No copying any inherited documentation, the inheritdoc tag takes care of it in MS Docs
+                return;
+            }
+
+            // See if there is an inheritdoc cref indicating the exact member to use for docs
+            if (!string.IsNullOrEmpty(tsTypeToPort.InheritDocCref) &&
+                IntelliSenseXmlComments.Members.TryGetValue(tsTypeToPort.InheritDocCref,
+                    out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
+            {
+                mc.Summary = tsInheritedMember.Summary;
+                mc.Returns = tsInheritedMember.Returns;
+                mc.Remarks = tsInheritedMember.Remarks;
+                
+            }
+            // Look for the base type from which this one inherits
+            else if (DocsComments.Types.TryGetValue($"T:{dTypeToUpdate.BaseTypeName}", out DocsType? dBaseType) &&
+                     dBaseType != null)
+            {
+                // If the base type is undocumented, try to document it
+                // so there's something to extract for the child type
+                if (dBaseType.IsUndocumented)
+                {
+                    PortMissingCommentsForType(dBaseType);
+                }
+
+                mc.Summary = dBaseType.Summary;
+                mc.Returns = dBaseType.Returns;
+                mc.Remarks = dBaseType.Remarks;
+            }
+        }
+
+        private void GetMissingCommentsForMemberFromInheritDoc(MissingComments mc, DocsMember dMemberToUpdate, IntelliSenseXmlMember tsMemberToPort)
+        {
+            if (Config.PreserveInheritDocTag)
+            {
+                // Creates the inheritdoc XElement if it does not exist
+                dMemberToUpdate.InheritDocCref = tsMemberToPort.InheritDocCref;
+                // No copying any inherited documentation, the inheritdoc tag takes care of it in MS Docs
+                return;
+            }
 
             // See if there is an inheritdoc cref indicating the exact member to use for docs
             if (!string.IsNullOrEmpty(tsMemberToPort.InheritDocCref) &&
-                IntelliSenseXmlComments.Members.TryGetValue(tsMemberToPort.InheritDocCref, out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
+                IntelliSenseXmlComments.Members.TryGetValue(tsMemberToPort.InheritDocCref,
+                    out IntelliSenseXmlMember? tsInheritedMember) && tsInheritedMember != null)
             {
                 mc.Summary = tsInheritedMember.Summary;
-                mc.Returns = isMethod ? tsInheritedMember.Returns : null;
                 mc.Remarks = tsInheritedMember.Remarks;
-                mc.Property = isProperty ? GetPropertyValue(tsInheritedMember.Value, tsInheritedMember.Returns) : null;
+
+                if (dMemberToUpdate.IsMethod)
+                {
+                    mc.Returns = tsInheritedMember.Returns;
+                }
+                else if (dMemberToUpdate.IsProperty)
+                {
+                    mc.Property = GetPropertyValue(tsInheritedMember.Value, tsInheritedMember.Returns);
+                }
             }
             // Look for the base type and find the member from which this one inherits
-            else if (DocsComments.Types.TryGetValue($"T:{dMemberToUpdate.ParentType.DocId}", out DocsType? dBaseType) && dBaseType != null)
+            else if (DocsComments.Types.TryGetValue($"T:{dMemberToUpdate.ParentType.BaseTypeName}", out DocsType? dBaseType) &&
+                     dBaseType != null)
             {
-                // Get all the members of the base type
-                var membersOfParentType = DocsComments.Members.Where(kvp => kvp.Value.ParentType.FullName == dBaseType.FullName);
-                if (membersOfParentType.Any())
+                // Get all the members of the parent type
+
+                DocsMember? dBaseMember = null;
+                foreach ((string _, DocsMember ptMember) in DocsComments.Members.Where(kvp => kvp.Value.ParentType.FullName == dBaseType.FullName))
                 {
-                    DocsMember? dBaseMember = null;
-                    string unprefixedDocId = dMemberToUpdate.DocId[2..];
-                    string baseTypeDocId = dBaseType.DocId[2..];
-                    foreach (var kvp in membersOfParentType)
+                    string currentDocId = ptMember.DocIdUnprefixed;
+                    // Replace the prefix of the base type member API with the prefix of the member API to document
+                    string replacedDocId = currentDocId.Replace(dBaseType.DocIdUnprefixed, dMemberToUpdate.DocIdUnprefixed);
+                    if (replacedDocId == dMemberToUpdate.DocIdUnprefixed)
                     {
-                        string currentDocId = kvp.Value.DocId[2..];
-                        // Replace the prefix of the base type member API with the prefix of the member API to document
-                        string replacedDocId = currentDocId.Replace(baseTypeDocId, unprefixedDocId);
-                        if (replacedDocId == unprefixedDocId)
-                        {
-                            dBaseMember = kvp.Value;
-                            break;
-                        }
+                        dBaseMember = ptMember;
+                        break;
+                    }
+                }
+
+                if (dBaseMember != null)
+                {
+                    // If the base member is undocumented, try to document it
+                    // so there's something to extract for the child member
+                    if (dBaseMember.IsUndocumented)
+                    {
+                        PortMissingCommentsForMember(dBaseMember);
                     }
 
-                    if (dBaseMember != null)
+                    mc.Summary = dBaseMember.Summary;
+                    mc.Remarks = dBaseMember.Remarks;
+                    if (dMemberToUpdate.IsMethod)
                     {
-                        // If the base member is undocumented, try to document it
-                        // so there's something to extract for the child member
-                        if (dBaseMember.IsUndocumented)
-                        {
-                            PortMissingCommentsForMember(dBaseMember);
-                        }
-
-                        mc.Summary = dBaseMember.Summary;
-                        mc.Returns = isMethod ? dBaseMember.Returns : null;
-                        mc.Remarks = dBaseMember.Remarks;
-                        mc.Property = isProperty ? GetPropertyValue(dBaseMember.Value, dBaseMember.Returns) : null;
+                        mc.Returns = dBaseMember.Returns;
+                    }
+                    else  if (dMemberToUpdate.IsProperty)
+                    {
+                        mc.Property = GetPropertyValue(dBaseMember.Value, dBaseMember.Returns);
                     }
                 }
             }
-
-            return mc;
         }
 
-        private MissingComments GetMissingCommentsForMemberFromInterface(DocsMember dMemberToUpdate, DocsMember dInterfacedMember, bool isProperty, bool isMethod)
+        private MissingComments GetMissingCommentsForMemberFromInterface(MissingComments mc, DocsMember dMemberToUpdate, DocsMember dInterfacedMember)
         {
-            MissingComments mc = default;
-
             mc.Summary = dInterfacedMember.Summary;
-            mc.Returns = isMethod ? dInterfacedMember.Returns : null;
-            mc.Property = isProperty ? GetPropertyValue(dInterfacedMember.Value, dInterfacedMember.Returns) : null;
+            if (dMemberToUpdate.IsMethod)
+            {
+                mc.Returns = dInterfacedMember.Returns;
+            }
+            else if (dMemberToUpdate.IsProperty)
+            {
+                mc.Property = GetPropertyValue(dInterfacedMember.Value, dInterfacedMember.Returns);
+            }
 
             if (!dInterfacedMember.Remarks.IsDocsEmpty())
             {
@@ -423,7 +452,7 @@ namespace ApiDocsSync.Libraries
         }
 
         // Issue: sometimes properties have their TS string in Value, sometimes in Returns
-        private string? GetPropertyValue(string value, string returns)
+        private static string GetPropertyValue(string value, string returns)
         {
             string? property = null;
             if (!value.IsDocsEmpty())
@@ -434,7 +463,7 @@ namespace ApiDocsSync.Libraries
             {
                 property = returns;
             }
-            return property;
+            return property ?? Configuration.ToBeAdded;
         }
 
         // Attempts to obtain the member of the implemented interface.
@@ -537,13 +566,13 @@ namespace ApiDocsSync.Libraries
                             if (tsMemberToPort.Params.Count() == 0)
                             {
                                 msg = $"There were no IntelliSense xml comments for param {dParam.Name} in Member DocId {dApiToUpdate.DocId}";
-                                ProblematicAPIs.AddIfNotExists(msg);
+                                ProblematicAPIs.Add(msg);
                                 Log.Warning(msg);
                             }
                             else if (tsMemberToPort.Params.Count() != dApiToUpdate.Params.Count())
                             {
                                 msg = $"The total number of params does not match between IntelliSense and Docs members {dApiToUpdate.DocId}";
-                                ProblematicAPIs.AddIfNotExists(msg);
+                                ProblematicAPIs.Add(msg);
                                 Log.Warning(msg);
                             }
                             else
@@ -552,7 +581,7 @@ namespace ApiDocsSync.Libraries
                                 if (newTsParam == null)
                                 {
                                     msg = $"The param {dParam.Name} was not found in IntelliSense xml for {dApiToUpdate.DocId}";
-                                    ProblematicAPIs.AddIfNotExists(msg);
+                                    ProblematicAPIs.Add(msg);
                                     Log.Error(msg);
                                 }
                                 else
@@ -663,13 +692,13 @@ namespace ApiDocsSync.Libraries
                             if (tsMemberToPort.TypeParams.Count() == 0)
                             {
                                 msg = $"There were no IntelliSense xml comments for typeparam {dTypeParam.Name} in Member DocId {dApiToUpdate.DocId}";
-                                ProblematicAPIs.AddIfNotExists(msg);
+                                ProblematicAPIs.Add(msg);
                                 Log.Warning(msg);
                             }
                             else if (tsMemberToPort.TypeParams.Count() != dApiToUpdate.TypeParams.Count())
                             {
                                 msg = $"The total number of typeparams does not match between IntelliSense and Docs members {dApiToUpdate.DocId}";
-                                ProblematicAPIs.AddIfNotExists(msg);
+                                ProblematicAPIs.Add(msg);
                                 Log.Warning(msg);
                             }
                             else
@@ -678,7 +707,7 @@ namespace ApiDocsSync.Libraries
                                 if (newTsTypeParam == null)
                                 {
                                     msg = $"The typeparam {dTypeParam.Name} was not found in IntelliSense xml for {dApiToUpdate.DocId}";
-                                    ProblematicAPIs.AddIfNotExists(msg);
+                                    ProblematicAPIs.Add(msg);
                                     Log.Error(msg);
                                 }
                                 else
@@ -811,7 +840,7 @@ namespace ApiDocsSync.Libraries
                     // First time adding the cref
                     if (dException == null && Config.PortExceptionsNew)
                     {
-                        AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
+                        AddedExceptions.Add($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
                         string text = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(tsException.XEException));
                         dException = dMemberToUpdate.AddException(tsException.Cref, text);
                         created = true;
@@ -823,7 +852,7 @@ namespace ApiDocsSync.Libraries
                         string value = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(formattedException));
                         if (!dException.WordCountCollidesAboveThreshold(value, Config.ExceptionCollisionThreshold))
                         {
-                            AddedExceptions.AddIfNotExists($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
+                            AddedExceptions.Add($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
                             dException.AppendException(value);
                             created = true;
                         }
@@ -1138,7 +1167,7 @@ namespace ApiDocsSync.Libraries
                         memberSummaries++;
                     }
 
-                    if (member.MemberType == "Property")
+                    if (member.IsProperty)
                     {
                         if (member.Value == Configuration.ToBeAdded)
                         {
@@ -1148,7 +1177,7 @@ namespace ApiDocsSync.Libraries
                             memberValues++;
                         }
                     }
-                    else if (member.MemberType == "Method")
+                    else if (member.IsMethod)
                     {
                         if (member.Returns == Configuration.ToBeAdded)
                         {
@@ -1205,13 +1234,21 @@ namespace ApiDocsSync.Libraries
             }
         }
 
-        private struct MissingComments
+        private class MissingComments
         {
-            internal string? Summary;
-            internal string? Returns;
-            internal string? Remarks;
-            internal string? Property;
-            internal bool IsEII;
+            internal string Summary { get; set; }
+            internal string Returns { get; set; }
+            internal string Remarks { get; set; }
+            internal string Property { get; set; }
+            internal bool IsEII { get; set; }
+
+            internal MissingComments()
+            {
+                Summary = Configuration.ToBeAdded;
+                Returns = Configuration.ToBeAdded;
+                Remarks = Configuration.ToBeAdded;
+                Property = Configuration.ToBeAdded;
+            }
         }
     }
 }

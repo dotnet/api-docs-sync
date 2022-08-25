@@ -18,7 +18,6 @@ namespace ApiDocsSync.Libraries.Docs
         private string? _name;
         private string? _fullName;
         private string? _namespace;
-        private string? _docId;
         private string? _baseTypeName;
         private List<string>? _interfaceNames;
         private List<DocsAttribute>? _attributes;
@@ -111,24 +110,6 @@ namespace ApiDocsSync.Libraries.Docs
             }
         }
 
-        public override string DocId
-        {
-            get
-            {
-                if (_docId == null)
-                {
-                    DocsTypeSignature? dts = TypeSignatures.FirstOrDefault(x => x.Language == "DocId");
-                    if (dts == null)
-                    {
-                        string message = $"DocId TypeSignature not found for FullName";
-                        throw new Exception($"DocId TypeSignature not found for FullName");
-                    }
-                    _docId = dts.Value.DocIdEscaped();
-                }
-                return _docId;
-            }
-        }
-
         public XElement? Base
         {
             get
@@ -167,7 +148,7 @@ namespace ApiDocsSync.Libraries.Docs
             {
                 if (Interfaces == null)
                 {
-                    _interfaceNames = new();
+                    _interfaceNames = new List<string>();
                 }
                 else if (_interfaceNames == null)
                 {
@@ -262,6 +243,16 @@ namespace ApiDocsSync.Libraries.Docs
         public override string ToString()
         {
             return FullName;
+        }
+
+        protected override string GetApiSignatureDocId()
+        {
+            DocsTypeSignature? dts = TypeSignatures.FirstOrDefault(x => x.Language == "DocId");
+            if (dts == null)
+            {
+                throw new FormatException($"DocId TypeSignature not found for {FullName}");
+            }
+            return dts.Value;
         }
     }
 }

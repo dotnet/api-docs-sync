@@ -13,17 +13,7 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
         private readonly XElement XEMember;
 
         private XElement? _xInheritDoc = null;
-        private XElement? XInheritDoc
-        {
-            get
-            {
-                if (_xInheritDoc == null)
-                {
-                    _xInheritDoc = XEMember.Elements("inheritdoc").FirstOrDefault();
-                }
-                return _xInheritDoc;
-            }
-        }
+        private XElement? XInheritDoc => _xInheritDoc ??= XEMember.Elements("inheritdoc").FirstOrDefault();
 
         public string Assembly { get; private set; }
 
@@ -40,7 +30,7 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
                         XAttribute? xInheritDocCref = XInheritDoc.Attribute("cref");
                         if (xInheritDocCref != null)
                         {
-                            _inheritDocCref = xInheritDocCref.Value.DocIdEscaped();
+                            _inheritDocCref = xInheritDocCref.Value.AsEscapedDocId();
                         }
                     }
                 }
@@ -48,18 +38,9 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
             }
         }
 
-        private bool? _inheritDoc = null;
         public bool InheritDoc
         {
-            get
-            {
-                if (!_inheritDoc.HasValue)
-                {
-                    _inheritDoc = XInheritDoc != null;
-
-                }
-                return _inheritDoc.Value;
-            }
+            get => XInheritDoc != null;
         }
 
         private string _namespace = string.Empty;
@@ -81,21 +62,11 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
         }
 
         private string? _name;
+
         /// <summary>
         /// The API DocId.
         /// </summary>
-        public string Name
-        {
-            get
-            {
-                if (_name == null)
-                {
-                    // The member name is a DocId
-                    _name = XmlHelper.GetAttributeValue(XEMember, "name").DocIdEscaped();
-                }
-                return _name;
-            }
-        }
+        public string Name => _name ??= XmlHelper.GetAttributeValue(XEMember, "name").AsEscapedDocId();
 
         private List<IntelliSenseXmlParam>? _params;
         public List<IntelliSenseXmlParam> Params

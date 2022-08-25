@@ -38,6 +38,7 @@ namespace ApiDocsSync.Libraries
             PortTypeRemarks,
             PortTypeSummaries,
             PortTypeTypeParams, // TypeParams of a Type
+            PreserveInheritDocTag,
             PrintSummaryDetails,
             PrintUndoc,
             Save,
@@ -98,6 +99,7 @@ namespace ApiDocsSync.Libraries
         /// TypeParams of a Type.
         /// </summary>
         public bool PortTypeTypeParams { get; set; } = true;
+        public bool PreserveInheritDocTag { get; set; } = true;
         public bool PrintSummaryDetails { get; set; } = false;
         public bool PrintUndoc { get; set; } = false;
         public bool Save { get; set; } = false;
@@ -412,6 +414,10 @@ namespace ApiDocsSync.Libraries
                                     mode = Mode.PortTypeTypeParams;
                                     break;
 
+                                case "-PRESERVEINHERITDOCTAG":
+                                    mode = Mode.PreserveInheritDocTag;
+                                    break;
+
                                 case "-PRINTSUMMARYDETAILS":
                                     mode = Mode.PrintSummaryDetails;
                                     break;
@@ -551,6 +557,13 @@ namespace ApiDocsSync.Libraries
                             break;
                         }
 
+                    case Mode.PreserveInheritDocTag:
+                        {
+                            config.PreserveInheritDocTag = ParseOrExit(arg, "Preserve inheritdoc tag");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
                     case Mode.PrintSummaryDetails:
                         {
                             config.PrintSummaryDetails = ParseOrExit(arg, "Print summary details");
@@ -602,6 +615,12 @@ namespace ApiDocsSync.Libraries
             if (config.IncludedAssemblies.Count == 0)
             {
                 Log.ErrorAndExit($"You must specify at least one assembly with {nameof(IncludedAssemblies)}.");
+            }
+
+            if (!config.PreserveInheritDocTag)
+            {
+                // TODO
+                throw new NotSupportedException("Setting preverve inheritdoc tag to false is not yet supported.");
             }
 
             return config;

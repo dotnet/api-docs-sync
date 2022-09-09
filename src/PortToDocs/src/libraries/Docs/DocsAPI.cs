@@ -37,7 +37,7 @@ namespace ApiDocsSync.Libraries.Docs
         public abstract bool Changed { get; set; }
         public string FilePath { get; set; } = string.Empty;
 
-        public string DocId => _docId ??= GetApiSignatureDocId().AsEscapedDocId();
+        public string DocId => _docId ??= GetApiSignatureDocId();
 
         public string DocIdUnprefixed => _docIdUnprefixed ??= DocId[2..];
 
@@ -148,7 +148,7 @@ namespace ApiDocsSync.Libraries.Docs
                 {
                     if (Docs != null)
                     {
-                        _seeAlsoCrefs = Docs.Elements("seealso").Select(x => XmlHelper.GetAttributeValue(x, "cref").AsEscapedDocId()).ToList();
+                        _seeAlsoCrefs = Docs.Elements("seealso").Select(x => XmlHelper.GetAttributeValue(x, "cref")).ToList();
                     }
                     else
                     {
@@ -167,7 +167,7 @@ namespace ApiDocsSync.Libraries.Docs
                 {
                     if (Docs != null)
                     {
-                        _altMemberCrefs = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref").AsEscapedDocId()).ToList();
+                        _altMemberCrefs = Docs.Elements("altmember").Select(x => XmlHelper.GetAttributeValue(x, "cref")).ToList();
                     }
                     else
                     {
@@ -221,7 +221,7 @@ namespace ApiDocsSync.Libraries.Docs
                         XAttribute? xInheritDocCref = XInheritDoc.Attribute("cref");
                         if (xInheritDocCref != null)
                         {
-                            _inheritDocCref = xInheritDocCref.Value.AsEscapedDocId();
+                            _inheritDocCref = xInheritDocCref.Value;
                         }
                     }
                 }
@@ -238,7 +238,7 @@ namespace ApiDocsSync.Libraries.Docs
                 // Non-null to add
                 else
                 {
-                    _inheritDocCref = value.AsEscapedDocId(); // Can be empty string too
+                    _inheritDocCref = value; // Can be empty string too
                     if (XInheritDoc == null) // Not found in Docs
                     {
                         XInheritDoc = new XElement("inheritdoc");

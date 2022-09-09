@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -212,6 +213,18 @@ namespace ApiDocsSync.Libraries
                     Remarks = tsActualTypeToPort.Remarks
                 };
 
+                // delegates
+                foreach (IntelliSenseXmlParam tsParam in tsTypeToPort.Params)
+                {
+                    mc.Params.Add(tsParam.Name, tsParam.Value);
+                }
+
+                // type typeparams
+                foreach (IntelliSenseXmlTypeParam tsTypeParam in tsTypeToPort.TypeParams)
+                {
+                    mc.TypeParams.Add(tsTypeParam.Name, tsTypeParam.Value);
+                }
+
                 // Rare case where the base type or interface docs should be used
                 if (tsTypeToPort.InheritDoc)
                 {
@@ -256,6 +269,16 @@ namespace ApiDocsSync.Libraries
                 if (isProperty)
                 {
                     mc.Property = GetPropertyValue(tsMemberToPort.Value, tsMemberToPort.Returns);
+                }
+
+                foreach (IntelliSenseXmlParam tsParam in tsMemberToPort.Params)
+                {
+                    mc.Params.Add(tsParam.Name, tsParam.Value);
+                }
+
+                foreach (IntelliSenseXmlTypeParam tsTypeParam in tsMemberToPort.TypeParams)
+                {
+                    mc.TypeParams.Add(tsTypeParam.Name, tsTypeParam.Value);
                 }
 
                 // Rare case where the base type or interface docs should be used,
@@ -313,7 +336,18 @@ namespace ApiDocsSync.Libraries
                 mc.Summary = tsInheritedMember.Summary;
                 mc.Returns = tsInheritedMember.Returns;
                 mc.Remarks = tsInheritedMember.Remarks;
-                
+
+                // delegates
+                foreach (IntelliSenseXmlParam tsParam in tsInheritedMember.Params)
+                {
+                    mc.Params.Add(tsParam.Name, tsParam.Value);
+                }
+
+                // type typeparams
+                foreach (IntelliSenseXmlTypeParam tsTypeParam in tsInheritedMember.TypeParams)
+                {
+                    mc.TypeParams.Add(tsTypeParam.Name, tsTypeParam.Value);
+                }
             }
             // Look for the base type from which this one inherits
             else if (DocsComments.Types.TryGetValue($"T:{dTypeToUpdate.BaseTypeName}", out DocsType? dBaseType) &&
@@ -329,6 +363,18 @@ namespace ApiDocsSync.Libraries
                 mc.Summary = dBaseType.Summary;
                 mc.Returns = dBaseType.Returns;
                 mc.Remarks = dBaseType.Remarks;
+
+                // delegates
+                foreach (DocsParam tsParam in dBaseType.Params)
+                {
+                    mc.Params.Add(tsParam.Name, tsParam.Value);
+                }
+
+                // type typeparams
+                foreach (DocsTypeParam tsTypeParam in dBaseType.TypeParams)
+                {
+                    mc.TypeParams.Add(tsTypeParam.Name, tsTypeParam.Value);
+                }
             }
         }
 
@@ -357,6 +403,22 @@ namespace ApiDocsSync.Libraries
                 else if (dMemberToUpdate.IsProperty)
                 {
                     mc.Property = GetPropertyValue(tsInheritedMember.Value, tsInheritedMember.Returns);
+                }
+
+                foreach (IntelliSenseXmlParam tsParam in tsInheritedMember.Params)
+                {
+                    if (!mc.Params.TryAdd(tsParam.Name, tsParam.Value))
+                    {
+                        mc.Params[tsParam.Name] = tsParam.Value;
+                    }
+                }
+
+                foreach (IntelliSenseXmlTypeParam tsTypeParam in tsInheritedMember.TypeParams)
+                {
+                    if (!mc.TypeParams.TryAdd(tsTypeParam.Name, tsTypeParam.Value))
+                    {
+                        mc.TypeParams[tsTypeParam.Name] = tsTypeParam.Value;
+                    }
                 }
             }
             // Look for the base type and find the member from which this one inherits
@@ -397,6 +459,22 @@ namespace ApiDocsSync.Libraries
                     {
                         mc.Property = GetPropertyValue(dBaseMember.Value, dBaseMember.Returns);
                     }
+
+                    foreach (DocsParam baseParam in dBaseMember.Params)
+                    {
+                        if (!mc.Params.TryAdd(baseParam.Name, baseParam.Value))
+                        {
+                            mc.Params[baseParam.Name] = baseParam.Value;
+                        }
+                    }
+
+                    foreach (DocsTypeParam baseTypeParam in dBaseMember.TypeParams)
+                    {
+                        if (!mc.TypeParams.TryAdd(baseTypeParam.Name, baseTypeParam.Value))
+                        {
+                            mc.TypeParams[baseTypeParam.Name] = baseTypeParam.Value;
+                        }
+                    }
                 }
             }
         }
@@ -413,13 +491,29 @@ namespace ApiDocsSync.Libraries
                 mc.Property = GetPropertyValue(dInterfacedMember.Value, dInterfacedMember.Returns);
             }
 
+            foreach (DocsParam interfaceParam in dInterfacedMember.Params)
+            {
+                if (!mc.Params.TryAdd(interfaceParam.Name, interfaceParam.Value))
+                {
+                    mc.Params[interfaceParam.Name] = interfaceParam.Value;
+                }
+            }
+
+            foreach (DocsTypeParam interfaceTypeParam in dInterfacedMember.TypeParams)
+            {
+                if (!mc.TypeParams.TryAdd(interfaceTypeParam.Name, interfaceTypeParam.Value))
+                {
+                    mc.TypeParams[interfaceTypeParam.Name] = interfaceTypeParam.Value;
+                }
+            }
+
             if (!dInterfacedMember.Remarks.IsDocsEmpty())
             {
                 // Only attempt to port if the member name is the same as the interfaced member docid without prefix
-                if (dMemberToUpdate.MemberName == dInterfacedMember.DocId[2..])
+                if (dMemberToUpdate.MemberName == dInterfacedMember.DocIdUnprefixed)
                 {
-                    string dMemberToUpdateTypeDocIdNoPrefix = dMemberToUpdate.ParentType.DocId[2..];
-                    string interfacedMemberTypeDocIdNoPrefix = dInterfacedMember.ParentType.DocId[2..];
+                    string dMemberToUpdateTypeDocIdNoPrefix = dMemberToUpdate.ParentType.DocIdUnprefixed;
+                    string interfacedMemberTypeDocIdNoPrefix = dInterfacedMember.ParentType.DocIdUnprefixed;
 
                     // Special text for EIIs in Remarks
                     string eiiMessage = $"This member is an explicit interface member implementation. It can be used only when the <xref:{dMemberToUpdateTypeDocIdNoPrefix}> instance is cast to an <xref:{interfacedMemberTypeDocIdNoPrefix}> interface.";
@@ -840,7 +934,7 @@ namespace ApiDocsSync.Libraries
                     // First time adding the cref
                     if (dException == null && Config.PortExceptionsNew)
                     {
-                        AddedExceptions.Add($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
+                        AddedExceptions.Add($"Exception=[{tsException.Cref.AsEscapedDocId()}] in Member=[{dMemberToUpdate.DocId}]");
                         string text = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(tsException.XEException));
                         dException = dMemberToUpdate.AddException(tsException.Cref, text);
                         created = true;
@@ -852,7 +946,7 @@ namespace ApiDocsSync.Libraries
                         string value = XmlHelper.ReplaceExceptionPatterns(XmlHelper.GetNodesInPlainText(formattedException));
                         if (!dException.WordCountCollidesAboveThreshold(value, Config.ExceptionCollisionThreshold))
                         {
-                            AddedExceptions.Add($"Exception=[{tsException.Cref}] in Member=[{dMemberToUpdate.DocId}]");
+                            AddedExceptions.Add($"Exception=[{tsException.Cref.AsEscapedDocId()}] in Member=[{dMemberToUpdate.DocId}]");
                             dException.AppendException(value);
                             created = true;
                         }
@@ -886,7 +980,7 @@ namespace ApiDocsSync.Libraries
             int option = -1;
             while (option == -1)
             {
-                Log.Error($"Problem in param '{oldDParam.Name}' in member '{tsMember.Name}' in file '{oldDParam.ParentAPI.FilePath}'");
+                Log.Error($"Problem in param '{oldDParam.Name}' in member '{tsMember.Name.AsEscapedDocId()}' in file '{oldDParam.ParentAPI.FilePath}'");
                 Log.Error($"The param probably exists in code, but the exact name was not found in Docs. What would you like to do?");
                 Log.Warning("    0 - Exit program.");
                 Log.Info("    1 - Select the correct IntelliSense xml param from the existing ones.");
@@ -915,7 +1009,7 @@ namespace ApiDocsSync.Libraries
                                 int paramSelection = -1;
                                 while (paramSelection == -1)
                                 {
-                                    Log.Info($"IntelliSense xml params found in member '{tsMember.Name}':");
+                                    Log.Info($"IntelliSense xml params found in member '{tsMember.Name.AsEscapedDocId()}':");
                                     Log.Warning("    0 - Exit program.");
                                     Log.Info("    1 - Ignore this param and continue.");
                                     int paramCounter = 2;
@@ -991,7 +1085,7 @@ namespace ApiDocsSync.Libraries
             int option = -1;
             while (option == -1)
             {
-                Log.Error($"Problem in typeparam '{oldDTypeParam.Name}' in member '{tsMember.Name}' in file '{oldDTypeParam.ParentAPI.FilePath}'");
+                Log.Error($"Problem in typeparam '{oldDTypeParam.Name}' in member '{tsMember.Name.AsEscapedDocId()}' in file '{oldDTypeParam.ParentAPI.FilePath}'");
                 Log.Error($"The typeparam probably exists in code, but the exact name was not found in Docs. What would you like to do?");
                 Log.Warning("    0 - Exit program.");
                 Log.Info("    1 - Select the correct IntelliSense xml typeparam from the existing ones.");
@@ -1020,7 +1114,7 @@ namespace ApiDocsSync.Libraries
                                 int typeParamSelection = -1;
                                 while (typeParamSelection == -1)
                                 {
-                                    Log.Info($"IntelliSense xml typeparams found in member '{tsMember.Name}':");
+                                    Log.Info($"IntelliSense xml typeparams found in member '{tsMember.Name.AsEscapedDocId()}':");
                                     Log.Warning("    0 - Exit program.");
                                     Log.Info("    1 - Ignore this typeparam and continue.");
                                     int typeParamCounter = 2;
@@ -1216,7 +1310,7 @@ namespace ApiDocsSync.Libraries
                         {
                             TryPrintMember(ref undocMember, member.DocId);
 
-                            Log.Error($"        Member Exception: {exception.Cref}: {exception.Value}");
+                            Log.Error($"        Member Exception: {exception.Cref.AsEscapedDocId()}: {exception.Value}");
                             exceptions++;
                         }
                     }
@@ -1240,6 +1334,8 @@ namespace ApiDocsSync.Libraries
             internal string Returns { get; set; }
             internal string Remarks { get; set; }
             internal string Property { get; set; }
+            internal Dictionary<string, string> Params { get; }
+            internal Dictionary<string, string> TypeParams { get; }
             internal bool IsEII { get; set; }
 
             internal MissingComments()
@@ -1248,6 +1344,8 @@ namespace ApiDocsSync.Libraries
                 Returns = Configuration.ToBeAdded;
                 Remarks = Configuration.ToBeAdded;
                 Property = Configuration.ToBeAdded;
+                Params = new Dictionary<string, string>();
+                TypeParams = new Dictionary<string, string>();
             }
         }
     }

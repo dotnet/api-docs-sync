@@ -16,7 +16,7 @@ namespace ApiDocsSync.Libraries.Docs
             get; private set;
         }
 
-        public string Cref => XmlHelper.GetAttributeValue(XEException, "cref").AsEscapedDocId();
+        public string Cref => XmlHelper.GetAttributeValue(XEException, "cref");
 
         public string Value
         {

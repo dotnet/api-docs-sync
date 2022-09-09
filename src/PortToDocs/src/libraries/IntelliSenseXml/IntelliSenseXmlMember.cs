@@ -30,7 +30,7 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
                         XAttribute? xInheritDocCref = XInheritDoc.Attribute("cref");
                         if (xInheritDocCref != null)
                         {
-                            _inheritDocCref = xInheritDocCref.Value.AsEscapedDocId();
+                            _inheritDocCref = xInheritDocCref.Value;
                         }
                     }
                 }
@@ -66,7 +66,7 @@ namespace ApiDocsSync.Libraries.IntelliSenseXml
         /// <summary>
         /// The API DocId.
         /// </summary>
-        public string Name => _name ??= XmlHelper.GetAttributeValue(XEMember, "name").AsEscapedDocId();
+        public string Name => _name ??= XmlHelper.GetAttributeValue(XEMember, "name");
 
         private List<IntelliSenseXmlParam>? _params;
         public List<IntelliSenseXmlParam> Params

@@ -30,4 +30,10 @@
     <ProjectReference Include="..\src\libraries\libraries.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(MSBuildSDKsPath)\..\NuGet.Frameworks.dll"
+          DestinationFolder="$(OutputPath)"
+          ContinueOnError="false" />
+  </Target>
+
 </Project>

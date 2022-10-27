@@ -8,6 +8,7 @@ namespace ApiDocsSync.Libraries.Tests
 {
     internal class PortToTripleSlashTestData : TestData
     {
+        private const string BinLogFileName = "output.binlog";
         private const string SourceOriginal = "SourceOriginal.cs";
         private const string SourceExpected = "SourceExpected.cs";
         private const string ProjectDirName = "Project";
@@ -15,6 +16,7 @@ namespace ApiDocsSync.Libraries.Tests
 
         private DirectoryInfo ProjectDir { get; set; }
         internal string ProjectFilePath { get; set; }
+        internal string BinLogPath { get; set; }
 
         internal PortToTripleSlashTestData(
             TestDirectory tempDir,
@@ -51,6 +53,8 @@ namespace ApiDocsSync.Libraries.Tests
             string originCsproj = Path.Combine(testDataPath, $"{assemblyName}.csproj");
             ProjectFilePath = Path.Combine(ProjectDir.FullName, $"{assemblyName}.csproj");
             File.Copy(originCsproj, ProjectFilePath);
+
+            BinLogPath = Path.Combine(ProjectDir.FullName, BinLogFileName);
         }
     }
 }

@@ -223,8 +223,8 @@ Options:
 
     -h | -Help              no arguments        Displays this help message. If used, all other arguments are ignored and the program exits.
 
-    -BinLog                 bool                Default is false (binlog file generation is disabled).
-                                                When set to true, will output a diagnostics binlog file.
+    -BinLogPath             string              Default is null (binlog file generation is disabled).
+                                                When set to a valid path, will output a diagnostics binlog to that location.
 
     -ExcludedAssemblies     string list         Default is empty (does not ignore any assemblies/namespaces).
                                                 Comma separated list (no spaces) of specific .NET assemblies/namespaces to ignore.
@@ -250,6 +250,9 @@ Options:
                                                 Comma separated list (no spaces) of specific types to include.
                                                     Usage example:
                                                         -IncludedTypes FileStream,DirectoryInfo
+
+    -IsMono                 bool                Default is false.
+                                                When set to true, the main project passed with -CsProj is assumed to be a mono project.
 
     -SkipInterfaceImplementations       bool    Default is false (includes interface implementations).
                                                 Whether you want the original interface documentation to be considered to fill the

@@ -13,6 +13,7 @@ namespace ApiDocsSync.Libraries.Docs
         public abstract bool Changed { get; set; }
         public abstract string FilePath { get; set; }
         public abstract string DocId { get; }
+        public abstract string DocIdUnprefixed { get; }
         public abstract XElement Docs { get; }
         public abstract List<DocsParameter> Parameters { get; }
         public abstract List<DocsParam> Params { get; }

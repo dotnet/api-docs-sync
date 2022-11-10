@@ -66,9 +66,9 @@ namespace ApiDocsSync.Libraries.Tests
             await c.Loader.LoadMainProjectAsync(c.CsProj, c.IsMono, cts.Token);
 
             ToTripleSlashPorter porter = new(c);
-            porter.CollectFiles();
-            await porter.MatchSymbolsAsync(throwOnSymbolsNotFound: true, cts.Token);
-            await porter.PortAsync(throwOnSymbolsNotFound: true, cts.Token);
+            porter.TryCollectFiles();
+            await porter.MatchSymbolsAsync(cts.Token);
+            await porter.PortAsync(cts.Token);
 
             Verify(testData);
         }

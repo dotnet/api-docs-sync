@@ -121,7 +121,7 @@ namespace ApiDocsSync.Libraries
             return null;
         }
 
-        private async Task<ResolvedProject?> TryGetResolvedProjectAsync(ResolvedWorkspace resolvedWorkspace, string projectPath,  CancellationToken cancellationToken)
+        private async Task<ResolvedProject?> TryGetResolvedProjectAsync(ResolvedWorkspace resolvedWorkspace, string projectPath, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -135,11 +135,10 @@ namespace ApiDocsSync.Libraries
                 {
                     Log.Info($"Found the project in this workspace. Attempting to get compilation...");
                     Compilation? compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
                     if (compilation != null)
                     {
                         Log.Info($"Found the compilation for this project. Creating the resolved project...");
-                        resolvedProject = new ResolvedProject(resolvedWorkspace, project, compilation);
+                        resolvedProject = new ResolvedProject(resolvedWorkspace, projectPath, project, compilation);
                         resolvedWorkspace.ResolvedProjects.Add(resolvedProject);
                     }
                     else
@@ -176,47 +175,6 @@ namespace ApiDocsSync.Libraries
                     throw new Exception(message);
                 }
             }
-        }
-    }
-
-    public class ResolvedWorkspace
-    {
-        public MSBuildWorkspace Workspace { get; private set; }
-        public List<ResolvedProject> ResolvedProjects { get; }
-        public ResolvedWorkspace(MSBuildWorkspace workspace)
-        {
-            Workspace = workspace;
-            ResolvedProjects = new List<ResolvedProject>();
-        }
-    }
-
-    public class ResolvedProject
-    {
-        public ResolvedWorkspace ResolvedWorkspace { get; private set; }
-        public Project Project { get; private set; }
-        public Compilation Compilation { get; private set; }
-        public ResolvedProject(ResolvedWorkspace resolvedWorkspace, Project project, Compilation compilation)
-        {
-            ResolvedWorkspace = resolvedWorkspace;
-            Project = project;
-            Compilation = compilation;
-        }
-    }
-
-    public class ResolvedLocation
-    {
-        public string TypeName { get; private set; }
-        public ResolvedProject ResolvedProject { get; private set; }
-        public Location Location { get; private set; }
-        public SyntaxTree Tree { get; set; }
-        public SemanticModel Model { get; set; }
-        public ResolvedLocation(string typeName, ResolvedProject resolvedProject, Location location, SyntaxTree tree)
-        {
-            TypeName = typeName;
-            ResolvedProject = resolvedProject;
-            Location = location;
-            Tree = tree;
-            Model = resolvedProject.Compilation.GetSemanticModel(Tree);
         }
     }
 }

@@ -12,7 +12,6 @@ namespace ApiDocsSync.Libraries.Docs
     {
         private string? _memberName;
         private List<DocsMemberSignature>? _memberSignatures;
-        private string? _docId;
         private List<DocsException>? _exceptions;
 
         public DocsMember(string filePath, DocsType parentType, XElement xeMember)
@@ -52,25 +51,6 @@ namespace ApiDocsSync.Libraries.Docs
                     _memberSignatures = XERoot.Elements("MemberSignature").Select(x => new DocsMemberSignature(x)).ToList();
                 }
                 return _memberSignatures;
-            }
-        }
-
-        public override string DocId
-        {
-            get
-            {
-                if (_docId == null)
-                {
-                    _docId = string.Empty;
-                    DocsMemberSignature? ms = MemberSignatures.FirstOrDefault(x => x.Language == "DocId");
-                    if (ms == null)
-                    {
-                        string message = string.Format("Could not find a DocId MemberSignature for '{0}'", MemberName);
-                        throw new Exception(message);
-                    }
-                    _docId = ms.Value.DocIdEscaped();
-                }
-                return _docId;
             }
         }
 
@@ -198,6 +178,16 @@ namespace ApiDocsSync.Libraries.Docs
             Docs.Add(exception);
             Changed = true;
             return new DocsException(this, exception);
+        }
+
+        protected override string GetApiSignatureDocId()
+        {
+            DocsMemberSignature? dts = MemberSignatures.FirstOrDefault(x => x.Language == "DocId");
+            if (dts == null)
+            {
+                throw new FormatException($"DocId TypeSignature not found for {MemberName}");
+            }
+            return dts.Value;
         }
     }
 }

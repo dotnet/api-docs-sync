@@ -123,6 +123,9 @@ namespace MyNamespace
         /// </remarks>
         public void UndocumentedMethod()
         {
+            // Set MyEvent to a method of the shape of MyDelegate
+            MyEvent = (object sender) => { if (sender is int i) { _otherProperty = i; } }; // Use _otherProperty to remove the unused warning
+            if (MyEvent == null) { } // Use MyEvent to remove the unused warning
         }
 
         /// <summary>This is the MyTypeParamMethod summary.</summary>
@@ -137,11 +140,9 @@ namespace MyNamespace
         }
 
         /// <summary>This is the MyDelegate summary.</summary>
-        /// <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
         /// <param name="sender">This is the sender parameter.</param>
-        /// <param name="e">This is the e parameter.</param>
-        /// <remarks>These are the <see cref="MyNamespace.MyType.MyDelegate{T}" /> remarks. There is a code example, which should be moved to its own examples section:</remarks>
-        /// <example>Here is some text in the examples section. There is an <see cref="MyNamespace.MyType.MyDelegate{T}" /> that should be converted to xml.
+        /// <remarks>These are the <see cref="MyNamespace.MyType.MyDelegate" /> remarks. There is a code example, which should be moved to its own examples section:</remarks>
+        /// <example>Here is some text in the examples section. There is an <see cref="MyNamespace.MyType.MyDelegate" /> that should be converted to xml.
         /// The snippet links below should be inserted in markdown.
         /// <format type="text/markdown"><![CDATA[
         /// [!code-csharp[MyExample#1](~/samples/snippets/example.cs)]
@@ -153,7 +154,7 @@ namespace MyNamespace
         /// <altmember cref="System.Delegate"/>
         /// <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>
         // Original MyDelegate delegate comments with information for maintainers, must stay.
-        public delegate void MyDelegate<T>(object sender, T e);
+        public delegate void MyDelegate(object sender);
 
         /// <summary>This is the MyEvent summary.</summary>
         public event MyDelegate MyEvent;
@@ -164,9 +165,6 @@ namespace MyNamespace
         /// <returns>The added types.</returns>
         /// <remarks>These are the <see cref="MyNamespace.MyType.op_Addition(MyNamespace.MyType,MyNamespace.MyType)" /> remarks. They are in plain xml and should be transferred unmodified.</remarks>
         // Original operator + method comments with information for maintainers, must stay.
-        public static MyType operator +(MyType value1, MyType value2)
-        {
-            return value1;
-        }
+        public static MyType operator +(MyType value1, MyType value2) => value1;
     }
 }

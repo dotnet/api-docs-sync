@@ -69,6 +69,9 @@ namespace MyNamespace
         /// </remarks>
         public void UndocumentedMethod()
         {
+            // Set MyEvent to a method of the shape of MyDelegate
+            MyEvent = (object sender) => { if (sender is int i) { _otherProperty = i; } }; // Use _otherProperty to remove the unused warning
+            if (MyEvent == null) { } // Use MyEvent to remove the unused warning
         }
 
         public void MyTypeParamMethod<T>(int param1)
@@ -76,14 +79,11 @@ namespace MyNamespace
         }
 
         // Original MyDelegate delegate comments with information for maintainers, must stay.
-        public delegate void MyDelegate<T>(object sender, T e);
+        public delegate void MyDelegate(object sender);
 
         public event MyDelegate MyEvent;
 
         // Original operator + method comments with information for maintainers, must stay.
-        public static MyType operator +(MyType value1, MyType value2)
-        {
-            return value1;
-        }
+        public static MyType operator +(MyType value1, MyType value2) => value1;
     }
 }

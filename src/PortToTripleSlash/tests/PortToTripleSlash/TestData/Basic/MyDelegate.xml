@@ -1,12 +1,10 @@
-﻿<Type Name="MyDelegate" FullName="MyNamespace.MyType.MyDelegate`1">
-  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType.MyDelegate`1" />
+﻿<Type Name="MyDelegate" FullName="MyNamespace.MyType.MyDelegate">
+  <TypeSignature Language="DocId" Value="T:MyNamespace.MyType.MyDelegate" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
   <Docs>
     <param name="sender">This is the sender parameter.</param>
-    <param name="e">This is the e parameter.</param>
-    <typeparam name="T">This is the MyDelegate typeparam T.</typeparam>
     <summary>This is the MyDelegate summary.</summary>
     <remarks>
       <format type="text/markdown">
@@ -14,11 +12,11 @@
 
 ## Remarks
 
-These are the <xref:MyNamespace.MyType.MyDelegate`1> remarks. There is a code example, which should be moved to its own examples section:
+These are the <xref:MyNamespace.MyType.MyDelegate> remarks. There is a code example, which should be moved to its own examples section:
 
 ## Examples
 
-Here is some text in the examples section. There is an <xref:MyNamespace.MyType.MyDelegate`1> that should be converted to xml.
+Here is some text in the examples section. There is an <xref:MyNamespace.MyType.MyDelegate> that should be converted to xml.
 
 The snippet links below should be inserted in markdown.
 

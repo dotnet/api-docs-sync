@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../Common/tests/BasePortTests.cs" Link="Common/BasePortTests.cs" />
+    <Compile Include="../../Common/tests/FileTestData.cs" Link="Common/FileTestData.cs" />
+    <Compile Include="../../Common/tests/TestDirectory.cs" Link="Common/TestDirectory.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- All test assets need to get excluded from compilation but still want them to show up in the Solution Explorer. -->
     <Compile Remove="PortToTripleSlash\TestData\Generics\SourceExpected.cs" />
     <Compile Remove="PortToTripleSlash\TestData\Generics\SourceOriginal.cs" />
@@ -39,9 +45,7 @@
 
   <!-- Active issue workaround: https://github.com/dotnet/roslyn/issues/61454 -->
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$([System.IO.Directory]::GetParent($(BundledRuntimeIdentifierGraphFile)))\NuGet.Frameworks.dll"
-          DestinationFolder="$(OutputPath)"
-          ContinueOnError="false" />
+    <Copy SourceFiles="$([System.IO.Directory]::GetParent($(BundledRuntimeIdentifierGraphFile)))\NuGet.Frameworks.dll" DestinationFolder="$(OutputPath)" ContinueOnError="false" />
   </Target>
 
 </Project>

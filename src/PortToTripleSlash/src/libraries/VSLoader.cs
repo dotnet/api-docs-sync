@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using Microsoft.Build.Locator;
 
-namespace ApiDocsSync.Libraries
+namespace ApiDocsSync.PortToTripleSlash
 {
     // Per the documentation: https://docs.microsoft.com/en-us/visualstudio/msbuild/updating-an-existing-application
     // Do not call any of these APIs from the same context where Microsoft.Build APIs are being called.

@@ -29,7 +29,7 @@ root
             exception (0:M)
                 Note: The exception value may contain xml nodes.
 */
-namespace ApiDocsSync.Libraries.IntelliSenseXml
+namespace ApiDocsSync.PortToDocs.IntelliSenseXml
 {
     internal class IntelliSenseXmlCommentsContainer
     {

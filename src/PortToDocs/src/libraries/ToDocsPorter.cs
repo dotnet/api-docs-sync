@@ -3,15 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using ApiDocsSync.Libraries.Docs;
-using ApiDocsSync.Libraries.IntelliSenseXml;
+using ApiDocsSync.PortToDocs.Docs;
+using ApiDocsSync.PortToDocs.IntelliSenseXml;
 
-namespace ApiDocsSync.Libraries
+namespace ApiDocsSync.PortToDocs
 {
     public class ToDocsPorter
     {

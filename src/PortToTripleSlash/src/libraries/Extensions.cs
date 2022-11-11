@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace ApiDocsSync.Libraries
+namespace ApiDocsSync.PortToTripleSlash
 {
     // Provides generic extension methods.
     internal static class Extensions

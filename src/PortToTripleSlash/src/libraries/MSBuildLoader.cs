@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Build.Logging;
 using System.IO;
 
-namespace ApiDocsSync.Libraries
+namespace ApiDocsSync.PortToTripleSlash
 {
     // Per the documentation: https://docs.microsoft.com/en-us/visualstudio/msbuild/updating-an-existing-application
     // Do not call any of these APIs from the same context where MSBuildLocator is being called.

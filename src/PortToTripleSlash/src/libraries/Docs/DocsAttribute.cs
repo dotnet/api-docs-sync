@@ -3,7 +3,7 @@
 
 using System.Xml.Linq;
 
-namespace ApiDocsSync.Libraries.Docs
+namespace ApiDocsSync.PortToTripleSlash.Docs
 {
     internal class DocsAttribute
     {

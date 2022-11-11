@@ -4,10 +4,11 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
+using ApiDocsSync.Tests;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace ApiDocsSync.Libraries.Tests
+namespace ApiDocsSync.PortToDocs.Tests
 {
     public class PortToDocs_Strings_Tests : BasePortTests
     {

@@ -3,11 +3,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using ApiDocsSync.Libraries;
 
-namespace ApiDocsSync
+namespace ApiDocsSync.PortToTripleSlash
 {
-    class PortToTripleSlash
+    public class PortToTripleSlash
     {
         public static async Task Main(string[] args)
         {

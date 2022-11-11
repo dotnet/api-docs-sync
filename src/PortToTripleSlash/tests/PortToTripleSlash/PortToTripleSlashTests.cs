@@ -4,10 +4,11 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using ApiDocsSync.Tests;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace ApiDocsSync.Libraries.Tests
+namespace ApiDocsSync.PortToTripleSlash.Tests
 {
     public class PortToTripleSlashTests : BasePortTests
     {
@@ -31,8 +32,8 @@ namespace ApiDocsSync.Libraries.Tests
         private static async Task PortToTripleSlashAsync(
             string testDataDir,
             bool skipInterfaceImplementations = true,
-            string assemblyName = TestData.TestAssembly,
-            string namespaceName = TestData.TestNamespace)
+            string assemblyName = FileTestData.TestAssembly,
+            string namespaceName = FileTestData.TestNamespace)
         {
             using TestDirectory tempDir = new();
 

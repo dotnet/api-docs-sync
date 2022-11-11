@@ -3,7 +3,7 @@
 
 using System.Xml.Linq;
 
-namespace ApiDocsSync.Libraries.Tests
+namespace ApiDocsSync.PortToDocs.Tests
 {
     internal class StringTestData
     {

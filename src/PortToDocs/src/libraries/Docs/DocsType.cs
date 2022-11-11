@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
-namespace ApiDocsSync.Libraries.Docs
+namespace ApiDocsSync.PortToDocs.Docs
 {
     /// <summary>
     /// Represents the root xml element (unique) of a Docs xml file, called Type.

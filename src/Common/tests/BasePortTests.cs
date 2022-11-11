@@ -3,7 +3,7 @@
 
 using Xunit.Abstractions;
 
-namespace ApiDocsSync.Libraries.Tests
+namespace ApiDocsSync.Tests
 {
     public abstract class BasePortTests
     {

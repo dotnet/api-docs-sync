@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
+using ApiDocsSync.Tests;
 using Xunit;
 
-namespace ApiDocsSync.Libraries.Tests
+namespace ApiDocsSync.PortToTripleSlash.Tests
 {
-    internal class PortToTripleSlashTestData : TestData
+    internal class PortToTripleSlashTestData : FileTestData
     {
         private const string BinLogFileName = "output.binlog";
         private const string SourceOriginal = "SourceOriginal.cs";

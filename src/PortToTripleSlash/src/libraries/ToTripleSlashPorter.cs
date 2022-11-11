@@ -11,11 +11,11 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ApiDocsSync.Libraries.Docs;
-using ApiDocsSync.Libraries.RoslynTripleSlash;
+using ApiDocsSync.PortToTripleSlash.Docs;
+using ApiDocsSync.PortToTripleSlash.Roslyn;
 using Microsoft.CodeAnalysis;
 
-namespace ApiDocsSync.Libraries
+namespace ApiDocsSync.PortToTripleSlash
 {
     public partial class ToTripleSlashPorter
     {

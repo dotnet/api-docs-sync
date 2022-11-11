@@ -3,7 +3,7 @@
 
 using System.Xml.Linq;
 
-namespace ApiDocsSync.Libraries.Docs
+namespace ApiDocsSync.PortToTripleSlash.Docs
 {
     /// <summary>
     /// Each one of these typeparam objects live inside the Docs section inside the Member object.

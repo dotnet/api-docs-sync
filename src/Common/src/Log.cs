@@ -3,7 +3,7 @@
 
 using System;
 
-namespace ApiDocsSync.Libraries
+namespace ApiDocsSync
 {
     public static class Log
     {

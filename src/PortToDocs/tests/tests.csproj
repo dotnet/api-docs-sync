@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../Common/tests/BasePortTests.cs" Link="Common/BasePortTests.cs" />
+    <Compile Include="../../Common/tests/FileTestData.cs" Link="Common/FileTestData.cs" />
+    <Compile Include="../../Common/tests/TestDirectory.cs" Link="Common/TestDirectory.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\src\libraries\libraries.csproj" />
   </ItemGroup>
 

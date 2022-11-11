@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace ApiDocsSync.Libraries
+namespace ApiDocsSync.PortToTripleSlash
 {
     public class Configuration
     {

@@ -8,7 +8,7 @@ using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace ApiDocsSync.Libraries.Docs
+namespace ApiDocsSync.PortToTripleSlash.Docs
 {
     /// <summary>
     /// Represents the root xml element (unique) of a Docs xml file, called Type.

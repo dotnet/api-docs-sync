@@ -9,7 +9,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace ApiDocsSync.Libraries.Docs
+namespace ApiDocsSync.PortToTripleSlash.Docs
 {
     internal class DocsCommentsContainer
     {

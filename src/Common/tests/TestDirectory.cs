@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace ApiDocsSync.Libraries.Tests
+namespace ApiDocsSync.Tests
 {
     public class TestDirectory : IDisposable
     {

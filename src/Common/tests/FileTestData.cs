@@ -3,9 +3,9 @@
 
 using System.IO;
 
-namespace ApiDocsSync.Libraries.Tests
+namespace ApiDocsSync.Tests
 {
-    internal class TestData
+    internal class FileTestData
     {
         internal const string TestAssembly = "MyAssembly";
         internal const string TestNamespace = "MyNamespace";

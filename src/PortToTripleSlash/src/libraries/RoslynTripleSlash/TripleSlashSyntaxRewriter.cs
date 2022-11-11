@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
-using ApiDocsSync.Libraries.Docs;
+using ApiDocsSync.PortToTripleSlash.Docs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ApiDocsSync.Libraries.RoslynTripleSlash
+namespace ApiDocsSync.PortToTripleSlash.Roslyn
 {
     /*
     The following triple slash comments section:

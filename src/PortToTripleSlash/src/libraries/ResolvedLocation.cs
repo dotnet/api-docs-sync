@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace ApiDocsSync.Libraries
+namespace ApiDocsSync.PortToTripleSlash
 {
     public class ResolvedLocation
     {

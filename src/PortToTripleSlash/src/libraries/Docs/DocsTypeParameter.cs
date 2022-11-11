@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace ApiDocsSync.Libraries.Docs
+namespace ApiDocsSync.PortToTripleSlash.Docs
 {
     /// <summary>
     /// Each one of these TypeParameter objects islocated inside the TypeParameters section inside the Member.

@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace ApiDocsSync.PortToTripleSlash.Tests
 {
-    public class PortToTripleSlashTests : BasePortTests
+    public class PortToTripleSlash_FileSystem_Tests : BasePortTests
     {
-        public PortToTripleSlashTests(ITestOutputHelper output) : base(output)
+        public PortToTripleSlash_FileSystem_Tests(ITestOutputHelper output) : base(output)
         {
         }
 

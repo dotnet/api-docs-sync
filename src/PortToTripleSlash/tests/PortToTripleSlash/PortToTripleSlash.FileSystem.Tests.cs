@@ -16,13 +16,6 @@ namespace ApiDocsSync.PortToTripleSlash.Tests
         {
         }
 
-        // Tests failing due to: https://github.com/dotnet/roslyn/issues/61454
-
-        // Project.OpenProjectAsync - C:\Users\carlos\AppData\Local\Temp\dmeyjbwb.vtc\Project\MyAssembly.csproj
-        // Failure - Msbuild failed when processing the file 'C:\Users\carlos\AppData\Local\Temp\dmeyjbwb.vtc\Project\MyAssembly.csproj' with message: C:\Program Files\dotnet\sdk\6.0.302\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets: (90, 5): The "ProcessFrameworkReferences" task failed unexpectedly.
-        // System.IO.FileLoadException: Could not load file or assembly 'NuGet.Frameworks, Version=6.2.1.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Could not find or load a specific file. (0x80131621)
-        // File name: 'NuGet.Frameworks, Version=6.2.1.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-
         [Fact]
         public Task Port_Basic() => PortToTripleSlashAsync("Basic");
 

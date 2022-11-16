@@ -8,17 +8,18 @@ namespace ApiDocsSync.PortToTripleSlash
     public class ResolvedLocation
     {
         public string TypeName { get; private set; }
-        public ResolvedProject ResolvedProject { get; private set; }
+        public Compilation Compilation { get; private set; }
         public Location Location { get; private set; }
         public SyntaxTree Tree { get; set; }
         public SemanticModel Model { get; set; }
-        public ResolvedLocation(string typeName, ResolvedProject resolvedProject, Location location, SyntaxTree tree)
+        public SyntaxNode? NewNode { get; set; }
+        public ResolvedLocation(string typeName, Compilation compilation, Location location, SyntaxTree tree)
         {
             TypeName = typeName;
-            ResolvedProject = resolvedProject;
+            Compilation = compilation;
             Location = location;
             Tree = tree;
-            Model = resolvedProject.Compilation.GetSemanticModel(Tree);
+            Model = compilation.GetSemanticModel(Tree);
         }
     }
 }

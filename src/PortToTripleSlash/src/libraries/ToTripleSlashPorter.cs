@@ -32,6 +32,17 @@ namespace ApiDocsSync.PortToTripleSlash
             _docsComments = new DocsCommentsContainer(config);
         }
 
+        public IEnumerable<(string, IEnumerable<ResolvedLocation>)> GetResults()
+        {
+            foreach (DocsType docsType in _docsComments.Types.Values)
+            {
+                if (docsType.SymbolLocations != null)
+                {
+                    yield return (docsType.DocIdUnprefixed, docsType.SymbolLocations);
+                }
+            }
+        }
+
         /// <summary>
         /// Performs the full porting process:
         /// - Collects the docs xml files.
@@ -40,6 +51,8 @@ namespace ApiDocsSync.PortToTripleSlash
         /// </summary>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            Debug.Assert(_config.Loader != null);
+            Debug.Assert(_config.Loader.MainProject != null);
             cancellationToken.ThrowIfCancellationRequested();
 
             if (!TryCollectFiles())
@@ -47,8 +60,8 @@ namespace ApiDocsSync.PortToTripleSlash
                 Log.Error("No docs files found.");
                 return;
             }
-            await MatchSymbolsAsync(cancellationToken).ConfigureAwait(false);
-            await PortAsync(cancellationToken).ConfigureAwait(false);
+            await MatchSymbolsAsync(_config.Loader.MainProject.Compilation, _config.Loader.MainProject.ProjectPath, isMSBuildProject: true, cancellationToken).ConfigureAwait(false);
+            await PortAsync(isMSBuildProject: true, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -63,7 +76,7 @@ namespace ApiDocsSync.PortToTripleSlash
         /// <summary>
         /// Iterates through all the xml files and collects symbols from the found projects for each one.
         /// </summary>
-        public async Task MatchSymbolsAsync(CancellationToken cancellationToken)
+        public async Task MatchSymbolsAsync(Compilation compilation, string projectPath, bool isMSBuildProject, CancellationToken cancellationToken)
         {
             Debug.Assert(_docsComments.Types.Any());
             cancellationToken.ThrowIfCancellationRequested();
@@ -71,14 +84,21 @@ namespace ApiDocsSync.PortToTripleSlash
             Log.Info("Looking for symbol locations for all Docs types...");
             foreach (DocsType docsType in _docsComments.Types.Values)
             {
-                await CollectSymbolLocationsAsync(docsType, cancellationToken).ConfigureAwait(false);
+                CollectSymbolLocations(compilation, projectPath, docsType);
+
+                // We don't have a MainProject object in the string tests, with which
+                // we could find the referenced projects, so we skip this step
+                if (isMSBuildProject)
+                {
+                    await CollectSymbolLocationsFromReferencedProjectsAsync(docsType, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
         /// <summary>
         /// Iterates through all the found xml files and ports their documentation to the locations of all its found symbols.
         /// </summary>
-        public async Task PortAsync(CancellationToken cancellationToken)
+        public async Task PortAsync(bool isMSBuildProject, CancellationToken cancellationToken)
         {
             Debug.Assert(_docsComments.Types.Any());
             cancellationToken.ThrowIfCancellationRequested();
@@ -92,32 +112,44 @@ namespace ApiDocsSync.PortToTripleSlash
                     continue;
                 }
 
-                Log.Cyan($"Porting comments for '{docsType.TypeName}'. Locations: {docsType.SymbolLocations!.Count}...");
+                Log.Cyan($"Porting comments for '{docsType.TypeName}'. Locations: {docsType.SymbolLocations.Count}...");
                 foreach (ResolvedLocation resolvedLocation in docsType.SymbolLocations)
                 {
                     Log.Info($"Porting docs for tree '{resolvedLocation.Tree.FilePath}'...");
                     TripleSlashSyntaxRewriter rewriter = new(_docsComments, resolvedLocation.Model);
-                    SyntaxNode? newRoot = rewriter.Visit(resolvedLocation.Tree.GetRoot(cancellationToken));
-                    if (newRoot == null)
+                    resolvedLocation.NewNode = rewriter.Visit(resolvedLocation.Tree.GetRoot(cancellationToken));
+                    if (resolvedLocation.NewNode == null)
                     {
                         throw new Exception($"Returned null root node for {docsType.TypeName} in {resolvedLocation.Tree.FilePath}");
                     }
 
-                    await File.WriteAllTextAsync(resolvedLocation.Tree.FilePath, newRoot.ToFullString(), cancellationToken).ConfigureAwait(false);
-                    Log.Success($"Docs ported to '{docsType.TypeName}'.");
+                    if (isMSBuildProject)
+                    {
+                        await File.WriteAllTextAsync(resolvedLocation.Tree.FilePath, resolvedLocation.NewNode.ToFullString(), cancellationToken).ConfigureAwait(false);
+                        Log.Success($"Docs ported to '{docsType.TypeName}'.");
+                    }
                 }
             }
         }
 
-        private async Task CollectSymbolLocationsAsync(DocsType docsType, CancellationToken cancellationToken)
+        private void CollectSymbolLocations(Compilation compilation, string projectPath, DocsType docsType)
+        {
+            docsType.SymbolLocations = new List<ResolvedLocation>();
+
+            FindLocationsOfSymbolInResolvedProject(docsType, compilation, projectPath);
+
+            if (!docsType.SymbolLocations.Any())
+            {
+                Log.Error($"No symbols found for docs type '{docsType.DocId}'.");
+            }
+        }
+
+        private async Task CollectSymbolLocationsFromReferencedProjectsAsync(DocsType docsType, CancellationToken cancellationToken)
         {
             Debug.Assert(_config.Loader != null);
             Debug.Assert(_config.Loader.MainProject != null);
+            Debug.Assert(docsType.SymbolLocations != null);
             cancellationToken.ThrowIfCancellationRequested();
-
-            docsType.SymbolLocations = new List<ResolvedLocation>();
-
-            FindLocationsOfSymbolInResolvedProject(docsType, _config.Loader.MainProject);
 
             foreach (ProjectReference projectReference in _config.Loader.MainProject.Project.ProjectReferences)
             {
@@ -175,29 +207,29 @@ namespace ApiDocsSync.PortToTripleSlash
 
             ResolvedProject project = await _config.Loader.LoadProjectAsync(projectPath, isMono: false, cancellationToken).ConfigureAwait(false);
 
-            FindLocationsOfSymbolInResolvedProject(docsType, project);
+            FindLocationsOfSymbolInResolvedProject(docsType, project.Compilation, projectPath);
         }
 
-        private static void FindLocationsOfSymbolInResolvedProject(DocsType docsType, ResolvedProject project)
+        private static void FindLocationsOfSymbolInResolvedProject(DocsType docsType, Compilation compilation, string projectPath)
         {
             // First, collect all types in the current compilation
             AllTypesVisitor visitor = new();
-            visitor.Visit(project.Compilation.GlobalNamespace);
+            visitor.Visit(compilation.GlobalNamespace);
 
             // Next, filter types that match the current docsType
             IEnumerable<ISymbol> currentTypeSymbols = visitor.AllTypesSymbols.Where(x => x != null && x.GetDocumentationCommentId() == docsType.DocId);
             if (!currentTypeSymbols.Any())
             {
-                throw new Exception($"The symbol for the type '{docsType.DocId}' had no locations in '{project.ProjectPath}'.");
+                throw new Exception($"The symbol for the type '{docsType.DocId}' had no locations in '{projectPath}'.");
             }
 
             foreach (ISymbol symbol in currentTypeSymbols)
             {
-                docsType.SymbolLocations = GetSymbolLocations(project, symbol);
+                docsType.SymbolLocations = GetSymbolLocations(compilation, symbol);
             }
         }
 
-        private static List<ResolvedLocation> GetSymbolLocations(ResolvedProject resolvedProject, ISymbol symbol)
+        private static List<ResolvedLocation> GetSymbolLocations(Compilation compilation, ISymbol symbol)
         {
             List<ResolvedLocation> resolvedLocations = new();
 
@@ -211,7 +243,7 @@ namespace ApiDocsSync.PortToTripleSlash
                     Log.Error($"Location tree was null for {docId}. Skipping...");
                 }
                 // Verify that this location tree is among the compilation trees
-                else if (resolvedProject.Compilation.SyntaxTrees.FirstOrDefault(x => x.FilePath == tree.FilePath) is not null)
+                else if (compilation.SyntaxTrees.FirstOrDefault(x => x.FilePath == tree.FilePath) is not null)
                 {
                     Log.Info($"Symbol '{docId}' located in '{tree.FilePath}'.");
                     if (resolvedLocations.Any(rl => rl.Tree.FilePath == tree.FilePath))
@@ -220,7 +252,7 @@ namespace ApiDocsSync.PortToTripleSlash
                     }
                     else
                     {
-                        ResolvedLocation resolvedLocation = new(docId, resolvedProject, location, tree);
+                        ResolvedLocation resolvedLocation = new(docId, compilation, location, tree);
                         Log.Success($"Adding tree '{resolvedLocation.Tree.FilePath}' for '{docId}'...");
                         resolvedLocations.Add(resolvedLocation);
                     }

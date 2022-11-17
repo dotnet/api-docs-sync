@@ -8,9 +8,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using ApiDocsSync.PortToTripleSlash.Docs;
 using ApiDocsSync.PortToTripleSlash.Roslyn;
 using Microsoft.CodeAnalysis;
@@ -43,6 +45,41 @@ namespace ApiDocsSync.PortToTripleSlash
             }
         }
 
+        public void LoadDocsFile(XDocument xDoc, string filePath, Encoding encoding) =>
+            _docsComments.LoadDocsFile(xDoc, filePath, encoding);
+
+        public void CollectFiles()
+        {
+            Log.Info("Looking for Docs xml files...");
+
+            foreach (FileInfo fileInfo in _docsComments.EnumerateFiles())
+            {
+                XDocument? xDoc = null;
+                Encoding? encoding = null;
+                try
+                {
+                    var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+                    var utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+                    using (StreamReader sr = new(fileInfo.FullName, utf8NoBom, detectEncodingFromByteOrderMarks: true))
+                    {
+                        xDoc = XDocument.Load(sr);
+                        encoding = sr.CurrentEncoding;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Failed to load '{fileInfo.FullName}'. {ex}");
+                }
+
+                if (xDoc != null && encoding != null)
+                {
+                    _docsComments.LoadDocsFile(xDoc, fileInfo.FullName, encoding);
+                }
+            }
+            Log.Success("Finished looking for Docs xml files.");
+            Log.Line();
+        }
+
         /// <summary>
         /// Performs the full porting process:
         /// - Collects the docs xml files.
@@ -55,22 +92,14 @@ namespace ApiDocsSync.PortToTripleSlash
             Debug.Assert(_config.Loader.MainProject != null);
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!TryCollectFiles())
+            CollectFiles();
+            if (!_docsComments.Types.Any())
             {
                 Log.Error("No docs files found.");
                 return;
             }
             await MatchSymbolsAsync(_config.Loader.MainProject.Compilation, _config.Loader.MainProject.ProjectPath, isMSBuildProject: true, cancellationToken).ConfigureAwait(false);
             await PortAsync(isMSBuildProject: true, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        ///  Collects the docs xml files.
-        /// </summary>
-        public bool TryCollectFiles()
-        {
-            _docsComments.CollectFiles();
-            return _docsComments.Types.Any();
         }
 
         /// <summary>
@@ -132,7 +161,7 @@ namespace ApiDocsSync.PortToTripleSlash
             }
         }
 
-        private void CollectSymbolLocations(Compilation compilation, string projectPath, DocsType docsType)
+        private static void CollectSymbolLocations(Compilation compilation, string projectPath, DocsType docsType)
         {
             docsType.SymbolLocations = new List<ResolvedLocation>();
 

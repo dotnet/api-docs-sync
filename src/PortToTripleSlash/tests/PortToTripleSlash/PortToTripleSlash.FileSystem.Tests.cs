@@ -60,7 +60,7 @@ namespace ApiDocsSync.PortToTripleSlash.Tests
             await c.Loader.LoadMainProjectAsync(c.CsProj, c.IsMono, cts.Token);
 
             ToTripleSlashPorter porter = new(c);
-            Assert.True(porter.TryCollectFiles());
+            porter.CollectFiles();
 
             await porter.MatchSymbolsAsync(c.Loader.MainProject.Compilation, c.Loader.MainProject.ProjectPath, isMSBuildProject: true, cts.Token);
             await porter.PortAsync(isMSBuildProject: true, cts.Token);

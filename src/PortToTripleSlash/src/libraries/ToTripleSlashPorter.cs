@@ -54,26 +54,24 @@ namespace ApiDocsSync.PortToTripleSlash
 
             foreach (FileInfo fileInfo in _docsComments.EnumerateFiles())
             {
-                XDocument? xDoc = null;
-                Encoding? encoding = null;
                 try
                 {
                     var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
                     var utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
                     using (StreamReader sr = new(fileInfo.FullName, utf8NoBom, detectEncodingFromByteOrderMarks: true))
                     {
-                        xDoc = XDocument.Load(sr);
-                        encoding = sr.CurrentEncoding;
+                        XDocument xDoc = XDocument.Load(sr);
+                        Encoding encoding = sr.CurrentEncoding;
+                        if (xDoc == null || encoding == null)
+                        {
+                            throw new FileLoadException(fileInfo.FullName);
+                        }
+                        _docsComments.LoadDocsFile(xDoc, fileInfo.FullName, encoding);
                     }
                 }
                 catch (Exception ex)
                 {
                     Log.Error($"Failed to load '{fileInfo.FullName}'. {ex}");
-                }
-
-                if (xDoc != null && encoding != null)
-                {
-                    _docsComments.LoadDocsFile(xDoc, fileInfo.FullName, encoding);
                 }
             }
             Log.Success("Finished looking for Docs xml files.");

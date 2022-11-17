@@ -15,93 +15,16 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
     {
         private Configuration Config { get; set; }
 
-        private XDocument? xDoc = null;
-
         public readonly Dictionary<string, DocsType> Types = new();
         public readonly Dictionary<string, DocsMember> Members = new();
 
-        public DocsCommentsContainer(Configuration config)
-        {
-            Config = config;
-        }
+        public DocsCommentsContainer(Configuration config) => Config = config;
 
-        public void CollectFiles()
-        {
-            Log.Info("Looking for Docs xml files...");
-
-            foreach (FileInfo fileInfo in EnumerateFiles())
-            {
-                LoadFile(fileInfo);
-            }
-
-            Log.Success("Finished looking for Docs xml files.");
-            Log.Line();
-        }
-
-        public void Save()
-        {
-            List<string> savedFiles = new();
-            foreach (var type in Types.Values.Where(x => x.Changed))
-            {
-                Log.Info(false, $"Saving changes for {type.FilePath} ... ");
-
-                try
-                {
-                    // These settings prevent the addition of the <xml> element on the first line and will preserve indentation+endlines
-                    XmlWriterSettings xws = new()
-                    {
-                        Encoding = type.FileEncoding,
-                        OmitXmlDeclaration = true,
-                        Indent = true,
-                        CheckCharacters = false
-                    };
-
-                    using (XmlWriter xw = XmlWriter.Create(type.FilePath, xws))
-                    {
-                        type.XDoc.Save(xw);
-                    }
-
-                    // Workaround to delete the annoying endline added by XmlWriter.Save
-                    string fileData = File.ReadAllText(type.FilePath);
-                    if (!fileData.EndsWith(Environment.NewLine))
-                    {
-                        File.WriteAllText(type.FilePath, fileData + Environment.NewLine, type.FileEncoding);
-                    }
-
-                    Log.Success(" [Saved]");
-                }
-                catch (Exception e)
-                {
-                    Log.Error("Failed to write to {0}. {1}", type.FilePath, e.Message);
-                    Log.Error(e.StackTrace ?? string.Empty);
-                    if (e.InnerException != null)
-                    {
-                        Log.Line();
-                        Log.Error(e.InnerException.Message);
-                        Log.Line();
-                        Log.Error(e.InnerException.StackTrace ?? string.Empty);
-                    }
-                }
-            }
-        }
-
-        private bool HasAllowedDirName(DirectoryInfo dirInfo)
-        {
-            return !Configuration.ForbiddenBinSubdirectories.Contains(dirInfo.Name) && !dirInfo.Name.EndsWith(".Tests");
-        }
-
-        private bool HasAllowedFileName(FileInfo fileInfo)
-        {
-            return !fileInfo.Name.StartsWith("ns-") &&
-                fileInfo.Name != "index.xml" &&
-                fileInfo.Name != "_filter.xml";
-        }
-
-        private IEnumerable<FileInfo> EnumerateFiles()
+        public IEnumerable<FileInfo> EnumerateFiles()
         {
             // Union avoids duplication
-            var includedAssembliesAndNamespaces = Config.IncludedAssemblies.Union(Config.IncludedNamespaces);
-            var excludedAssembliesAndNamespaces = Config.ExcludedAssemblies.Union(Config.ExcludedNamespaces);
+            IEnumerable<string> includedAssembliesAndNamespaces = Config.IncludedAssemblies.Union(Config.IncludedNamespaces);
+            IEnumerable<string> excludedAssembliesAndNamespaces = Config.ExcludedAssemblies.Union(Config.ExcludedNamespaces);
 
             foreach (DirectoryInfo rootDir in Config.DirsDocsXml)
             {
@@ -154,32 +77,14 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             }
         }
 
-        private void LoadFile(FileInfo fileInfo)
+        public void LoadDocsFile(XDocument xDoc, string filePath, Encoding encoding)
         {
-            Encoding? encoding = null;
-            try
-            {
-                var utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-                var utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
-                using (StreamReader sr = new(fileInfo.FullName, utf8NoBom, detectEncodingFromByteOrderMarks: true))
-                {
-                    xDoc = XDocument.Load(sr);
-                    encoding = sr.CurrentEncoding;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Failed to load '{fileInfo.FullName}'. {ex}");
-                return;
-            }
-
-            if (IsXmlMalformed(xDoc, fileInfo.FullName))
+            if (IsXmlMalformed(xDoc, filePath))
             {
                 return;
             }
 
-            DocsType docsType = new DocsType(fileInfo.FullName, xDoc, xDoc.Root!, encoding);
+            DocsType docsType = new(filePath, xDoc, xDoc.Root!, encoding);
 
             bool add = false;
             bool addedAsInterface = false;
@@ -236,13 +141,13 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
                 {
                     foreach (XElement xeMember in xeMembers.Elements("Member"))
                     {
-                        DocsMember member = new DocsMember(fileInfo.FullName, docsType, xeMember);
+                        DocsMember member = new(filePath, docsType, xeMember);
                         totalMembersAdded++;
                         Members.TryAdd(member.DocId, member); // is it OK this encounters duplicates?
                     }
                 }
 
-                string message = $"Type '{docsType.DocId}' added with {totalMembersAdded} member(s) included: {fileInfo.FullName}";
+                string message = $"Type '{docsType.DocId}' added with {totalMembersAdded} member(s) included: {filePath}";
                 if (addedAsInterface)
                 {
                     Log.Magenta("[Interface] - " + message);
@@ -258,7 +163,15 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             }
         }
 
-        private bool IsXmlMalformed(XDocument? xDoc, string fileName)
+        private static bool HasAllowedDirName(DirectoryInfo dirInfo) =>
+            !Configuration.ForbiddenBinSubdirectories.Contains(dirInfo.Name) && !dirInfo.Name.EndsWith(".Tests", StringComparison.InvariantCultureIgnoreCase);
+
+        private static bool HasAllowedFileName(FileInfo fileInfo) =>
+            !fileInfo.Name.StartsWith("ns-") &&
+                fileInfo.Name != "index.xml" &&
+                fileInfo.Name != "_filter.xml";
+
+        private static bool IsXmlMalformed(XDocument? xDoc, string fileName)
         {
             if (xDoc == null)
             {

@@ -10,18 +10,11 @@ using Xunit.Abstractions;
 
 namespace ApiDocsSync.PortToTripleSlash.Tests
 {
-    public class PortToTripleSlashTests : BasePortTests
+    public class PortToTripleSlash_FileSystem_Tests : BasePortTests
     {
-        public PortToTripleSlashTests(ITestOutputHelper output) : base(output)
+        public PortToTripleSlash_FileSystem_Tests(ITestOutputHelper output) : base(output)
         {
         }
-
-        // Tests failing due to: https://github.com/dotnet/roslyn/issues/61454
-
-        // Project.OpenProjectAsync - C:\Users\carlos\AppData\Local\Temp\dmeyjbwb.vtc\Project\MyAssembly.csproj
-        // Failure - Msbuild failed when processing the file 'C:\Users\carlos\AppData\Local\Temp\dmeyjbwb.vtc\Project\MyAssembly.csproj' with message: C:\Program Files\dotnet\sdk\6.0.302\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.Sdk.FrameworkReferenceResolution.targets: (90, 5): The "ProcessFrameworkReferences" task failed unexpectedly.
-        // System.IO.FileLoadException: Could not load file or assembly 'NuGet.Frameworks, Version=6.2.1.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35'.Could not find or load a specific file. (0x80131621)
-        // File name: 'NuGet.Frameworks, Version=6.2.1.7, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 
         [Fact]
         public Task Port_Basic() => PortToTripleSlashAsync("Basic");
@@ -67,9 +60,10 @@ namespace ApiDocsSync.PortToTripleSlash.Tests
             await c.Loader.LoadMainProjectAsync(c.CsProj, c.IsMono, cts.Token);
 
             ToTripleSlashPorter porter = new(c);
-            porter.TryCollectFiles();
-            await porter.MatchSymbolsAsync(cts.Token);
-            await porter.PortAsync(cts.Token);
+            porter.CollectFiles();
+
+            await porter.MatchSymbolsAsync(c.Loader.MainProject.Compilation, c.Loader.MainProject.ProjectPath, isMSBuildProject: true, cts.Token);
+            await porter.PortAsync(isMSBuildProject: true, cts.Token);
 
             Verify(testData);
         }

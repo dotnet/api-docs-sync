@@ -40,7 +40,7 @@ namespace ApiDocsSync.PortToTripleSlash
             {
                 if (docsType.SymbolLocations != null)
                 {
-                    yield return (docsType.DocIdUnprefixed, docsType.SymbolLocations);
+                    yield return (docsType.DocId, docsType.SymbolLocations);
                 }
             }
         }
@@ -244,11 +244,7 @@ namespace ApiDocsSync.PortToTripleSlash
             visitor.Visit(compilation.GlobalNamespace);
 
             // Next, filter types that match the current docsType
-            IEnumerable<ISymbol> currentTypeSymbols = visitor.AllTypesSymbols.Where(x => x != null && x.GetDocumentationCommentId() == docsType.DocId);
-            if (!currentTypeSymbols.Any())
-            {
-                throw new Exception($"The symbol for the type '{docsType.DocId}' had no locations in '{projectPath}'.");
-            }
+            IEnumerable<ISymbol> currentTypeSymbols = visitor.AllTypesSymbols.Where(s => s != null && s.GetDocumentationCommentId() == docsType.DocId);
 
             foreach (ISymbol symbol in currentTypeSymbols)
             {

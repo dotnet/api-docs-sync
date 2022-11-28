@@ -1,21 +1,24 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace ApiDocsSync.PortToTripleSlash.Tests;
 
 internal class StringTestData
 {
-    public StringTestData(string docFile, string originalCode, string expectedCode)
+    public StringTestData(IEnumerable<string> docFiles, IEnumerable<string> originalCodeFiles, Dictionary<string, string> expectedCodeFiles)
     {
-        DocFile = docFile;
-        OriginalCode = originalCode;
-        ExpectedCode = expectedCode;
-        XDoc = XDocument.Parse(DocFile);
+        OriginalCodeFiles = originalCodeFiles;
+        ExpectedCodeFiles = expectedCodeFiles;
+        XDocs = new List<XDocument>();
+        foreach (string docFile in docFiles)
+        {
+            XDocs.Add(XDocument.Parse(docFile));
+        }
     }
-    public string DocFile { get; }
-    public string OriginalCode { get; }
-    public string ExpectedCode { get; }
-    public XDocument XDoc { get; }
+    public List<XDocument> XDocs { get; }
+    public IEnumerable<string> OriginalCodeFiles { get; }
+    public Dictionary<string, string> ExpectedCodeFiles { get; }
 }

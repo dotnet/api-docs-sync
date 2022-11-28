@@ -22,8 +22,8 @@ jobs:
     - name: Build PortToTripleSlash
       run: dotnet build --no-restore src/PortToTripleSlash/PortToTripleSlash.sln
 # Re-enable when the msbuild failure is fixed, to prevent skipping the subsequent tasks
-#    - name: Test PortToTripleSlash
-#      run: dotnet test --no-build --verbosity normal src/PortToTripleSlash/PortToTripleSlash.sln
+    - name: Test PortToTripleSlash
+      run: dotnet test --no-build --verbosity normal src/PortToTripleSlash/PortToTripleSlash.sln
     - name: Restore dependencies of PortToDocs
       run: dotnet restore src/PortToDocs/PortToDocs.sln
     - name: Build PortToDocs

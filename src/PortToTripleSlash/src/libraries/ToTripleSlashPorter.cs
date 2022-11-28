@@ -96,14 +96,14 @@ namespace ApiDocsSync.PortToTripleSlash
                 Log.Error("No docs files found.");
                 return;
             }
-            await MatchSymbolsAsync(_config.Loader.MainProject.Compilation, _config.Loader.MainProject.ProjectPath, isMSBuildProject: true, cancellationToken).ConfigureAwait(false);
+            await MatchSymbolsAsync(_config.Loader.MainProject.Compilation, isMSBuildProject: true, cancellationToken).ConfigureAwait(false);
             await PortAsync(isMSBuildProject: true, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Iterates through all the xml files and collects symbols from the found projects for each one.
         /// </summary>
-        public async Task MatchSymbolsAsync(Compilation compilation, string projectPath, bool isMSBuildProject, CancellationToken cancellationToken)
+        public async Task MatchSymbolsAsync(Compilation compilation, bool isMSBuildProject, CancellationToken cancellationToken)
         {
             Debug.Assert(_docsComments.Types.Any());
             cancellationToken.ThrowIfCancellationRequested();
@@ -111,7 +111,7 @@ namespace ApiDocsSync.PortToTripleSlash
             Log.Info("Looking for symbol locations for all Docs types...");
             foreach (DocsType docsType in _docsComments.Types.Values)
             {
-                CollectSymbolLocations(compilation, projectPath, docsType);
+                CollectSymbolLocations(compilation, docsType);
 
                 // We don't have a MainProject object in the string tests, with which
                 // we could find the referenced projects, so we skip this step
@@ -159,13 +159,11 @@ namespace ApiDocsSync.PortToTripleSlash
             }
         }
 
-        private static void CollectSymbolLocations(Compilation compilation, string projectPath, DocsType docsType)
+        private static void CollectSymbolLocations(Compilation compilation, DocsType docsType)
         {
-            docsType.SymbolLocations = new List<ResolvedLocation>();
+            FindLocationsOfSymbolInResolvedProject(docsType, compilation);
 
-            FindLocationsOfSymbolInResolvedProject(docsType, compilation, projectPath);
-
-            if (!docsType.SymbolLocations.Any())
+            if (docsType.SymbolLocations == null || !docsType.SymbolLocations.Any())
             {
                 Log.Error($"No symbols found for docs type '{docsType.DocId}'.");
             }
@@ -234,10 +232,10 @@ namespace ApiDocsSync.PortToTripleSlash
 
             ResolvedProject project = await _config.Loader.LoadProjectAsync(projectPath, isMono: false, cancellationToken).ConfigureAwait(false);
 
-            FindLocationsOfSymbolInResolvedProject(docsType, project.Compilation, projectPath);
+            FindLocationsOfSymbolInResolvedProject(docsType, project.Compilation);
         }
 
-        private static void FindLocationsOfSymbolInResolvedProject(DocsType docsType, Compilation compilation, string projectPath)
+        private static void FindLocationsOfSymbolInResolvedProject(DocsType docsType, Compilation compilation)
         {
             // First, collect all types in the current compilation
             AllTypesVisitor visitor = new();

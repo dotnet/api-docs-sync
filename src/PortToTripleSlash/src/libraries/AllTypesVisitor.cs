@@ -13,7 +13,13 @@ namespace ApiDocsSync.PortToTripleSlash
         public readonly List<ISymbol> AllTypesSymbols = new();
         public override void VisitNamedType(INamedTypeSymbol symbol)
         {
+            if (symbol.DeclaredAccessibility != Accessibility.Protected && symbol.DeclaredAccessibility != Accessibility.Public && symbol.DeclaredAccessibility != Accessibility.NotApplicable)
+            {
+                return;
+            }
+
             AllTypesSymbols.Add(symbol);
+            // Visit all nested types too, including delegates
             foreach (INamedTypeSymbol typeMember in symbol.GetTypeMembers())
             {
                 Visit(typeMember);

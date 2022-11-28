@@ -8,7 +8,7 @@ namespace ApiDocsSync.PortToTripleSlash.Tests;
 
 internal class StringTestData
 {
-    public StringTestData(IEnumerable<string> docFiles, IEnumerable<string> originalCodeFiles, Dictionary<string, string> expectedCodeFiles)
+    public StringTestData(IEnumerable<string> docFiles, IEnumerable<string> originalCodeFiles, Dictionary<string, string> expectedCodeFiles, bool addMsCorLibReferences)
     {
         OriginalCodeFiles = originalCodeFiles;
         ExpectedCodeFiles = expectedCodeFiles;
@@ -17,7 +17,9 @@ internal class StringTestData
         {
             XDocs.Add(XDocument.Parse(docFile));
         }
+        AddMsCorLibReferences = addMsCorLibReferences;
     }
+    public bool AddMsCorLibReferences { get; }
     public List<XDocument> XDocs { get; }
     public IEnumerable<string> OriginalCodeFiles { get; }
     public Dictionary<string, string> ExpectedCodeFiles { get; }

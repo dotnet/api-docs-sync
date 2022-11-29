@@ -225,7 +225,7 @@ public class MyClass
     }
 
     [Fact]
-    public Task Class_ParameterlessMethod()
+    public Task Class_Method_Parameterless_VoidReturn()
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -272,7 +272,7 @@ public class MyClass
     }
 
     [Fact]
-    public Task Class_MethodReturnValueAndParameter()
+    public Task Class_Method_IntParameter_IntReturn()
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -323,7 +323,7 @@ public class MyClass
     }
 
     [Fact]
-    public Task Class_GenericMethodWithParameter()
+    public Task Class_GenericMethod_Parameterless_VoidReturn()
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -338,7 +338,107 @@ public class MyClass
   </Docs>
   <Members>
     <Member MemberName=""MyGenericMethod&lt;T&gt;"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.MyGenericMethod`1(`0)"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.MyGenericMethod``1"" />
+      <Docs>
+        <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
+        <summary>This is the MyGenericMethod summary.</summary>
+        <remarks>These are the MyGenericMethod remarks.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+        string originalCode = @"namespace MyNamespace;
+public class MyClass
+{
+    public void MyGenericMethod<T>() { }
+}";
+
+        string expectedCode = @"namespace MyNamespace;
+public class MyClass
+{
+    /// <summary>This is the MyGenericMethod summary.</summary>
+    /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
+    /// <remarks>These are the MyGenericMethod remarks.</remarks>
+    public void MyGenericMethod<T>() { }
+}";
+
+        List<string> docFiles = new() { docFile };
+        List<string> originalCodeFiles = new() { originalCode };
+        Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
+        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(stringTestData);
+    }
+
+    [Fact]
+    public Task Class_GenericMethod_IntParameter_VoidReturn()
+    {
+        string docId = "T:MyNamespace.MyClass";
+
+        string docFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyGenericMethod&lt;T&gt;"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.MyGenericMethod``1(System.Int32)"" />
+      <Docs>
+        <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
+        <param name=""intParam"">This is the MyGenericMethod parameter description.</param>
+        <summary>This is the MyGenericMethod summary.</summary>
+        <remarks>These are the MyGenericMethod remarks.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+        string originalCode = @"namespace MyNamespace;
+public class MyClass
+{
+    public void MyGenericMethod<T>(int intParam) { }
+}";
+
+        string expectedCode = @"namespace MyNamespace;
+public class MyClass
+{
+    /// <summary>This is the MyGenericMethod summary.</summary>
+    /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
+    /// <param name=""intParam"">This is the MyGenericMethod parameter description.</param>
+    /// <remarks>These are the MyGenericMethod remarks.</remarks>
+    public void MyGenericMethod<T>(int intParam) { }
+}";
+
+        List<string> docFiles = new() { docFile };
+        List<string> originalCodeFiles = new() { originalCode };
+        Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
+        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(stringTestData);
+    }
+
+    [Fact]
+    public Task Class_GenericMethod_GenericParameter_GenericReturn()
+    {
+        string docId = "T:MyNamespace.MyClass";
+
+        string docFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyGenericMethod&lt;T&gt;"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.MyGenericMethod``1(``0)"" />
       <Docs>
         <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
         <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
@@ -961,7 +1061,7 @@ public enum MyEnum
       </Docs>
     </Member>
     <Member MemberName=""MyGenericMethod&lt;T&gt;"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.MyGenericMethod`1(`0)"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.MyGenericMethod``1(``0)"" />
       <Docs>
         <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
         <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
@@ -1123,7 +1223,7 @@ public class MyClass
       </Docs>
     </Member>
     <Member MemberName=""MyGenericMethod&lt;T&gt;"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyStruct.MyGenericMethod`1(`0)"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyStruct.MyGenericMethod``1(``0)"" />
       <Docs>
         <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
         <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
@@ -1278,7 +1378,7 @@ public struct MyStruct
       </Docs>
     </Member>
     <Member MemberName=""MyGenericMethod&lt;T&gt;"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyInterface.MyGenericMethod`1(`0)"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyInterface.MyGenericMethod``1(``0)"" />
       <Docs>
         <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
         <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>

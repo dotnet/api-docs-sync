@@ -177,7 +177,7 @@ public enum MyEnum
     }
 
     [Fact]
-    public Task Class_Ctor()
+    public Task Class_Ctor_Parameterless()
     {
 
         string docId = "T:MyNamespace.MyClass";
@@ -193,7 +193,7 @@ public enum MyEnum
   </Docs>
   <Members>
     <Member MemberName="".ctor"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.#ctor()"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.#ctor"" />
       <Docs>
         <summary>This is the MyClass constructor summary.</summary>
         <remarks>These are the MyClass constructor remarks.</remarks>
@@ -214,6 +214,56 @@ public class MyClass
     /// <summary>This is the MyClass constructor summary.</summary>
     /// <remarks>These are the MyClass constructor remarks.</remarks>
     public MyClass() { }
+}";
+
+        List<string> docFiles = new() { docFile };
+        List<string> originalCodeFiles = new() { originalCode };
+        Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
+        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(stringTestData);
+    }
+
+    [Fact]
+    public Task Class_Ctor_IntParameter()
+    {
+
+        string docId = "T:MyNamespace.MyClass";
+
+        string docFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName="".ctor"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.#ctor(System.Int32)"" />
+      <Docs>
+        <summary>This is the MyClass constructor summary.</summary>
+        <param name=""intParam"">This is the MyClass constructor parameter description.</param>
+        <remarks>These are the MyClass constructor remarks.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+        string originalCode = @"namespace MyNamespace;
+public class MyClass
+{
+    public MyClass(int intParam) { }
+}";
+
+        string expectedCode = @"namespace MyNamespace;
+public class MyClass
+{
+    /// <summary>This is the MyClass constructor summary.</summary>
+    /// <param name=""intParam"">This is the MyClass constructor parameter description.</param>
+    /// <remarks>These are the MyClass constructor remarks.</remarks>
+    public MyClass(int intParam) { }
 }";
 
         List<string> docFiles = new() { docFile };
@@ -1038,9 +1088,17 @@ public enum MyEnum
   </Docs>
   <Members>
     <Member MemberName="".ctor"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.#ctor()"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.#ctor"" />
       <Docs>
         <summary>This is the MyClass constructor summary.</summary>
+        <remarks>These are the MyClass constructor remarks.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="".ctor"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.#ctor(System.Int32)"" />
+      <Docs>
+        <summary>This is the MyClass constructor summary.</summary>
+        <param name=""intParam"">This is the MyClass constructor parameter description.</param>
         <remarks>These are the MyClass constructor remarks.</remarks>
       </Docs>
     </Member>
@@ -1121,6 +1179,7 @@ public enum MyEnum
 public class MyClass
 {
     public MyClass() { }
+    public MyClass(int intParam) { }
     public void MyVoidMethod() { }
     public int MyIntMethod(int withArgument) => withArgument;
     public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
@@ -1139,6 +1198,10 @@ public class MyClass
     /// <summary>This is the MyClass constructor summary.</summary>
     /// <remarks>These are the MyClass constructor remarks.</remarks>
     public MyClass() { }
+    /// <summary>This is the MyClass constructor summary.</summary>
+    /// <param name=""intParam"">This is the MyClass constructor parameter description.</param>
+    /// <remarks>These are the MyClass constructor remarks.</remarks>
+    public MyClass(int intParam) { }
     /// <summary>This is the MyVoidMethod summary.</summary>
     /// <remarks>These are the MyVoidMethod remarks.</remarks>
     public void MyVoidMethod() { }
@@ -1200,9 +1263,17 @@ public class MyClass
   </Docs>
   <Members>
     <Member MemberName="".ctor"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyStruct.#ctor()"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyStruct.#ctor"" />
       <Docs>
         <summary>This is the MyStruct constructor summary.</summary>
+        <remarks>These are the MyStruct constructor remarks.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="".ctor"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyStruct.#ctor(System.Int32)"" />
+      <Docs>
+        <summary>This is the MyStruct constructor summary.</summary>
+        <param name=""intParam"">This is the MyStruct constructor parameter description.</param>
         <remarks>These are the MyStruct constructor remarks.</remarks>
       </Docs>
     </Member>
@@ -1283,6 +1354,7 @@ public class MyClass
 public struct MyStruct
 {
     public MyStruct() { }
+    public MyStruct(int intParam) { }
     public void MyVoidMethod() { }
     public int MyIntMethod(int withArgument) => withArgument;
     public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
@@ -1301,6 +1373,10 @@ public struct MyStruct
     /// <summary>This is the MyStruct constructor summary.</summary>
     /// <remarks>These are the MyStruct constructor remarks.</remarks>
     public MyStruct() { }
+    /// <summary>This is the MyStruct constructor summary.</summary>
+    /// <param name=""intParam"">This is the MyStruct constructor parameter description.</param>
+    /// <remarks>These are the MyStruct constructor remarks.</remarks>
+    public MyStruct(int intParam) { }
     /// <summary>This is the MyVoidMethod summary.</summary>
     /// <remarks>These are the MyVoidMethod remarks.</remarks>
     public void MyVoidMethod() { }

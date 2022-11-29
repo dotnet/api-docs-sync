@@ -439,6 +439,7 @@ public class MyClass
   <Members>
     <Member MemberName=""MySetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyClass.MySetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MySetProperty summary.</summary>
         <value>This is the MySetProperty value.</value>
@@ -488,6 +489,7 @@ public class MyClass
   <Members>
     <Member MemberName=""MyGetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyClass.MyGetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MyGetProperty summary.</summary>
         <value>This is the MyGetProperty value.</value>
@@ -537,6 +539,7 @@ public class MyClass
   <Members>
     <Member MemberName=""MyGetSetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyClass.MyGetSetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MyGetSetProperty summary.</summary>
         <value>This is the MyGetSetProperty value.</value>

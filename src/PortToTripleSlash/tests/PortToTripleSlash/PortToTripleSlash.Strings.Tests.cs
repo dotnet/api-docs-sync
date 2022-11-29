@@ -828,7 +828,7 @@ public class MyClass
   </Docs>
   <Members>
     <Member MemberName=""op_Addition"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.op_addition(MyNamespace.MyClass,MyNamespace.MyClass)"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.op_Addition(MyNamespace.MyClass,MyNamespace.MyClass)"" />
       <Docs>
         <param name=""value1"">This is the + operator value1 description.</param>
         <param name=""value2"">This is the + operator value2 description.</param>
@@ -979,6 +979,7 @@ public enum MyEnum
     </Member>
     <Member MemberName=""MySetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyClass.MySetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MySetProperty summary.</summary>
         <value>This is the MySetProperty value.</value>
@@ -987,6 +988,7 @@ public enum MyEnum
     </Member>
     <Member MemberName=""MyGetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyClass.MyGetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MyGetProperty summary.</summary>
         <value>This is the MyGetProperty value.</value>
@@ -995,6 +997,7 @@ public enum MyEnum
     </Member>
     <Member MemberName=""MyGetSetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyClass.MyGetSetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MyGetSetProperty summary.</summary>
         <value>This is the MyGetSetProperty value.</value>
@@ -1002,7 +1005,7 @@ public enum MyEnum
       </Docs>
     </Member>
     <Member MemberName=""op_Addition"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.op_addition(MyNamespace.MyClass,MyNamespace.MyClass)"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.op_Addition(MyNamespace.MyClass,MyNamespace.MyClass)"" />
       <Docs>
         <param name=""value1"">This is the + operator value1 description.</param>
         <param name=""value2"">This is the + operator value2 description.</param>
@@ -1138,6 +1141,7 @@ public class MyClass
     </Member>
     <Member MemberName=""MySetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyStruct.MySetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MySetProperty summary.</summary>
         <value>This is the MySetProperty value.</value>
@@ -1146,6 +1150,7 @@ public class MyClass
     </Member>
     <Member MemberName=""MyGetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyStruct.MyGetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MyGetProperty summary.</summary>
         <value>This is the MyGetProperty value.</value>
@@ -1154,6 +1159,7 @@ public class MyClass
     </Member>
     <Member MemberName=""MyGetSetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyStruct.MyGetSetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MyGetSetProperty summary.</summary>
         <value>This is the MyGetSetProperty value.</value>
@@ -1161,7 +1167,7 @@ public class MyClass
       </Docs>
     </Member>
     <Member MemberName=""op_Addition"">
-      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyStruct.op_addition(MyNamespace.MyStruct,MyNamespace.MyStruct)"" />
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyStruct.op_Addition(MyNamespace.MyStruct,MyNamespace.MyStruct)"" />
       <Docs>
         <param name=""value1"">This is the + operator value1 description.</param>
         <param name=""value2"">This is the + operator value2 description.</param>
@@ -1283,6 +1289,7 @@ public struct MyStruct
     </Member>
     <Member MemberName=""MySetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyInterface.MySetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MySetProperty summary.</summary>
         <value>This is the MySetProperty value.</value>
@@ -1291,6 +1298,7 @@ public struct MyStruct
     </Member>
     <Member MemberName=""MyGetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyInterface.MyGetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MyGetProperty summary.</summary>
         <value>This is the MyGetProperty value.</value>
@@ -1299,6 +1307,7 @@ public struct MyStruct
     </Member>
     <Member MemberName=""MyGetSetProperty"">
       <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyInterface.MyGetSetProperty"" />
+      <MemberType>Property</MemberType>
       <Docs>
         <summary>This is the MyGetSetProperty summary.</summary>
         <value>This is the MyGetSetProperty value.</value>

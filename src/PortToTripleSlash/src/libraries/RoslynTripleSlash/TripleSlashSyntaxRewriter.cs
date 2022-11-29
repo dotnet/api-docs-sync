@@ -439,7 +439,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                     if (leadingTrivia[0].IsKind(SyntaxKind.EndOfLineTrivia))
                     {
                         // Ensure the endline that separates nodes is respected
-                        finalTrivia = new SyntaxTriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed)
+                        finalTrivia = new SyntaxTriviaList(SyntaxFactory.ElasticLineFeed)
                             .AddRange(finalTrivia);
                     }
                 }
@@ -478,7 +478,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                     doubleSlashComments = doubleSlashComments
                                             .AddRange(leadingWhitespace)
                                             .Add(trivia)
-                                            .Add(SyntaxFactory.CarriageReturnLineFeed);
+                                            .Add(SyntaxFactory.LineFeed);
                 }
             }
 
@@ -742,7 +742,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
 
             return leadingWhitespace
                 .Add(docCommentTrivia)
-                .Add(SyntaxFactory.CarriageReturnLineFeed);
+                .Add(SyntaxFactory.LineFeed);
         }
 
         // Generates a custom SyntaxTrivia object containing a triple slashed xml element with optional attributes.

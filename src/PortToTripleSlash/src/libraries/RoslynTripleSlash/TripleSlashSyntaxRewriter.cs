@@ -92,6 +92,8 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
     {
         #region Private members
 
+        private static readonly string UnixNewLine = "\n";
+
         private static readonly string[] ReservedKeywords = new[] { "abstract", "async", "await", "false", "null", "sealed", "static", "true", "virtual" };
 
         private static readonly string[] MarkdownUnconvertableStrings = new[] { "](~/includes", "[!INCLUDE" };
@@ -697,12 +699,12 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
 
             // collapse newlines to a single one
             string whitespace = Regex.Replace(leadingWhitespace.ToFullString(), @"(\r?\n)+", "");
-            SyntaxToken whitespaceToken = SyntaxFactory.XmlTextNewLine(Environment.NewLine + whitespace);
+            SyntaxToken whitespaceToken = SyntaxFactory.XmlTextNewLine(UnixNewLine + whitespace);
 
             SyntaxTrivia leadingTrivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.DocumentationCommentExteriorTrivia, string.Empty);
             SyntaxTriviaList leading = SyntaxTriviaList.Create(leadingTrivia);
 
-            string[] lines = text.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string[] lines = text.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             var tokens = new List<SyntaxToken>();
 
@@ -765,9 +767,9 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
 
         private static string WrapInRemarks(string acum)
         {
-            string wrapped = Environment.NewLine + "<format type=\"text/markdown\"><![CDATA[" + Environment.NewLine;
+            string wrapped = UnixNewLine + "<format type=\"text/markdown\"><![CDATA[" + UnixNewLine;
             wrapped += acum;
-            wrapped += Environment.NewLine + "]]></format>" + Environment.NewLine;
+            wrapped += UnixNewLine + "]]></format>" + UnixNewLine;
             return wrapped;
         }
 
@@ -776,7 +778,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             string acum = string.Empty;
             while (n < splitted.Length && splitted[n].ContainsStrings(MarkdownCodeIncludes))
             {
-                acum += Environment.NewLine + splitted[n];
+                acum += UnixNewLine + splitted[n];
                 if ((n + 1) < splitted.Length && splitted[n + 1].ContainsStrings(MarkdownCodeIncludes))
                 {
                     n++;
@@ -802,7 +804,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             }
             else
             {
-                string[] splitted = remarks.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+                string[] splitted = remarks.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 string updatedRemarks = string.Empty;
                 for (int n = 0; n < splitted.Length; n++)
                 {
@@ -814,7 +816,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                         n++;
                         while (n < splitted.Length && splitted[n].StartsWith(">"))
                         {
-                            acum += Environment.NewLine + splitted[n];
+                            acum += UnixNewLine + splitted[n];
                             if ((n + 1) < splitted.Length && splitted[n + 1].StartsWith(">"))
                             {
                                 n++;
@@ -843,14 +845,14 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                             }
                             else
                             {
-                                example += Environment.NewLine + line;
+                                example += UnixNewLine + line;
                             }
                             n++;
                         }
                     }
                     else
                     {
-                        updatedRemarks += ReplaceMarkdownWithXmlElements(Environment.NewLine + line, api.Params, api.TypeParams);
+                        updatedRemarks += ReplaceMarkdownWithXmlElements(UnixNewLine + line, api.Params, api.TypeParams);
                     }
                 }
 

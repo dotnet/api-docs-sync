@@ -1117,6 +1117,124 @@ public class MyClass
     }
 
     [Fact]
+    public Task Class_Do_Not_Backport_Inherited_Docs()
+    {
+        // In PortToDocs we find the base class and get the documentation if there's none in the child type.
+        // In PortToTripleSlash, we should not do that. We only backport what's found in the child type.
+
+        string interfaceDocId = "T:MyNamespace.MyInterface";
+
+        string classDocId = "T:MyNamespace.MyClass";
+
+        string interfaceDocFile = @"<Type Name=""MyInterface"" FullName=""MyNamespace.MyInterface"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyInterface"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>This is the MyInterface summary.</summary>
+    <remarks>These are the MyInterface remarks.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyVoidMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyInterface.MyVoidMethod"" />
+      <Docs>
+        <summary>This is the MyInterface.MyVoidMethod summary.</summary>
+        <remarks>These are the MyInterface.MyVoidMethod remarks.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=""MyGetSetProperty"">
+      <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyInterface.MyGetSetProperty"" />
+      <MemberType>Property</MemberType>
+      <Docs>
+        <summary>This is the MyInterface.MyGetSetProperty summary.</summary>
+        <value>This is the MyInterface.MyGetSetProperty value.</value>
+        <remarks>These are the MyInterface.MyGetSetProperty remarks.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+        string classDocFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>MyNamespace.MyInterface</BaseTypeName>
+  </Base>
+  <Docs>
+    <summary>This is the MyClass summary.</summary>
+    <remarks>These are the MyClass remarks.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyVoidMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.MyVoidMethod"" />
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>These are the MyClass.MyVoidMethod remarks.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=""MyGetSetProperty"">
+      <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyClass.MyGetSetProperty"" />
+      <MemberType>Property</MemberType>
+      <Docs>
+        <summary>To be added.</summary>
+        <value>This is the MyClass.MyGetSetProperty value.</value>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+        string interfaceOriginalCode = @"namespace MyNamespace;
+public interface MyInterface
+{
+    public void MyVoidMethod();
+    public double MyGetSetProperty { get; set; }
+}";
+
+        string interfaceExpectedCode = @"namespace MyNamespace;
+/// <summary>This is the MyInterface summary.</summary>
+/// <remarks>These are the MyInterface remarks.</remarks>
+public interface MyInterface
+{
+    /// <summary>This is the MyInterface.MyVoidMethod summary.</summary>
+    /// <remarks>These are the MyInterface.MyVoidMethod remarks.</remarks>
+    public void MyVoidMethod();
+    /// <summary>This is the MyInterface.MyGetSetProperty summary.</summary>
+    /// <value>This is the MyInterface.MyGetSetProperty value.</value>
+    /// <remarks>These are the MyInterface.MyGetSetProperty remarks.</remarks>
+    public double MyGetSetProperty { get; set; }
+}";
+
+        string classOriginalCode = @"namespace MyNamespace;
+public class MyClass : MyInterface
+{
+    public void MyVoidMethod() { }
+    public double MyGetSetProperty { get; set; }
+}";
+
+        string classExpectedCode = @"namespace MyNamespace;
+/// <summary>This is the MyClass summary.</summary>
+/// <remarks>These are the MyClass remarks.</remarks>
+public class MyClass : MyInterface
+{
+    /// <remarks>These are the MyClass.MyVoidMethod remarks.</remarks>
+    public void MyVoidMethod() { }
+    /// <value>This is the MyClass.MyGetSetProperty value.</value>
+    public double MyGetSetProperty { get; set; }
+}";
+
+        List<string> docFiles = new() { interfaceDocFile, classDocFile };
+        List<string> originalCodeFiles = new() { interfaceOriginalCode, classOriginalCode };
+        Dictionary<string, string> expectedCodeFiles = new() { { interfaceDocId, interfaceExpectedCode }, { classDocId, classExpectedCode } };
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(data);
+    }
+
+    [Fact]
     public Task Full_Enum()
     {
         string docId = "T:MyNamespace.MyEnum";

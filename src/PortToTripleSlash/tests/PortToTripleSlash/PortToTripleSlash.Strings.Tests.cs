@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -526,6 +526,55 @@ public class MyClass
     }
 
     [Fact]
+    public Task Class_Method_Exception()
+    {
+        string docId = "T:MyNamespace.MyClass";
+
+        string docFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyVoidMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.MyVoidMethod"" />
+      <Docs>
+        <summary>This is the MyVoidMethod summary.</summary>
+        <remarks>These are the MyVoidMethod remarks.</remarks>
+        <exception cref=""T:System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+        string originalCode = @"namespace MyNamespace;
+public class MyClass
+{
+    public void MyVoidMethod() { }
+}";
+
+        string expectedCode = @"namespace MyNamespace;
+public class MyClass
+{
+    /// <summary>This is the MyVoidMethod summary.</summary>
+    /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>
+    /// <remarks>These are the MyVoidMethod remarks.</remarks>
+    public void MyVoidMethod() { }
+}";
+
+        List<string> docFiles = new() { docFile };
+        List<string> originalCodeFiles = new() { originalCode };
+        Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
+        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(stringTestData);
+    }
+
+    [Fact]
     public Task Class_Field()
     {
         string docId = "T:MyNamespace.MyClass";
@@ -710,6 +759,58 @@ public class MyClass
 {
     /// <summary>This is the MyGetSetProperty summary.</summary>
     /// <value>This is the MyGetSetProperty value.</value>
+    /// <remarks>These are the MyGetSetProperty remarks.</remarks>
+    public double MyGetSetProperty { get; set; }
+}";
+
+        List<string> docFiles = new() { docFile };
+        List<string> originalCodeFiles = new() { originalCode };
+        Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
+        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(stringTestData);
+    }
+
+    [Fact]
+    public Task Class_Property_Exception()
+    {
+        string docId = "T:MyNamespace.MyClass";
+
+        string docFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyGetSetProperty"">
+      <MemberSignature Language=""DocId"" Value=""P:MyNamespace.MyClass.MyGetSetProperty"" />
+      <MemberType>Property</MemberType>
+      <Docs>
+        <summary>This is the MyGetSetProperty summary.</summary>
+        <value>This is the MyGetSetProperty value.</value>
+        <remarks>These are the MyGetSetProperty remarks.</remarks>
+        <exception cref=""T:System.NullReferenceException"">The null reference exception thrown by MyGetSetProperty.</exception>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+        string originalCode = @"namespace MyNamespace;
+public class MyClass
+{
+    public double MyGetSetProperty { get; set; }
+}";
+
+        string expectedCode = @"namespace MyNamespace;
+public class MyClass
+{
+    /// <summary>This is the MyGetSetProperty summary.</summary>
+    /// <value>This is the MyGetSetProperty value.</value>
+    /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyGetSetProperty.</exception>
     /// <remarks>These are the MyGetSetProperty remarks.</remarks>
     public double MyGetSetProperty { get; set; }
 }";
@@ -1107,6 +1208,7 @@ public enum MyEnum
       <Docs>
         <summary>This is the MyVoidMethod summary.</summary>
         <remarks>These are the MyVoidMethod remarks.</remarks>
+        <exception cref=""T:System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>
       </Docs>
     </Member>
     <Member MemberName=""MyIntMethod"">
@@ -1203,6 +1305,7 @@ public class MyClass
     /// <remarks>These are the MyClass constructor remarks.</remarks>
     public MyClass(int intParam) { }
     /// <summary>This is the MyVoidMethod summary.</summary>
+    /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>
     /// <remarks>These are the MyVoidMethod remarks.</remarks>
     public void MyVoidMethod() { }
     /// <summary>This is the MyIntMethod summary.</summary>

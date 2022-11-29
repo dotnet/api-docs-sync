@@ -620,10 +620,10 @@ public class MyClass
     public Task Class_WithDelegate()
     {
         string topLevelTypeDocId = "T:MyNamespace.MyClass";
-        string delegateDocId = "T:MyNamespace.MyType.MyDelegate";
+        string delegateDocId = "T:MyNamespace.MyClass.MyDelegate";
 
-        string docFile1 = @"<Type Name=""MyDelegate"" FullName=""MyNamespace.MyType.MyDelegate"">
-  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType.MyDelegate"" />
+        string docFile1 = @"<Type Name=""MyDelegate"" FullName=""MyNamespace.MyClass.MyDelegate"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass.MyDelegate"" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
@@ -675,10 +675,10 @@ public class MyClass
     public Task NestedEnum_InClass()
     {
         string topLevelTypeDocId = "T:MyNamespace.MyClass";
-        string enumDocId = "T:MyNamespace.MyType.MyEnum";
+        string enumDocId = "T:MyNamespace.MyClass.MyEnum";
 
-        string docFile1 = @"<Type Name=""MyEnum"" FullName=""MyNamespace.MyType.MyEnum"">
-  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType.MyEnum"" />
+        string docFile1 = @"<Type Name=""MyEnum"" FullName=""MyNamespace.MyClass.MyEnum"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass.MyEnum"" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
@@ -688,13 +688,13 @@ public class MyClass
   </Docs>
   <Members>
     <Member MemberName=""Value1"">
-      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.MyType.MyEnum.Value1"" />
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.MyClass.MyEnum.Value1"" />
       <Docs>
         <summary>This is the MyEnum.Value1 summary.</summary>
       </Docs>
     </Member>
     <Member MemberName=""Value2"">
-      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.MyType.MyEnum.Value2"" />
+      <MemberSignature Language=""DocId"" Value=""F:MyNamespace.MyClass.MyEnum.Value2"" />
       <Docs>
         <summary>This is the MyEnum.Value2 summary.</summary>
       </Docs>
@@ -753,10 +753,10 @@ public class MyClass
     public Task NestedStruct_InClass()
     {
         string topLevelTypeDocId = "T:MyNamespace.MyClass";
-        string enumDocId = "T:MyNamespace.MyType.MyStruct";
+        string enumDocId = "T:MyNamespace.MyClass.MyStruct";
 
-        string docFile1 = @"<Type Name=""MyStruct"" FullName=""MyNamespace.MyType.MyStruct"">
-  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType.MyStruct"" />
+        string docFile1 = @"<Type Name=""MyStruct"" FullName=""MyNamespace.MyClass.MyStruct"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass.MyStruct"" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
@@ -795,7 +795,7 @@ public class MyClass
 public class MyClass
 {
     /// <summary>This is the MyStruct summary.</summary>
-    /// <remarks>These are the MyMyStructEnum remarks.</remarks>
+    /// <remarks>These are the MyStruct remarks.</remarks>
     public struct MyStruct
     {
     }

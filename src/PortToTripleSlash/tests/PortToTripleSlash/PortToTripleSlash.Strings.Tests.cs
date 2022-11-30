@@ -1286,6 +1286,60 @@ public class MyClass
         return TestWithStringsAsync(stringTestData);
     }
 
+    [ActiveIssue("https://github.com/dotnet/api-docs-sync/issues/149")]
+    [Fact]
+    public Task Override_Existing_TripleSlash_Comments()
+    {
+        string docId = "T:MyNamespace.MyClass";
+
+        string docFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>This is the MyClass type summary.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName="".ctor"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.#ctor"" />
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>These are the MyClass constructor remarks.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+        string originalCode = @"namespace MyNamespace;
+/// <summary>Old MyClass type summary.</summary>
+/// <remarks>Old MyClass type remarks.</remarks>
+public class MyClass
+{
+    /// <summary>Old MyClass constructor summary.</summary>
+    /// <remarks>Old MyClass constructor remarks.</remarks>
+    public MyClass() { }
+}";
+
+        string expectedCode = @"namespace MyNamespace;
+/// <summary>This is the MyClass type summary.</summary>
+/// <remarks>Old MyClass type remarks.</remarks>
+public class MyClass
+{
+    /// <summary>Old MyClass constructor summary.</summary>
+    /// <remarks>These are the MyClass constructor remarks.</remarks>
+    public MyClass() { }
+}";
+
+        List<string> docFiles = new() { docFile };
+        List<string> originalCodeFiles = new() { originalCode };
+        Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
+        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(stringTestData);
+    }
+
     [Fact]
     public Task Full_Enum()
     {

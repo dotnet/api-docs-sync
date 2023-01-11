@@ -191,7 +191,7 @@ namespace ApiDocsSync.PortToTripleSlash
                 }
             }
 
-            if (!docsType.SymbolLocations.Any())
+            if (!docsType.SymbolLocations.HasItems())
             {
                 Log.Error($"No symbols found for docs type '{docsType.DocId}'.");
             }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ApiDocsSync.PortToTripleSlash
 {
@@ -59,6 +60,8 @@ namespace ApiDocsSync.PortToTripleSlash
         // Checks if the passed string is considered "empty" according to the Docs repo rules.
         public static bool IsDocsEmpty(this string? s) =>
             string.IsNullOrWhiteSpace(s) || s == Configuration.ToBeAdded;
+        
+        public static bool HasItems<T>(this IEnumerable<T> src) => src?.Any() ?? false;
     }
 
 }

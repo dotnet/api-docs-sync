@@ -28,11 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="17.2.0" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.2.0" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build" Version="17.4.0" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.4.0" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version="8.0.0-beta.22579.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.0-preview-20220707-01" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0-preview.6.22324.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0-preview-20221221-03" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <PrivateAssets>all</PrivateAssets>

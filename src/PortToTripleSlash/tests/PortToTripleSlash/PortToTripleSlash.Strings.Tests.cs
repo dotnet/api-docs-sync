@@ -1298,7 +1298,7 @@ public class MyClass
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
   <Docs>
-    <summary>This is the MyClass type summary.</summary>
+    <summary>New MyClass type summary.</summary>
     <remarks>To be added.</remarks>
   </Docs>
   <Members>
@@ -1306,30 +1306,32 @@ public class MyClass
       <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyClass.#ctor"" />
       <Docs>
         <summary>To be added.</summary>
-        <remarks>These are the MyClass constructor remarks.</remarks>
+        <remarks>New MyClass constructor remarks.</remarks>
       </Docs>
     </Member>
   </Members>
 </Type>";
 
-        string originalCode = @"namespace MyNamespace;
-/// <summary>Old MyClass type summary.</summary>
-/// <remarks>Old MyClass type remarks.</remarks>
-public class MyClass
-{
-    /// <summary>Old MyClass constructor summary.</summary>
-    /// <remarks>Old MyClass constructor remarks.</remarks>
-    public MyClass() { }
+        string originalCode = @"namespace MyNamespace {
+  /// <summary>Old MyClass type summary.</summary>
+  /// <remarks>Old MyClass type remarks.</remarks>
+  public class MyClass
+  {
+      /// <summary>Old MyClass constructor summary.</summary>
+      /// <remarks>Old MyClass constructor remarks.</remarks>
+      public MyClass() { }
+  }
 }";
 
-        string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass type summary.</summary>
-/// <remarks>Old MyClass type remarks.</remarks>
-public class MyClass
-{
-    /// <summary>Old MyClass constructor summary.</summary>
-    /// <remarks>These are the MyClass constructor remarks.</remarks>
-    public MyClass() { }
+        string expectedCode = @"namespace MyNamespace {
+  /// <summary>New MyClass type summary.</summary>
+  /// <remarks>Old MyClass type remarks.</remarks>
+  public class MyClass
+  {
+      /// <summary>Old MyClass constructor summary.</summary>
+      /// <remarks>New MyClass constructor remarks.</remarks>
+      public MyClass() { }
+  }
 }";
 
         List<string> docFiles = new() { docFile };

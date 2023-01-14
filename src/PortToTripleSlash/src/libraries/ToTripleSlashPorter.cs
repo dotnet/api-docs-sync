@@ -144,7 +144,8 @@ namespace ApiDocsSync.PortToTripleSlash
                 {
                     Log.Info($"Porting docs for tree '{resolvedLocation.Tree.FilePath}'...");
                     TripleSlashSyntaxRewriter rewriter = new(_docsComments, resolvedLocation.Model);
-                    resolvedLocation.NewNode = rewriter.Visit(resolvedLocation.Tree.GetRoot(cancellationToken));
+                    SyntaxNode root = resolvedLocation.Tree.GetRoot(cancellationToken);
+                    resolvedLocation.NewNode = rewriter.Visit(root);
                     if (resolvedLocation.NewNode == null)
                     {
                         throw new Exception($"Returned null root node for {docsType.TypeName} in {resolvedLocation.Tree.FilePath}");

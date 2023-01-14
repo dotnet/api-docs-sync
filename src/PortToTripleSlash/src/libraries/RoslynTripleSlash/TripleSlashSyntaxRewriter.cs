@@ -239,14 +239,15 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             }
 
             SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+            SyntaxTriviaList leadingTrivia = node.GetLeadingTrivia();
 
-            SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
-            SyntaxTriviaList value = GetValue(member, leadingWhitespace);
-            SyntaxTriviaList exceptions = GetExceptions(member.Exceptions, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
-            SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
-            SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
-            SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
+            SyntaxTriviaList summary = GetSummary(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList value = GetValue(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList exceptions = GetExceptions(leadingTrivia, member.Exceptions, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList seealsos = GetSeeAlsos(leadingTrivia, member.SeeAlsoCrefs, leadingWhitespace);
+            SyntaxTriviaList altmembers = GetAltMembers(leadingTrivia, member.AltMembers, leadingWhitespace);
+            SyntaxTriviaList relateds = GetRelateds(leadingTrivia, member.Relateds, leadingWhitespace);
 
             return GetNodeWithTrivia(leadingWhitespace, node, summary, value, exceptions, remarks, seealsos, altmembers, relateds);
         }
@@ -304,13 +305,15 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                 return node;
             }
 
-            SyntaxTriviaList summary = GetSummary(type, leadingWhitespace);
-            SyntaxTriviaList typeParameters = GetTypeParameters(type, leadingWhitespace);
-            SyntaxTriviaList parameters = GetParameters(type, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(type, leadingWhitespace);
-            SyntaxTriviaList seealsos = GetSeeAlsos(type.SeeAlsoCrefs, leadingWhitespace);
-            SyntaxTriviaList altmembers = GetAltMembers(type.AltMembers, leadingWhitespace);
-            SyntaxTriviaList relateds = GetRelateds(type.Relateds, leadingWhitespace);
+            SyntaxTriviaList leadingTrivia = node.GetLeadingTrivia();
+
+            SyntaxTriviaList summary = GetSummary(leadingTrivia, type, leadingWhitespace);
+            SyntaxTriviaList typeParameters = GetTypeParameters(leadingTrivia, type, leadingWhitespace);
+            SyntaxTriviaList parameters = GetParameters(leadingTrivia, type, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(leadingTrivia, type, leadingWhitespace);
+            SyntaxTriviaList seealsos = GetSeeAlsos(leadingTrivia, type.SeeAlsoCrefs, leadingWhitespace);
+            SyntaxTriviaList altmembers = GetAltMembers(leadingTrivia, type.AltMembers, leadingWhitespace);
+            SyntaxTriviaList relateds = GetRelateds(leadingTrivia, type.Relateds, leadingWhitespace);
 
 
             return GetNodeWithTrivia(leadingWhitespace, node, summary, typeParameters, parameters, remarks, seealsos, altmembers, relateds);
@@ -326,16 +329,17 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             }
 
             SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+            SyntaxTriviaList leadingTrivia = node.GetLeadingTrivia();
 
-            SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
-            SyntaxTriviaList typeParameters = GetTypeParameters(member, leadingWhitespace);
-            SyntaxTriviaList parameters = GetParameters(member, leadingWhitespace);
-            SyntaxTriviaList returns = GetReturns(member, leadingWhitespace);
-            SyntaxTriviaList exceptions = GetExceptions(member.Exceptions, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
-            SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
-            SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
-            SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
+            SyntaxTriviaList summary = GetSummary(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList typeParameters = GetTypeParameters(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList parameters = GetParameters(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList returns = GetReturns(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList exceptions = GetExceptions(leadingTrivia, member.Exceptions, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList seealsos = GetSeeAlsos(leadingTrivia, member.SeeAlsoCrefs, leadingWhitespace);
+            SyntaxTriviaList altmembers = GetAltMembers(leadingTrivia, member.AltMembers, leadingWhitespace);
+            SyntaxTriviaList relateds = GetRelateds(leadingTrivia, member.Relateds, leadingWhitespace);
 
             return GetNodeWithTrivia(leadingWhitespace, node, summary, typeParameters, parameters, returns, exceptions, remarks, seealsos, altmembers, relateds);
         }
@@ -348,13 +352,14 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             }
 
             SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+            SyntaxTriviaList leadingTrivia = node.GetLeadingTrivia();
 
-            SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
-            SyntaxTriviaList exceptions = GetExceptions(member.Exceptions, leadingWhitespace);
-            SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
-            SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
-            SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
-            SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
+            SyntaxTriviaList summary = GetSummary(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList exceptions = GetExceptions(leadingTrivia, member.Exceptions, leadingWhitespace);
+            SyntaxTriviaList remarks = GetRemarks(leadingTrivia, member, leadingWhitespace);
+            SyntaxTriviaList seealsos = GetSeeAlsos(leadingTrivia, member.SeeAlsoCrefs, leadingWhitespace);
+            SyntaxTriviaList altmembers = GetAltMembers(leadingTrivia, member.AltMembers, leadingWhitespace);
+            SyntaxTriviaList relateds = GetRelateds(leadingTrivia, member.Relateds, leadingWhitespace);
 
             return GetNodeWithTrivia(leadingWhitespace, node, summary, exceptions, remarks, seealsos, altmembers, relateds);
         }
@@ -373,12 +378,13 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                 }
 
                 SyntaxTriviaList leadingWhitespace = GetLeadingWhitespace(node);
+                SyntaxTriviaList leadingTrivia = node.GetLeadingTrivia();
 
-                SyntaxTriviaList summary = GetSummary(member, leadingWhitespace);
-                SyntaxTriviaList remarks = GetRemarks(member, leadingWhitespace);
-                SyntaxTriviaList seealsos = GetSeeAlsos(member.SeeAlsoCrefs, leadingWhitespace);
-                SyntaxTriviaList altmembers = GetAltMembers(member.AltMembers, leadingWhitespace);
-                SyntaxTriviaList relateds = GetRelateds(member.Relateds, leadingWhitespace);
+                SyntaxTriviaList summary = GetSummary(leadingTrivia, member, leadingWhitespace);
+                SyntaxTriviaList remarks = GetRemarks(leadingTrivia, member, leadingWhitespace);
+                SyntaxTriviaList seealsos = GetSeeAlsos(leadingTrivia, member.SeeAlsoCrefs, leadingWhitespace);
+                SyntaxTriviaList altmembers = GetAltMembers(leadingTrivia, member.AltMembers, leadingWhitespace);
+                SyntaxTriviaList relateds = GetRelateds(leadingTrivia, member.Relateds, leadingWhitespace);
 
                 return GetNodeWithTrivia(leadingWhitespace, node, summary, remarks, seealsos, altmembers, relateds);
             }
@@ -501,38 +507,65 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             return new();
         }
 
-        private static SyntaxTriviaList GetSummary(DocsAPI api, SyntaxTriviaList leadingWhitespace)
+        // Collects all tags with of the same name from a SyntaxTriviaList.
+        private static SyntaxTriviaList FindTag(string tag, SyntaxTriviaList leadingWhitespace, SyntaxTriviaList from)
         {
-            if (!api.Summary.IsDocsEmpty())
+            List<XmlNodeSyntax> l = new();
+            foreach(var trivia in from)
             {
-                XmlTextSyntax contents = GetTextAsCommentedTokens(api.Summary, leadingWhitespace);
-                XmlElementSyntax element = SyntaxFactory.XmlSummaryElement(contents);
-                return GetXmlTrivia(element, leadingWhitespace);
+                SyntaxNode? structure = trivia.GetStructure();
+                if (structure is DocumentationCommentTriviaSyntax st) {
+                    foreach(XmlNodeSyntax elem in st.Content)
+                    {
+                        if (elem is XmlEmptyElementSyntax ees && ees.Name.ToString() == tag) {
+                            l.Add(elem);
+                        } else if (elem is XmlElementSyntax es && es.StartTag.Name.ToString() == tag) {
+                            l.Add(elem);
+                        }
+                    }
+                }
+            }
+
+            if (l.Any())
+            {
+                return GetXmlTrivia(leadingWhitespace, l.ToArray());
             }
 
             return new();
         }
 
-        private static SyntaxTriviaList GetRemarks(DocsAPI api, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetSummary(SyntaxTriviaList old, DocsAPI api, SyntaxTriviaList leadingWhitespace)
+        {
+            if (!api.Summary.IsDocsEmpty())
+            {
+                XmlTextSyntax contents = GetTextAsCommentedTokens(api.Summary, leadingWhitespace);
+                XmlElementSyntax element = SyntaxFactory.XmlSummaryElement(contents);
+                return GetXmlTrivia(leadingWhitespace, element);
+            }
+
+            return FindTag("summary", leadingWhitespace, old);
+        }
+
+        private static SyntaxTriviaList GetRemarks(SyntaxTriviaList old, DocsAPI api, SyntaxTriviaList leadingWhitespace)
         {
             if (!api.Remarks.IsDocsEmpty())
             {
                 return GetFormattedRemarks(api, leadingWhitespace);
             }
 
-            return new();
+            return FindTag("remarks", leadingWhitespace, old);
         }
 
-        private static SyntaxTriviaList GetValue(DocsMember api, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetValue(SyntaxTriviaList old, DocsMember api, SyntaxTriviaList leadingWhitespace)
         {
             if (!api.Value.IsDocsEmpty())
             {
                 XmlTextSyntax contents = GetTextAsCommentedTokens(api.Value, leadingWhitespace);
                 XmlElementSyntax element = SyntaxFactory.XmlValueElement(contents);
-                return GetXmlTrivia(element, leadingWhitespace);
+                return GetXmlTrivia(leadingWhitespace, element);
             }
 
-            return new();
+            return FindTag("value", leadingWhitespace, old);
         }
 
         private static SyntaxTriviaList GetParameter(string name, string text, SyntaxTriviaList leadingWhitespace)
@@ -541,14 +574,18 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             {
                 XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace);
                 XmlElementSyntax element = SyntaxFactory.XmlParamElement(name, contents);
-                return GetXmlTrivia(element, leadingWhitespace);
+                return GetXmlTrivia(leadingWhitespace, element);
             }
 
             return new();
         }
 
-        private static SyntaxTriviaList GetParameters(DocsAPI api, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetParameters(SyntaxTriviaList old, DocsAPI api, SyntaxTriviaList leadingWhitespace)
         {
+            if (!api.Params.HasItems())
+            {
+                return FindTag("param", leadingWhitespace, old);
+            }
             SyntaxTriviaList parameters = new();
             foreach (SyntaxTriviaList parameterTrivia in api.Params
                     .Where(param => !param.Value.IsDocsEmpty())
@@ -571,8 +608,12 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             return new();
         }
 
-        private static SyntaxTriviaList GetTypeParameters(DocsAPI api, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetTypeParameters(SyntaxTriviaList old, DocsAPI api, SyntaxTriviaList leadingWhitespace)
         {
+            if (!api.TypeParams.HasItems())
+            {
+                return FindTag("typeparams", leadingWhitespace, old);
+            }
             SyntaxTriviaList typeParameters = new();
             foreach (SyntaxTriviaList typeParameterTrivia in api.TypeParams
                         .Where(typeParam => !typeParam.Value.IsDocsEmpty())
@@ -583,17 +624,17 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             return typeParameters;
         }
 
-        private static SyntaxTriviaList GetReturns(DocsMember api, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetReturns(SyntaxTriviaList old, DocsMember api, SyntaxTriviaList leadingWhitespace)
         {
             // Also applies for when <returns> is empty because the method return type is void
             if (!api.Returns.IsDocsEmpty())
             {
                 XmlTextSyntax contents = GetTextAsCommentedTokens(api.Returns, leadingWhitespace);
                 XmlElementSyntax element = SyntaxFactory.XmlReturnsElement(contents);
-                return GetXmlTrivia(element, leadingWhitespace);
+                return GetXmlTrivia(leadingWhitespace, element);
             }
 
-            return new();
+            return FindTag("returns", leadingWhitespace, old);
         }
 
         private static SyntaxTriviaList GetException(string cref, string text, SyntaxTriviaList leadingWhitespace)
@@ -604,22 +645,23 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                 TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
                 XmlTextSyntax contents = GetTextAsCommentedTokens(text, leadingWhitespace);
                 XmlElementSyntax element = SyntaxFactory.XmlExceptionElement(crefSyntax, contents);
-                return GetXmlTrivia(element, leadingWhitespace);
+                return GetXmlTrivia(leadingWhitespace, element);
             }
 
             return new();
         }
 
-        private static SyntaxTriviaList GetExceptions(List<DocsException> docsExceptions, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetExceptions(SyntaxTriviaList old, List<DocsException> docsExceptions, SyntaxTriviaList leadingWhitespace)
         {
-            SyntaxTriviaList exceptions = new();
-            if (docsExceptions.Any())
+            if (!docsExceptions.Any())
             {
-                foreach (SyntaxTriviaList exceptionsTrivia in docsExceptions.Select(
-                    exception => GetException(exception.Cref, exception.Value, leadingWhitespace)))
-                {
-                    exceptions = exceptions.AddRange(exceptionsTrivia);
-                }
+                return FindTag("exception", leadingWhitespace, old);
+            }
+            SyntaxTriviaList exceptions = new();
+            foreach (SyntaxTriviaList exceptionsTrivia in docsExceptions.Select(
+                exception => GetException(exception.Cref, exception.Value, leadingWhitespace)))
+            {
+                exceptions = exceptions.AddRange(exceptionsTrivia);
             }
             return exceptions;
         }
@@ -629,19 +671,20 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             cref = RemoveCrefPrefix(cref);
             TypeCrefSyntax crefSyntax = SyntaxFactory.TypeCref(SyntaxFactory.ParseTypeName(cref));
             XmlEmptyElementSyntax element = SyntaxFactory.XmlSeeAlsoElement(crefSyntax);
-            return GetXmlTrivia(element, leadingWhitespace);
+            return GetXmlTrivia(leadingWhitespace, element);
         }
 
-        private static SyntaxTriviaList GetSeeAlsos(List<string> docsSeeAlsoCrefs, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetSeeAlsos(SyntaxTriviaList old, List<string> docsSeeAlsoCrefs, SyntaxTriviaList leadingWhitespace)
         {
-            SyntaxTriviaList seealsos = new();
-            if (docsSeeAlsoCrefs.Any())
+            if (!docsSeeAlsoCrefs.Any())
             {
-                foreach (SyntaxTriviaList seealsoTrivia in docsSeeAlsoCrefs.Select(
-                    s => GetSeeAlso(s, leadingWhitespace)))
-                {
-                    seealsos = seealsos.AddRange(seealsoTrivia);
-                }
+                return FindTag("seealso", leadingWhitespace, old);
+            }
+            SyntaxTriviaList seealsos = new();
+            foreach (SyntaxTriviaList seealsoTrivia in docsSeeAlsoCrefs.Select(
+                s => GetSeeAlso(s, leadingWhitespace)))
+            {
+                seealsos = seealsos.AddRange(seealsoTrivia);
             }
             return seealsos;
         }
@@ -651,19 +694,20 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             cref = RemoveCrefPrefix(cref);
             XmlAttributeSyntax attribute = SyntaxFactory.XmlTextAttribute("cref", cref);
             XmlEmptyElementSyntax emptyElement = SyntaxFactory.XmlEmptyElement(SyntaxFactory.XmlName(SyntaxFactory.Identifier("altmember")), new SyntaxList<XmlAttributeSyntax>(attribute));
-            return GetXmlTrivia(emptyElement, leadingWhitespace);
+            return GetXmlTrivia(leadingWhitespace, emptyElement);
         }
 
-        private static SyntaxTriviaList GetAltMembers(List<string> docsAltMembers, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetAltMembers(SyntaxTriviaList old, List<string> docsAltMembers, SyntaxTriviaList leadingWhitespace)
         {
-            SyntaxTriviaList altMembers = new();
-            if (docsAltMembers.Any())
+            if (!docsAltMembers.Any())
             {
-                foreach (SyntaxTriviaList altMemberTrivia in docsAltMembers.Select(
-                    s => GetAltMember(s, leadingWhitespace)))
-                {
-                    altMembers = altMembers.AddRange(altMemberTrivia);
-                }
+                return FindTag("altmember", leadingWhitespace, old);
+            }
+            SyntaxTriviaList altMembers = new();
+            foreach (SyntaxTriviaList altMemberTrivia in docsAltMembers.Select(
+                s => GetAltMember(s, leadingWhitespace)))
+            {
+                altMembers = altMembers.AddRange(altMemberTrivia);
             }
             return altMembers;
         }
@@ -679,16 +723,17 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             return GetXmlTrivia("related", attributes, contents, leadingWhitespace);
         }
 
-        private static SyntaxTriviaList GetRelateds(List<DocsRelated> docsRelateds, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetRelateds(SyntaxTriviaList old, List<DocsRelated> docsRelateds, SyntaxTriviaList leadingWhitespace)
         {
-            SyntaxTriviaList relateds = new();
-            if (docsRelateds.Any())
+            if (!docsRelateds.Any())
             {
-                foreach (SyntaxTriviaList relatedsTrivia in docsRelateds.Select(
-                    s => GetRelated(s.ArticleType, s.Href, s.Value, leadingWhitespace)))
-                {
-                    relateds = relateds.AddRange(relatedsTrivia);
-                }
+                return FindTag("related", leadingWhitespace, old);
+            }
+            SyntaxTriviaList relateds = new();
+            foreach (SyntaxTriviaList relatedsTrivia in docsRelateds.Select(
+                s => GetRelated(s.ArticleType, s.Href, s.Value, leadingWhitespace)))
+            {
+                relateds = relateds.AddRange(relatedsTrivia);
             }
             return relateds;
         }
@@ -735,9 +780,9 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             return xmlText;
         }
 
-        private static SyntaxTriviaList GetXmlTrivia(XmlNodeSyntax node, SyntaxTriviaList leadingWhitespace)
+        private static SyntaxTriviaList GetXmlTrivia(SyntaxTriviaList leadingWhitespace, params XmlNodeSyntax[] nodes)
         {
-            DocumentationCommentTriviaSyntax docComment = SyntaxFactory.DocumentationComment(node);
+            DocumentationCommentTriviaSyntax docComment = SyntaxFactory.DocumentationComment(nodes);
             SyntaxTrivia docCommentTrivia = SyntaxFactory.Trivia(docComment);
 
             return leadingWhitespace
@@ -762,7 +807,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                 SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
             XmlElementSyntax element = SyntaxFactory.XmlElement(start, new SyntaxList<XmlNodeSyntax>(contents), end);
-            return GetXmlTrivia(element, leadingWhitespace);
+            return GetXmlTrivia(leadingWhitespace, element);
         }
 
         private static string WrapInRemarks(string acum)
@@ -860,7 +905,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             }
 
             XmlElementSyntax remarksXml = SyntaxFactory.XmlRemarksElement(contents);
-            SyntaxTriviaList result = GetXmlTrivia(remarksXml, leadingWhitespace);
+            SyntaxTriviaList result = GetXmlTrivia(leadingWhitespace, remarksXml);
 
             if (!string.IsNullOrWhiteSpace(example))
             {
@@ -876,7 +921,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             example = ReplaceMarkdownWithXmlElements(example, api.Params, api.TypeParams);
             XmlNodeSyntax exampleContents = GetTextAsCommentedTokens(example, leadingWhitespace);
             XmlElementSyntax exampleXml = SyntaxFactory.XmlExampleElement(exampleContents);
-            SyntaxTriviaList exampleTriviaList = GetXmlTrivia(exampleXml, leadingWhitespace);
+            SyntaxTriviaList exampleTriviaList = GetXmlTrivia(leadingWhitespace, exampleXml);
             return exampleTriviaList;
         }
 

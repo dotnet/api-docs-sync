@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -30,7 +30,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="17.4.0" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.Build.Framework" Version="17.4.0" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version="8.0.0-beta.23060.7" />
+    <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version="8.0.0-beta.23103.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0-preview-20221221-03" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
     <PackageReference Include="xunit" Version="2.4.2" />

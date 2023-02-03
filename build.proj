@@ -1,0 +1,22 @@
+<Project DefaultTargets="Build">
+  <ItemGroup>
+    <Solution Include="**\*.sln" />
+    <TestProject Include="**\**\tests\*.csproj" />
+  </ItemGroup>
+
+  <Target Name="Clean">
+    <MSBuild Projects="@(Solution)" Targets="Clean" />
+  </Target>
+
+  <Target Name="Restore">
+    <MSBuild Projects="@(Solution)" Targets="Restore" />
+  </Target>
+
+  <Target Name="Build">
+    <MSBuild Projects="@(Solution)" Targets="Build" />
+  </Target>
+
+  <Target Name="VSTest">
+    <MSBuild Projects="@(TestProject)" Targets="VSTest" />
+  </Target>
+</Project>

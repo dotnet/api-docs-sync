@@ -524,13 +524,8 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                     }
                 }
             }
-
-            if (l.Any())
-            {
-                return GetXmlTrivia(leadingWhitespace, l.ToArray());
-            }
-
-            return new();
+            
+            return l.Any() ? GetXmlTrivia(leadingWhitespace, l.ToArray()) : new();
         }
 
         private static SyntaxTriviaList GetSummary(SyntaxTriviaList old, DocsAPI api, SyntaxTriviaList leadingWhitespace)

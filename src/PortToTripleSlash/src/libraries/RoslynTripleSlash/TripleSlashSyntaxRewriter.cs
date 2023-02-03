@@ -510,17 +510,16 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
         // Collects all tags with of the same name from a SyntaxTriviaList.
         private static SyntaxTriviaList FindTag(string tag, SyntaxTriviaList leadingWhitespace, SyntaxTriviaList from)
         {
-            List<XmlNodeSyntax> l = new();
+            List<XmlNodeSyntax> list = new();
             foreach(var trivia in from)
             {
-                SyntaxNode? structure = trivia.GetStructure();
-                if (structure is DocumentationCommentTriviaSyntax st) {
-                    foreach(XmlNodeSyntax elem in st.Content)
+                if (trivia.GetStructure() is DocumentationCommentTriviaSyntax structure) {
+                    foreach(XmlNodeSyntax node in structure.Content)
                     {
-                        if (elem is XmlEmptyElementSyntax ees && ees.Name.ToString() == tag) {
-                            l.Add(elem);
-                        } else if (elem is XmlElementSyntax es && es.StartTag.Name.ToString() == tag) {
-                            l.Add(elem);
+                        if (node is XmlEmptyElementSyntax emptyElement && emptyElement.Name.ToString() == tag) {
+                            list.Add(node);
+                        } else if (node is XmlElementSyntax element && element.StartTag.Name.ToString() == tag) {
+                            list.Add(node);
                         }
                     }
                 }

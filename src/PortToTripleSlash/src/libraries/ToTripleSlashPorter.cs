@@ -91,7 +91,7 @@ namespace ApiDocsSync.PortToTripleSlash
             cancellationToken.ThrowIfCancellationRequested();
 
             CollectFiles();
-            if (!_docsComments.Types.Any())
+            if (_docsComments.Types.Count == 0)
             {
                 Log.Error("No docs files found.");
                 return;
@@ -105,7 +105,7 @@ namespace ApiDocsSync.PortToTripleSlash
         /// </summary>
         public async Task MatchSymbolsAsync(Compilation compilation, bool isMSBuildProject, CancellationToken cancellationToken)
         {
-            Debug.Assert(_docsComments.Types.Any());
+            Debug.Assert(_docsComments.Types.Count != 0);
             cancellationToken.ThrowIfCancellationRequested();
 
             Log.Info("Looking for symbol locations for all Docs types...");
@@ -127,13 +127,14 @@ namespace ApiDocsSync.PortToTripleSlash
         /// </summary>
         public async Task PortAsync(bool isMSBuildProject, CancellationToken cancellationToken)
         {
-            Debug.Assert(_docsComments.Types.Any());
+            Debug.Assert(_docsComments.Types.Count != 0);
             cancellationToken.ThrowIfCancellationRequested();
 
             Log.Info($"Now attempting to port all found symbols...");
             foreach (DocsType docsType in _docsComments.Types.Values)
             {
-                if (docsType.SymbolLocations == null || !docsType.SymbolLocations.Any())
+                Debug.Assert(docsType.SymbolLocations != null);
+                if (docsType.SymbolLocations.Count == 0)
                 {
                     Log.Warning($"No symbols found for '{docsType.DocId}'. Skipping.");
                     continue;
@@ -168,7 +169,7 @@ namespace ApiDocsSync.PortToTripleSlash
             {
                 throw new NullReferenceException();
             }
-            if (!docsType.SymbolLocations.Any())
+            if (docsType.SymbolLocations.Count == 0)
             {
                 Log.Error($"No symbols found for docs type '{docsType.DocId}'.");
             }

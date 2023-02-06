@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -91,7 +91,7 @@ namespace ApiDocsSync.PortToTripleSlash
             cancellationToken.ThrowIfCancellationRequested();
 
             CollectFiles();
-            if (!_docsComments.Types.Any())
+            if (_docsComments.Types.Count == 0)
             {
                 Log.Error("No docs files found.");
                 return;
@@ -105,7 +105,7 @@ namespace ApiDocsSync.PortToTripleSlash
         /// </summary>
         public async Task MatchSymbolsAsync(Compilation compilation, bool isMSBuildProject, CancellationToken cancellationToken)
         {
-            Debug.Assert(_docsComments.Types.Any());
+            Debug.Assert(_docsComments.Types.Count != 0);
             cancellationToken.ThrowIfCancellationRequested();
 
             Log.Info("Looking for symbol locations for all Docs types...");
@@ -127,13 +127,14 @@ namespace ApiDocsSync.PortToTripleSlash
         /// </summary>
         public async Task PortAsync(bool isMSBuildProject, CancellationToken cancellationToken)
         {
-            Debug.Assert(_docsComments.Types.Any());
+            Debug.Assert(_docsComments.Types.Count != 0);
             cancellationToken.ThrowIfCancellationRequested();
 
             Log.Info($"Now attempting to port all found symbols...");
             foreach (DocsType docsType in _docsComments.Types.Values)
             {
-                if (docsType.SymbolLocations == null || !docsType.SymbolLocations.Any())
+                Debug.Assert(docsType.SymbolLocations != null);
+                if (docsType.SymbolLocations.Count == 0)
                 {
                     Log.Warning($"No symbols found for '{docsType.DocId}'. Skipping.");
                     continue;
@@ -164,7 +165,11 @@ namespace ApiDocsSync.PortToTripleSlash
         {
             FindLocationsOfSymbolInResolvedProject(docsType, compilation);
 
-            if (docsType.SymbolLocations == null || !docsType.SymbolLocations.Any())
+            if (docsType.SymbolLocations == null)
+            {
+                throw new NullReferenceException();
+            }
+            if (docsType.SymbolLocations.Count == 0)
             {
                 Log.Error($"No symbols found for docs type '{docsType.DocId}'.");
             }
@@ -245,16 +250,15 @@ namespace ApiDocsSync.PortToTripleSlash
             // Next, filter types that match the current docsType
             IEnumerable<ISymbol> currentTypeSymbols = visitor.AllTypesSymbols.Where(s => s != null && s.GetDocumentationCommentId() == docsType.DocId);
 
+            docsType.SymbolLocations ??= new();
             foreach (ISymbol symbol in currentTypeSymbols)
             {
-                docsType.SymbolLocations = GetSymbolLocations(compilation, symbol);
+                GetSymbolLocations(docsType.SymbolLocations, compilation, symbol);
             }
         }
 
-        private static List<ResolvedLocation> GetSymbolLocations(Compilation compilation, ISymbol symbol)
+        private static void GetSymbolLocations(List<ResolvedLocation> resolvedLocations, Compilation compilation, ISymbol symbol)
         {
-            List<ResolvedLocation> resolvedLocations = new();
-
             int n = 0;
             string docId = symbol.GetDocumentationCommentId() ?? throw new NullReferenceException($"DocID was null for symbol '{symbol}'");
             foreach (Location location in symbol.Locations)
@@ -289,8 +293,6 @@ namespace ApiDocsSync.PortToTripleSlash
                 }
                 n++;
             }
-
-            return resolvedLocations;
         }
 
         [GeneratedRegex("src(?<separator>[\\\\\\/]{1})coreclr")]

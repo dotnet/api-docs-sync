@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -25,7 +25,13 @@ namespace ApiDocsSync.PortToTripleSlash
                 Visit(typeMember);
             }
         }
-        public override void VisitNamespace(INamespaceSymbol symbol) => Parallel.ForEach(symbol.GetMembers(), s => s.Accept(this));
+        public override void VisitNamespace(INamespaceSymbol symbol)
+        {
+            foreach (INamespaceOrTypeSymbol s in symbol.GetMembers())
+            {
+                s.Accept(this);
+            }
+        }
         public override void VisitDynamicType(IDynamicTypeSymbol symbol) => AllTypesSymbols.Add(symbol);
         public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol) => AllTypesSymbols.Add(symbol);
         public override void VisitAlias(IAliasSymbol symbol) => AllTypesSymbols.Add(symbol);

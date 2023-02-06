@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -164,7 +164,11 @@ namespace ApiDocsSync.PortToTripleSlash
         {
             FindLocationsOfSymbolInResolvedProject(docsType, compilation);
 
-            if (docsType.SymbolLocations == null || !docsType.SymbolLocations.Any())
+            if (docsType.SymbolLocations == null)
+            {
+                throw new NullReferenceException();
+            }
+            if (!docsType.SymbolLocations.Any())
             {
                 Log.Error($"No symbols found for docs type '{docsType.DocId}'.");
             }
@@ -245,16 +249,15 @@ namespace ApiDocsSync.PortToTripleSlash
             // Next, filter types that match the current docsType
             IEnumerable<ISymbol> currentTypeSymbols = visitor.AllTypesSymbols.Where(s => s != null && s.GetDocumentationCommentId() == docsType.DocId);
 
+            docsType.SymbolLocations ??= new();
             foreach (ISymbol symbol in currentTypeSymbols)
             {
-                docsType.SymbolLocations = GetSymbolLocations(compilation, symbol);
+                GetSymbolLocations(docsType.SymbolLocations, compilation, symbol);
             }
         }
 
-        private static List<ResolvedLocation> GetSymbolLocations(Compilation compilation, ISymbol symbol)
+        private static void GetSymbolLocations(List<ResolvedLocation> resolvedLocations, Compilation compilation, ISymbol symbol)
         {
-            List<ResolvedLocation> resolvedLocations = new();
-
             int n = 0;
             string docId = symbol.GetDocumentationCommentId() ?? throw new NullReferenceException($"DocID was null for symbol '{symbol}'");
             foreach (Location location in symbol.Locations)
@@ -289,8 +292,6 @@ namespace ApiDocsSync.PortToTripleSlash
                 }
                 n++;
             }
-
-            return resolvedLocations;
         }
 
         [GeneratedRegex("src(?<separator>[\\\\\\/]{1})coreclr")]

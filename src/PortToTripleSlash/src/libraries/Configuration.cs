@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -303,7 +303,7 @@ namespace ApiDocsSync.PortToTripleSlash
 
                                 case "-H":
                                 case "-HELP":
-                                    Log.PrintHelp();
+                                    PrintHelp();
                                     Environment.Exit(0);
                                     break;
 
@@ -406,6 +406,111 @@ namespace ApiDocsSync.PortToTripleSlash
             Log.Info($" - {value}");
 
             return value;
+        }
+
+        public static void PrintHelp()
+        {
+            Log.Cyan(@"
+This tool finds and ports triple slash comments found in .NET repos but do not yet exist in the dotnet-api-docs repo.
+The instructions below assume %SourceRepos% is the root folder of all your git cloned projects.
+Options:
+                               MANDATORY
+  ------------------------------------------------------------
+  |    PARAMETER     |           TYPE          | DESCRIPTION |
+  ------------------------------------------------------------
+    -Docs                    comma-separated    A comma separated list (no spaces) of absolute directory paths where the Docs xml files are located.
+                                                    The xml files will be searched for recursively.
+                                                    If any of the segments in the path may contain spaces, make sure to enclose the path in double quotes.
+                             folder paths           Known locations:
+                                                        > Runtime:      %SourceRepos%\dotnet-api-docs\xml
+                                                        > WPF:          %SourceRepos%\dotnet-api-docs\xml
+                                                        > WinForms:     %SourceRepos%\dotnet-api-docs\xml
+                                                        > ASP.NET MVC:  %SourceRepos%\AspNetApiDocs\aspnet-mvc\xml
+                                                        > ASP.NET Core: %SourceRepos%\AspNetApiDocs\aspnet-core\xml
+                                                    Usage example:
+                                                        -Docs ""%SourceRepos%\dotnet-api-docs\xml\System.IO.FileSystem\"",%SourceRepos%\AspNetApiDocs\aspnet-mvc\xml
+    -IncludedAssemblies     string list         Comma separated list (no spaces) of assemblies to include.
+                                                This argument prevents loading everything in the specified folder.
+                                                    Usage example:
+                                                        -IncludedAssemblies System.IO,System.Runtime
+                                                    IMPORTANT:
+                                                    Namespaces usually match the assembly name. There are some exceptions, like with types that live in
+                                                    the System.Runtime assembly. For those cases, make sure to also specify the -IncludedNamespaces argument.
+                                                    IMPORTANT:
+                                                    Include both facades and implementation. For example, for System.IO.FileStream, include both
+                                                    System.Private.CoreLib (for the implementation) and System.Runtime (the facade).
+    -CsProj                 file path           Mandatory.
+                                                    An absolute path to a *.csproj file from your repo. Make sure its the src file, not the ref or test file.
+                                                    Known locations:
+                                                        > Runtime:   %SourceRepos%\runtime\src\libraries\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj
+                                                        > CoreCLR:   %SourceRepos%\runtime\src\coreclr\src\System.Private.CoreLib\System.Private.CoreLib.csproj
+                                                        > WPF:       %SourceRepos%\wpf\src\Microsoft.DotNet.Wpf\src\<AssemblyOrNamespace>\<AssemblyOrNamespace>.csproj
+                                                        > WinForms:  %SourceRepos%\winforms\src\<AssemblyOrNamespace>\src\<AssemblyOrNamespace>.csproj
+                                                        > WCF:       %SourceRepos%\wcf\src\<AssemblyOrNamespace>\
+                                                    Usage example:
+                                                        -SourceCode ""%SourceRepos%\runtime\src\libraries\System.IO.FileSystem\"",%SourceRepos%\runtime\src\coreclr\src\System.Private.CoreLib\
+                               OPTIONAL
+  ------------------------------------------------------------
+  |    PARAMETER     |           TYPE          | DESCRIPTION |
+  ------------------------------------------------------------
+    -h | -Help              no arguments        Displays this help message. If used, all other arguments are ignored and the program exits.
+    -BinLogPath             string              Default is null (binlog file generation is disabled).
+                                                When set to a valid path, will output a diagnostics binlog to that location.
+    -ExcludedAssemblies     string list         Default is empty (does not ignore any assemblies/namespaces).
+                                                Comma separated list (no spaces) of specific .NET assemblies/namespaces to ignore.
+                                                    Usage example:
+                                                        -ExcludedAssemblies System.IO.Compression,System.IO.Pipes
+    -ExcludedNamespaces     string list         Default is empty (does not exclude any namespaces from the specified assemblies).
+                                                Comma separated list (no spaces) of specific namespaces to exclude from the specified assemblies.
+                                                    Usage example:
+                                                        -ExcludedNamespaces System.Runtime.Intrinsics,System.Reflection.Metadata
+    -ExcludedTypes          string list         Default is empty (does not ignore any types).
+                                                Comma separated list (no spaces) of names of types to ignore.
+                                                    Usage example:
+                                                        -ExcludedTypes ArgumentException,Stream
+    -IncludedNamespaces     string list         Default is empty (includes all namespaces from the specified assemblies).
+                                                Comma separated list (no spaces) of specific namespaces to include from the specified assemblies.
+                                                    Usage example:
+                                                        -IncludedNamespaces System,System.Data
+    -IncludedTypes          string list         Default is empty (includes all types in the desired assemblies/namespaces).
+                                                Comma separated list (no spaces) of specific types to include.
+                                                    Usage example:
+                                                        -IncludedTypes FileStream,DirectoryInfo
+    -IsMono                 bool                Default is false.
+                                                When set to true, the main project passed with -CsProj is assumed to be a mono project.
+    -SkipInterfaceImplementations       bool    Default is false (includes interface implementations).
+                                                Whether you want the original interface documentation to be considered to fill the
+                                                undocumented API's documentation when the API itself does not provide its own documentation.
+                                                Setting this to false will include Explicit Interface Implementations as well.
+                                                    Usage example:
+                                                        -SkipInterfaceImplementations true
+     -SkipInterfaceRemarks              bool    Default is true (excludes appending interface remarks).
+                                                Whether you want interface implementation remarks to be used when the API itself has no remarks.
+                                                Very noisy and generally the content in those remarks do not apply to the API that implements
+                                                the interface API.
+                                                    Usage example:
+                                                        -SkipInterfaceRemarks false
+            ");
+            Log.Warning(@"
+    TL;DR:
+
+      PortToTripleSlash
+        -CsProj <pathToCsproj>
+        -Docs <pathToDocsXmlFolder>
+        -IncludedAssemblies <assembly1>[,<assembly2>,...,<assemblyN>]
+        -IncludedNamespaces <namespace1>[,<namespace2>,...,<namespaceN>]
+
+        Example:
+            PortToTripleSlash \
+                -CsProj D:\runtime\src\libraries\System.IO.Compression.Brotli\src\System.IO.Compression.Brotli.csproj \
+                -Docs D:\dotnet-api-docs\xml \
+                -IncludedAssemblies System.IO.Compression.Brotli \
+                -IncludedNamespaces System.IO.Compression \
+");
+            Log.Magenta(@"
+    Note:
+        If the assembly and the namespace is exactly the same, you can skip the -IncludedNamespaces argument.
+            ");
         }
     }
 }

@@ -41,6 +41,7 @@ namespace ApiDocsSync.PortToTripleSlash.Tests
                 CsProj = Path.GetFullPath(testData.ProjectFilePath),
                 SkipInterfaceImplementations = skipInterfaceImplementations,
                 BinLogPath = testData.BinLogPath,
+                SkipRemarks = false
             };
 
             c.IncludedAssemblies.Add(assemblyName);

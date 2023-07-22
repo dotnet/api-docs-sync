@@ -11,6 +11,7 @@ using ApiDocsSync.Tests;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,8 +25,10 @@ public class PortToTripleSlash_Strings_Tests : BasePortTests
     {
     }
 
-    [Fact]
-    public Task Class_TypeDescription()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_TypeDescription(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -47,23 +50,25 @@ public class MyClass
 {
 }";
 
-        string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>
-/// <remarks>These are the MyClass remarks.</remarks>
-public class MyClass
+        string expectedCode = $@"namespace MyNamespace;
+/// <summary>This is the MyClass summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass") +
+@"public class MyClass
 {
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Struct_TypeDescription()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Struct_TypeDescription(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyStruct";
 
@@ -86,22 +91,24 @@ public struct MyStruct
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyStruct summary.</summary>
-/// <remarks>These are the MyStruct remarks.</remarks>
-public struct MyStruct
+/// <summary>This is the MyStruct summary.</summary>" +
+GetRemarks(skipRemarks, "MyStruct") +
+@"public struct MyStruct
 {
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Interface_TypeDescription()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Interface_TypeDescription(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyInterface";
 
@@ -124,22 +131,24 @@ public interface MyInterface
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyInterface summary.</summary>
-/// <remarks>These are the MyInterface remarks.</remarks>
-public interface MyInterface
+/// <summary>This is the MyInterface summary.</summary>" +
+GetRemarks(skipRemarks, "MyInterface") +
+@"public interface MyInterface
 {
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Enum_TypeDescription()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Enum_TypeDescription(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyEnum";
 
@@ -162,22 +171,24 @@ public enum MyEnum
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyEnum summary.</summary>
-/// <remarks>These are the MyEnum remarks.</remarks>
-public enum MyEnum
+/// <summary>This is the MyEnum summary.</summary>" +
+GetRemarks(skipRemarks, "MyEnum") +
+@"public enum MyEnum
 {
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Ctor_Parameterless()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Ctor_Parameterless(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -210,23 +221,24 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyClass constructor summary.</summary>
-    /// <remarks>These are the MyClass constructor remarks.</remarks>
-    public MyClass() { }
+    /// <summary>This is the MyClass constructor summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass constructor", "    ") +
+@"    public MyClass() { }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Ctor_IntParameter()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Ctor_IntParameter(bool skipRemarks)
     {
-
         string docId = "T:MyNamespace.MyClass";
 
         string docFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
@@ -260,21 +272,23 @@ public class MyClass
 public class MyClass
 {
     /// <summary>This is the MyClass constructor summary.</summary>
-    /// <param name=""intParam"">This is the MyClass constructor parameter description.</param>
-    /// <remarks>These are the MyClass constructor remarks.</remarks>
-    public MyClass(int intParam) { }
+    /// <param name=""intParam"">This is the MyClass constructor parameter description.</param>" +
+GetRemarks(skipRemarks, "MyClass constructor", "    ") +
+@"    public MyClass(int intParam) { }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Method_Parameterless_VoidReturn()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Method_Parameterless_VoidReturn(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -307,21 +321,23 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyVoidMethod summary.</summary>
-    /// <remarks>These are the MyVoidMethod remarks.</remarks>
-    public void MyVoidMethod() { }
+    /// <summary>This is the MyVoidMethod summary.</summary>" +
+GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
+@"    public void MyVoidMethod() { }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Method_IntParameter_IntReturn()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Method_IntParameter_IntReturn(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -358,21 +374,23 @@ public class MyClass
 {
     /// <summary>This is the MyIntMethod summary.</summary>
     /// <param name=""withArgument"">This is the MyIntMethod withArgument description.</param>
-    /// <returns>This is the MyIntMethod returns description.</returns>
-    /// <remarks>These are the MyIntMethod remarks.</remarks>
-    public int MyIntMethod(int withArgument) => withArgument;
+    /// <returns>This is the MyIntMethod returns description.</returns>" +
+GetRemarks(skipRemarks, "MyIntMethod", "    ") +
+@"    public int MyIntMethod(int withArgument) => withArgument;
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_GenericMethod_Parameterless_VoidReturn()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_GenericMethod_Parameterless_VoidReturn(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -407,21 +425,23 @@ public class MyClass
 public class MyClass
 {
     /// <summary>This is the MyGenericMethod summary.</summary>
-    /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
-    /// <remarks>These are the MyGenericMethod remarks.</remarks>
-    public void MyGenericMethod<T>() { }
+    /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>" +
+GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
+@"    public void MyGenericMethod<T>() { }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_GenericMethod_IntParameter_VoidReturn()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_GenericMethod_IntParameter_VoidReturn(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -458,21 +478,23 @@ public class MyClass
 {
     /// <summary>This is the MyGenericMethod summary.</summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
-    /// <param name=""intParam"">This is the MyGenericMethod parameter description.</param>
-    /// <remarks>These are the MyGenericMethod remarks.</remarks>
-    public void MyGenericMethod<T>(int intParam) { }
+    /// <param name=""intParam"">This is the MyGenericMethod parameter description.</param>" +
+GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
+@"    public void MyGenericMethod<T>(int intParam) { }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_GenericMethod_GenericParameter_GenericReturn()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_GenericMethod_GenericParameter_GenericReturn(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -511,21 +533,23 @@ public class MyClass
     /// <summary>This is the MyGenericMethod summary.</summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
     /// <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
-    /// <returns>This is the MyGenericMethod returns description.</returns>
-    /// <remarks>These are the MyGenericMethod remarks.</remarks>
-    public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
+    /// <returns>This is the MyGenericMethod returns description.</returns>" +
+GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
+@"    public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Method_Exception()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Method_Exception(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -560,21 +584,23 @@ public class MyClass
 public class MyClass
 {
     /// <summary>This is the MyVoidMethod summary.</summary>
-    /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>
-    /// <remarks>These are the MyVoidMethod remarks.</remarks>
-    public void MyVoidMethod() { }
+    /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>" +
+GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
+@"    public void MyVoidMethod() { }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Field()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Field(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -607,21 +633,23 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyField summary.</summary>
-    /// <remarks>These are the MyField remarks.</remarks>
-    public double MyField;
+    /// <summary>This is the MyField summary.</summary>" +
+GetRemarks(skipRemarks, "MyField", "    ") +
+@"    public double MyField;
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_PropertyWithSetter()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_PropertyWithSetter(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -657,21 +685,23 @@ public class MyClass
 public class MyClass
 {
     /// <summary>This is the MySetProperty summary.</summary>
-    /// <value>This is the MySetProperty value.</value>
-    /// <remarks>These are the MySetProperty remarks.</remarks>
-    public double MySetProperty { set; }
+    /// <value>This is the MySetProperty value.</value>" +
+GetRemarks(skipRemarks, "MySetProperty", "    ") +
+@"    public double MySetProperty { set; }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_PropertyWithGetter()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_PropertyWithGetter(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -707,21 +737,23 @@ public class MyClass
 public class MyClass
 {
     /// <summary>This is the MyGetProperty summary.</summary>
-    /// <value>This is the MyGetProperty value.</value>
-    /// <remarks>These are the MyGetProperty remarks.</remarks>
-    public double MyGetProperty { get; }
+    /// <value>This is the MyGetProperty value.</value>" +
+GetRemarks(skipRemarks, "MyGetProperty", "    ") +
+@"    public double MyGetProperty { get; }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_PropertyWithGetterAndSetter()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_PropertyWithGetterAndSetter(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -757,21 +789,23 @@ public class MyClass
 public class MyClass
 {
     /// <summary>This is the MyGetSetProperty summary.</summary>
-    /// <value>This is the MyGetSetProperty value.</value>
-    /// <remarks>These are the MyGetSetProperty remarks.</remarks>
-    public double MyGetSetProperty { get; set; }
+    /// <value>This is the MyGetSetProperty value.</value>" +
+GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
+@"    public double MyGetSetProperty { get; set; }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Property_Exception()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Property_Exception(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -809,21 +843,24 @@ public class MyClass
 {
     /// <summary>This is the MyGetSetProperty summary.</summary>
     /// <value>This is the MyGetSetProperty value.</value>
-    /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyGetSetProperty.</exception>
-    /// <remarks>These are the MyGetSetProperty remarks.</remarks>
+    /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyGetSetProperty.</exception>" +
+GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
+@"    /// <remarks>These are the MyGetSetProperty remarks.</remarks>
     public double MyGetSetProperty { get; set; }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Event()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Event(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -856,21 +893,23 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyEvent summary.</summary>
-    /// <remarks>These are the MyEvent remarks.</remarks>
-    public event MyDelegate MyEvent;
+    /// <summary>This is the MyEvent summary.</summary>" +
+GetRemarks(skipRemarks, "MyEvent", "    ") +
+@"    public event MyDelegate MyEvent;
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_WithDelegate()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_WithDelegate(bool skipRemarks)
     {
         string topLevelTypeDocId = "T:MyNamespace.MyClass";
         string delegateDocId = "T:MyNamespace.MyClass.MyDelegate";
@@ -911,21 +950,23 @@ public class MyClass
 public class MyClass
 {
     /// <summary>This is the MyDelegate summary.</summary>
-    /// <param name=""sender"">This is the MyDelegate sender description.</param>
-    /// <remarks>These are the MyDelegate remarks.</remarks>
-    public delegate void MyDelegate(object sender);
+    /// <param name=""sender"">This is the MyDelegate sender description.</param>" +
+GetRemarks(skipRemarks, "MyDelegate", "    ") +
+@"    public delegate void MyDelegate(object sender);
 }";
 
         List<string> docFiles = new() { docFile1, docFile2 };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { topLevelTypeDocId, expectedCode }, { delegateDocId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task NestedEnum_InClass()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task NestedEnum_InClass(bool skipRemarks)
     {
         string topLevelTypeDocId = "T:MyNamespace.MyClass";
         string enumDocId = "T:MyNamespace.MyClass.MyEnum";
@@ -979,13 +1020,13 @@ public class MyClass
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>
-/// <remarks>These are the MyClass remarks.</remarks>
-public class MyClass
+/// <summary>This is the MyClass summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass") +
+@"public class MyClass
 {
-    /// <summary>This is the MyEnum summary.</summary>
-    /// <remarks>These are the MyEnum remarks.</remarks>
-    public enum MyEnum
+    /// <summary>This is the MyEnum summary.</summary>" +
+GetRemarks(skipRemarks, "MyEnum", "    ") +
+@"    public enum MyEnum
     {
         /// <summary>This is the MyEnum.Value1 summary.</summary>
         Value1,
@@ -997,13 +1038,15 @@ public class MyClass
         List<string> docFiles = new() { docFile1, docFile2 };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { topLevelTypeDocId, expectedCode }, { enumDocId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task NestedStruct_InClass()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task NestedStruct_InClass(bool skipRemarks)
     {
         string topLevelTypeDocId = "T:MyNamespace.MyClass";
         string enumDocId = "T:MyNamespace.MyClass.MyStruct";
@@ -1043,13 +1086,13 @@ public class MyClass
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>
-/// <remarks>These are the MyClass remarks.</remarks>
-public class MyClass
+/// <summary>This is the MyClass summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass") +
+@"public class MyClass
 {
-    /// <summary>This is the MyStruct summary.</summary>
-    /// <remarks>These are the MyStruct remarks.</remarks>
-    public struct MyStruct
+    /// <summary>This is the MyStruct summary.</summary>" +
+GetRemarks(skipRemarks, "MyStruct", "    ") +
+@"    public struct MyStruct
     {
     }
 }";
@@ -1057,13 +1100,15 @@ public class MyClass
         List<string> docFiles = new() { docFile1, docFile2 };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { topLevelTypeDocId, expectedCode }, { enumDocId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Operator()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Operator(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -1102,21 +1147,23 @@ public class MyClass
     /// <summary>This is the + operator summary.</summary>
     /// <param name=""value1"">This is the + operator value1 description.</param>
     /// <param name=""value2"">This is the + operator value2 description.</param>
-    /// <returns>This is the + operator returns description.</returns>
-    /// <remarks>These are the + operator remarks.</remarks>
-    public static MyClass operator +(MyClass value1, MyClass value2) => value1;
+    /// <returns>This is the + operator returns description.</returns>" +
+GetRemarks(skipRemarks, "+ operator", "    ") +
+@"    public static MyClass operator +(MyClass value1, MyClass value2) => value1;
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Class_Do_Not_Backport_Inherited_Docs()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Class_Do_Not_Backport_Inherited_Docs(bool skipRemarks)
     {
         // In PortToDocs we find the base class and get the documentation if there's none in the child type.
         // In PortToTripleSlash, we should not do that. We only backport what's found in the child type.
@@ -1194,17 +1241,17 @@ public interface MyInterface
 }";
 
         string interfaceExpectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyInterface summary.</summary>
-/// <remarks>These are the MyInterface remarks.</remarks>
-public interface MyInterface
+/// <summary>This is the MyInterface summary.</summary>" +
+GetRemarks(skipRemarks, "MyInterface") +
+@"public interface MyInterface
 {
-    /// <summary>This is the MyInterface.MyVoidMethod summary.</summary>
-    /// <remarks>These are the MyInterface.MyVoidMethod remarks.</remarks>
-    public void MyVoidMethod();
+    /// <summary>This is the MyInterface.MyVoidMethod summary.</summary>" +
+GetRemarks(skipRemarks, "MyInterface.MyVoidMethod", "    ") +
+@"    public void MyVoidMethod();
     /// <summary>This is the MyInterface.MyGetSetProperty summary.</summary>
-    /// <value>This is the MyInterface.MyGetSetProperty value.</value>
-    /// <remarks>These are the MyInterface.MyGetSetProperty remarks.</remarks>
-    public double MyGetSetProperty { get; set; }
+    /// <value>This is the MyInterface.MyGetSetProperty value.</value>" +
+GetRemarks(skipRemarks, "MyInterface.MyGetSetProperty", "    ") +
+@"    public double MyGetSetProperty { get; set; }
 }";
 
         string classOriginalCode = @"namespace MyNamespace;
@@ -1215,12 +1262,12 @@ public class MyClass : MyInterface
 }";
 
         string classExpectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>
-/// <remarks>These are the MyClass remarks.</remarks>
-public class MyClass : MyInterface
-{
-    /// <remarks>These are the MyClass.MyVoidMethod remarks.</remarks>
-    public void MyVoidMethod() { }
+/// <summary>This is the MyClass summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass") +
+@"public class MyClass : MyInterface
+{" +
+GetRemarks(skipRemarks, "MyClass.MyVoidMethod", "    ") +
+@"    public void MyVoidMethod() { }
     /// <value>This is the MyClass.MyGetSetProperty value.</value>
     public double MyGetSetProperty { get; set; }
 }";
@@ -1230,11 +1277,13 @@ public class MyClass : MyInterface
         Dictionary<string, string> expectedCodeFiles = new() { { interfaceDocId, interfaceExpectedCode }, { classDocId, classExpectedCode } };
         StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(data);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Preserve_DoubleSlash_Comments()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Preserve_DoubleSlash_Comments(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -1267,28 +1316,30 @@ public class MyClass
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass type summary.</summary>
-/// <remarks>These are the MyClass type remarks.</remarks>
-// Comment on top of type
+/// <summary>This is the MyClass type summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass type") +
+@"// Comment on top of type
 public class MyClass
 {
-    /// <summary>This is the MyClass constructor summary.</summary>
-    /// <remarks>These are the MyClass constructor remarks.</remarks>
-    // Comment on top of constructor
+    /// <summary>This is the MyClass constructor summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass constructor", "    ") +
+@"    // Comment on top of constructor
     public MyClass() { }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
     [ActiveIssue("https://github.com/dotnet/api-docs-sync/issues/149")]
-    [Fact]
-    public Task Override_Existing_TripleSlash_Comments()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Override_Existing_TripleSlash_Comments(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -1328,22 +1379,24 @@ public class MyClass
   /// <remarks>Old MyClass type remarks.</remarks>
   public class MyClass
   {
-      /// <summary>Old MyClass constructor summary.</summary>
-      /// <remarks>New MyClass constructor remarks.</remarks>
-      public MyClass() { }
+      /// <summary>Old MyClass constructor summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass", "    ") +
+@"      public MyClass() { }
   }
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Full_Enum()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Full_Enum(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyEnum";
 
@@ -1380,9 +1433,9 @@ public enum MyEnum
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyEnum summary.</summary>
-/// <remarks>These are the MyEnum remarks.</remarks>
-public enum MyEnum
+/// <summary>This is the MyEnum summary.</summary>" +
+GetRemarks(skipRemarks, "MyEnum", "    ") +
+@"public enum MyEnum
 {
     /// <summary>This is the MyEnum.Value1 summary.</summary>
     Value1,
@@ -1394,13 +1447,15 @@ public enum MyEnum
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Full_Class()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Full_Class(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyClass";
 
@@ -1519,65 +1574,66 @@ public class MyClass
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>
-/// <remarks>These are the MyClass remarks.</remarks>
-public class MyClass
+/// <summary>This is the MyClass summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass") +
+@"public class MyClass
 {
+    /// <summary>This is the MyClass constructor summary.</summary>" +
+GetRemarks(skipRemarks, "MyClass constructor", "    ") +
+@"    public MyClass() { }
     /// <summary>This is the MyClass constructor summary.</summary>
-    /// <remarks>These are the MyClass constructor remarks.</remarks>
-    public MyClass() { }
-    /// <summary>This is the MyClass constructor summary.</summary>
-    /// <param name=""intParam"">This is the MyClass constructor parameter description.</param>
-    /// <remarks>These are the MyClass constructor remarks.</remarks>
-    public MyClass(int intParam) { }
-    /// <summary>This is the MyVoidMethod summary.</summary>
-    /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>
-    /// <remarks>These are the MyVoidMethod remarks.</remarks>
-    public void MyVoidMethod() { }
+    /// <param name=""intParam"">This is the MyClass constructor parameter description.</param>" +
+GetRemarks(skipRemarks, "MyClass constructor", "    ") +
+@"    /// <summary>This is the MyVoidMethod summary.</summary>
+    /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>" +
+GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
+@"    public void MyVoidMethod() { }
     /// <summary>This is the MyIntMethod summary.</summary>
     /// <param name=""withArgument"">This is the MyIntMethod withArgument description.</param>
-    /// <returns>This is the MyIntMethod returns description.</returns>
-    /// <remarks>These are the MyIntMethod remarks.</remarks>
-    public int MyIntMethod(int withArgument) => withArgument;
+    /// <returns>This is the MyIntMethod returns description.</returns>" +
+GetRemarks(skipRemarks, "MyIntMethod", "    ") +
+@"    public int MyIntMethod(int withArgument) => withArgument;
     /// <summary>This is the MyGenericMethod summary.</summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
     /// <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
-    /// <returns>This is the MyGenericMethod returns description.</returns>
-    /// <remarks>These are the MyGenericMethod remarks.</remarks>
-    public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
-    /// <summary>This is the MyField summary.</summary>
-    /// <remarks>These are the MyField remarks.</remarks>
-    public double MyField;
+    /// <returns>This is the MyGenericMethod returns description.</returns>" +
+GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
+@"    public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
+    /// <summary>This is the MyField summary.</summary>" +
+GetRemarks(skipRemarks, "MyField", "    ") +
+@"    public double MyField;
     /// <summary>This is the MySetProperty summary.</summary>
-    /// <value>This is the MySetProperty value.</value>
-    /// <remarks>These are the MySetProperty remarks.</remarks>
-    public double MySetProperty { set => MyField = value; }
+    /// <value>This is the MySetProperty value.</value>" +
+GetRemarks(skipRemarks, "MySetProperty", "    ") +
+@"    public double MySetProperty { set => MyField = value; }
     /// <summary>This is the MyGetProperty summary.</summary>
-    /// <value>This is the MyGetProperty value.</value>
-    /// <remarks>These are the MyGetProperty remarks.</remarks>
-    public double MyGetProperty => MyField;
+    /// <value>This is the MyGetProperty value.</value>" +
+GetRemarks(skipRemarks, "MyGetProperty", "    ") +
+@"    public double MyGetProperty => MyField;
     /// <summary>This is the MyGetSetProperty summary.</summary>
-    /// <value>This is the MyGetSetProperty value.</value>
-    /// <remarks>These are the MyGetSetProperty remarks.</remarks>
-    public double MyGetSetProperty { get; set; }
+    /// <value>This is the MyGetSetProperty value.</value>" +
+GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
+@"    public double MyGetSetProperty { get; set; }
     /// <summary>This is the + operator summary.</summary>
     /// <param name=""value1"">This is the + operator value1 description.</param>
     /// <param name=""value2"">This is the + operator value2 description.</param>
-    /// <returns>This is the + operator returns description.</returns>
-    /// <remarks>These are the + operator remarks.</remarks>
-    public static MyClass operator +(MyClass value1, MyClass value2) => value1;
+    /// <returns>This is the + operator returns description.</returns>" +
+GetRemarks(skipRemarks, "+ operator", "    ") +
+@"    public static MyClass operator +(MyClass value1, MyClass value2) => value1;
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Full_Struct()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Full_Struct(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyStruct";
 
@@ -1695,64 +1751,67 @@ public struct MyStruct
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyStruct summary.</summary>
-/// <remarks>These are the MyStruct remarks.</remarks>
-public struct MyStruct
+/// <summary>This is the MyStruct summary.</summary>" +
+GetRemarks(skipRemarks, "MyStruct", "    ") +
+@"public struct MyStruct
 {
+    /// <summary>This is the MyStruct constructor summary.</summary>" +
+GetRemarks(skipRemarks, "MyStruct constructor", "    ") +
+@"    public MyStruct() { }
     /// <summary>This is the MyStruct constructor summary.</summary>
-    /// <remarks>These are the MyStruct constructor remarks.</remarks>
-    public MyStruct() { }
-    /// <summary>This is the MyStruct constructor summary.</summary>
-    /// <param name=""intParam"">This is the MyStruct constructor parameter description.</param>
-    /// <remarks>These are the MyStruct constructor remarks.</remarks>
-    public MyStruct(int intParam) { }
-    /// <summary>This is the MyVoidMethod summary.</summary>
-    /// <remarks>These are the MyVoidMethod remarks.</remarks>
-    public void MyVoidMethod() { }
+    /// <param name=""intParam"">This is the MyStruct constructor parameter description.</param>" +
+GetRemarks(skipRemarks, "MyStruct constructor", "    ") +
+@"    public MyStruct(int intParam) { }
+    /// <summary>This is the MyVoidMethod summary.</summary>" +
+GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
+@"    public void MyVoidMethod() { }
     /// <summary>This is the MyIntMethod summary.</summary>
     /// <param name=""withArgument"">This is the MyIntMethod withArgument description.</param>
-    /// <returns>This is the MyIntMethod returns description.</returns>
-    /// <remarks>These are the MyIntMethod remarks.</remarks>
-    public int MyIntMethod(int withArgument) => withArgument;
+    /// <returns>This is the MyIntMethod returns description.</returns>" +
+GetRemarks(skipRemarks, "MyIntMethod", "    ") +
+@"    public int MyIntMethod(int withArgument) => withArgument;
     /// <summary>This is the MyGenericMethod summary.</summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
     /// <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
-    /// <returns>This is the MyGenericMethod returns description.</returns>
-    /// <remarks>These are the MyGenericMethod remarks.</remarks>
+    /// <returns>This is the MyGenericMethod returns description.</returns>" +
+GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
+@"
     public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
-    /// <summary>This is the MyField summary.</summary>
-    /// <remarks>These are the MyField remarks.</remarks>
-    public double MyField;
+    /// <summary>This is the MyField summary.</summary>" +
+GetRemarks(skipRemarks, "MyField", "    ") +
+@"    public double MyField;
     /// <summary>This is the MySetProperty summary.</summary>
-    /// <value>This is the MySetProperty value.</value>
-    /// <remarks>These are the MySetProperty remarks.</remarks>
-    public double MySetProperty { set => MyField = value; }
+    /// <value>This is the MySetProperty value.</value>" +
+GetRemarks(skipRemarks, "MySetProperty", "    ") +
+@"    public double MySetProperty { set => MyField = value; }
     /// <summary>This is the MyGetProperty summary.</summary>
-    /// <value>This is the MyGetProperty value.</value>
-    /// <remarks>These are the MyGetProperty remarks.</remarks>
-    public double MyGetProperty => MyField;
+    /// <value>This is the MyGetProperty value.</value>" +
+GetRemarks(skipRemarks, "MyGetProperty", "    ") +
+@"    public double MyGetProperty => MyField;
     /// <summary>This is the MyGetSetProperty summary.</summary>
-    /// <value>This is the MyGetSetProperty value.</value>
-    /// <remarks>These are the MyGetSetProperty remarks.</remarks>
-    public double MyGetSetProperty { get; set; }
+    /// <value>This is the MyGetSetProperty value.</value>" +
+GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
+@"    public double MyGetSetProperty { get; set; }
     /// <summary>This is the + operator summary.</summary>
     /// <param name=""value1"">This is the + operator value1 description.</param>
     /// <param name=""value2"">This is the + operator value2 description.</param>
-    /// <returns>This is the + operator returns description.</returns>
-    /// <remarks>These are the + operator remarks.</remarks>
-    public static MyStruct operator +(MyStruct value1, MyStruct value2) => value1;
+    /// <returns>This is the + operator returns description.</returns>" +
+GetRemarks(skipRemarks, "+ operator", "    ") +
+@"    public static MyStruct operator +(MyStruct value1, MyStruct value2) => value1;
 }";
 
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [Fact]
-    public Task Full_Interface()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Full_Interface(bool skipRemarks)
     {
         string docId = "T:MyNamespace.MyInterface";
 
@@ -1869,13 +1928,21 @@ public interface MyInterface
         List<string> docFiles = new() { docFile };
         List<string> originalCodeFiles = new() { originalCode };
         Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
-        StringTestData stringTestData = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
-        return TestWithStringsAsync(stringTestData);
+        return TestWithStringsAsync(data, skipRemarks);
     }
 
-    private static Task TestWithStringsAsync(StringTestData stringTestData) =>
-        TestWithStringsAsync(new Configuration() { SkipInterfaceImplementations = false }, DefaultAssembly, stringTestData);
+    private string GetRemarks(bool skipRemarks, string apiName, string? spacing = "")
+    {
+        return skipRemarks ? @"
+" : $@"
+{spacing}/// <remarks>These are the {apiName} remarks.</remarks>
+";
+    }
+
+    private static Task TestWithStringsAsync(StringTestData data, bool skipRemarks) =>
+        TestWithStringsAsync(new Configuration() { SkipInterfaceImplementations = false, SkipRemarks = skipRemarks }, DefaultAssembly, data);
 
     private static async Task TestWithStringsAsync(Configuration c, string assembly, StringTestData data)
     {

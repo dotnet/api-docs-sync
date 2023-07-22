@@ -103,41 +103,31 @@ internal class TriviaGenerator
         {
             ArgumentNullException.ThrowIfNull(_member);
 
-            switch (_member.MemberType)
+            if (_member.MemberType == "Method" || _member.DocId.StartsWith("M:") || _member.MemberName.StartsWith(".ctor"))
             {
-                case "Property":
-                    {
-                        SyntaxTriviaList value = GetValue(leadingTrivia, _member, leadingWhitespace);
-                        SyntaxTriviaList exceptions = GetExceptions(leadingTrivia, _member.Exceptions, leadingWhitespace);
+                SyntaxTriviaList typeParameters = GetTypeParameters(leadingTrivia, _member, leadingWhitespace);
+                SyntaxTriviaList parameters = GetParameters(leadingTrivia, _member, leadingWhitespace);
+                SyntaxTriviaList returns = GetReturns(leadingTrivia, _member, leadingWhitespace);
+                SyntaxTriviaList exceptions = GetExceptions(leadingTrivia, _member.Exceptions, leadingWhitespace);
 
-                        trivias = new() { summary, value, exceptions, remarks, seealsos, altmembers, relateds };
-                    }
-                    break;
+                trivias = new() { summary, typeParameters, parameters, returns, exceptions, remarks, seealsos, altmembers, relateds };
+            }
+            else if (_member.MemberType == "Property")
+            {
+                SyntaxTriviaList value = GetValue(leadingTrivia, _member, leadingWhitespace);
+                SyntaxTriviaList exceptions = GetExceptions(leadingTrivia, _member.Exceptions, leadingWhitespace);
 
-                case "Method":
-                    {
-                        SyntaxTriviaList typeParameters = GetTypeParameters(leadingTrivia, _member, leadingWhitespace);
-                        SyntaxTriviaList parameters = GetParameters(leadingTrivia, _member, leadingWhitespace);
-                        SyntaxTriviaList returns = GetReturns(leadingTrivia, _member, leadingWhitespace);
-                        SyntaxTriviaList exceptions = GetExceptions(leadingTrivia, _member.Exceptions, leadingWhitespace);
+                trivias = new() { summary, value, exceptions, remarks, seealsos, altmembers, relateds };
+            }
+            else if (_member.MemberType == "Field")
+            {
+                trivias = new() { summary, remarks, seealsos, altmembers, relateds };
+            }
+            else // All other members
+            {
+                SyntaxTriviaList exceptions = GetExceptions(leadingTrivia, _member.Exceptions, leadingWhitespace);
 
-                        trivias = new() { summary, typeParameters, parameters, returns, exceptions, remarks, seealsos, altmembers, relateds };
-                    }
-                    break;
-
-                case "Field":
-                    {
-                        trivias = new() { summary, remarks, seealsos, altmembers, relateds };
-                    }
-                    break;
-
-                default: // All other members
-                    {
-                        SyntaxTriviaList exceptions = GetExceptions(leadingTrivia, _member.Exceptions, leadingWhitespace);
-
-                        trivias = new() { summary, exceptions, remarks, seealsos, altmembers, relateds };
-                    }
-                    break;
+                trivias = new() { summary, exceptions, remarks, seealsos, altmembers, relateds };
             }
         }
         else

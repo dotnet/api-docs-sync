@@ -845,8 +845,7 @@ public class MyClass
     /// <value>This is the MyGetSetProperty value.</value>
     /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyGetSetProperty.</exception>" +
 GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
-@"    /// <remarks>These are the MyGetSetProperty remarks.</remarks>
-    public double MyGetSetProperty { get; set; }
+@"    public double MyGetSetProperty { get; set; }
 }";
 
         List<string> docFiles = new() { docFile };
@@ -1379,9 +1378,9 @@ GetRemarks(skipRemarks, "MyClass constructor", "    ") +
   /// <remarks>Old MyClass type remarks.</remarks>
   public class MyClass
   {
-      /// <summary>Old MyClass constructor summary.</summary>" +
-GetRemarks(skipRemarks, "MyClass", "    ") +
-@"      public MyClass() { }
+      /// <summary>Old MyClass constructor summary.</summary>
+      /// <remarks>New MyClass constructor remarks.</remarks>
+      public MyClass() { }
   }
 }";
 
@@ -1584,7 +1583,8 @@ GetRemarks(skipRemarks, "MyClass constructor", "    ") +
     /// <summary>This is the MyClass constructor summary.</summary>
     /// <param name=""intParam"">This is the MyClass constructor parameter description.</param>" +
 GetRemarks(skipRemarks, "MyClass constructor", "    ") +
-@"    /// <summary>This is the MyVoidMethod summary.</summary>
+@"    public MyClass(int intParam) { }
+    /// <summary>This is the MyVoidMethod summary.</summary>
     /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>" +
 GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
 @"    public void MyVoidMethod() { }

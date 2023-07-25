@@ -77,18 +77,11 @@ namespace ApiDocsSync.PortToDocs
             { "False ",                      "`false` " },
             { "<c>",                         "`"},
             { "</c>",                        "`"},
-            { "<para>",                      "" },
-            { "</para>",                     "\r\n\r\n" },
             { "\" />",                       ">" },
             { "<![CDATA[",                   "" },
             { "]]>",                         "" },
             { "<note type=\"inheritinfo\">", ""},
             { "</note>",                     "" }
-        };
-
-        private static readonly Dictionary<string, string> _replaceableExceptionPatterns = new Dictionary<string, string>{
-            { "<para>",  "\r\n" },
-            { "</para>", "" }
         };
 
         private static readonly Dictionary<string, string> _replaceableMarkdownRegexPatterns = new Dictionary<string, string> {
@@ -317,20 +310,8 @@ namespace ApiDocsSync.PortToDocs
             return updatedValue;
         }
 
-        internal static string ReplaceExceptionPatterns(string value)
-        {
-            string updatedValue = value;
-            foreach (KeyValuePair<string, string> kvp in _replaceableExceptionPatterns)
-            {
-                if (updatedValue.Contains(kvp.Key))
-                {
-                    updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
-                }
-            }
-
-            updatedValue = Regex.Replace(updatedValue, @"[\r\n\t ]+\-[ ]?or[ ]?\-[\r\n\t ]+", "\r\n\r\n-or-\r\n\r\n");
-            return updatedValue;
-        }
+        internal static string ReplaceExceptionPatterns(string value) =>
+            Regex.Replace(value, @"[\r\n\t ]+\-[ ]?or[ ]?\-[\r\n\t ]+", "\r\n\r\n-or-\r\n\r\n");
 
         private static string ReplaceNormalElementPatterns(string value)
         {

@@ -1306,24 +1306,28 @@ GetRemarks(skipRemarks, "MyClass.MyVoidMethod", "    ") +
   </Members>
 </Type>";
 
-        string originalCode = @"namespace MyNamespace;
-// Comment on top of type
-public class MyClass
+        string originalCode = @"namespace MyNamespace
 {
-    // Comment on top of constructor
-    public MyClass() { }
+    // Comment on top of type
+    public class MyClass
+    {
+        // Comment on top of constructor
+        public MyClass() { }
+    }
 }";
 
-        string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass type summary.</summary>" +
-GetRemarks(skipRemarks, "MyClass type") +
-@"// Comment on top of type
-public class MyClass
+        string expectedCode = @"namespace MyNamespace
 {
-    /// <summary>This is the MyClass constructor summary.</summary>" +
-GetRemarks(skipRemarks, "MyClass constructor", "    ") +
-@"    // Comment on top of constructor
-    public MyClass() { }
+    // Comment on top of type
+    /// <summary>This is the MyClass type summary.</summary>" +
+    GetRemarks(skipRemarks, "MyClass type", "    ") +
+@"    public class MyClass
+    {
+        // Comment on top of constructor
+        /// <summary>This is the MyClass constructor summary.</summary>" +
+    GetRemarks(skipRemarks, "MyClass constructor", "        ") +
+@"        public MyClass() { }
+    }
 }";
 
         List<string> docFiles = new() { docFile };
@@ -1363,25 +1367,26 @@ GetRemarks(skipRemarks, "MyClass constructor", "    ") +
 </Type>";
 
         string originalCode = @"namespace MyNamespace {
-  /// <summary>Old MyClass type summary.</summary>
-  /// <remarks>Old MyClass type remarks.</remarks>
-  public class MyClass
-  {
-      /// <summary>Old MyClass constructor summary.</summary>
-      /// <remarks>Old MyClass constructor remarks.</remarks>
-      public MyClass() { }
-  }
+    /// <summary>Replaceable MyClass type summary.</summary>
+    /// <remarks>Unreplaceable MyClass type remarks.</remarks>
+    public class MyClass
+    {
+        /// <summary>Unreplaceable MyClass constructor summary.</summary>
+        /// <remarks>Replaceable MyClass constructor remarks.</remarks>
+        public MyClass() { }
+    }
 }";
 
+        string ctorRemarks = skipRemarks ? "\n" : "\n        /// <remarks>New MyClass constructor remarks.</remarks>\n";
         string expectedCode = @"namespace MyNamespace {
-  /// <summary>New MyClass type summary.</summary>
-  /// <remarks>Old MyClass type remarks.</remarks>
-  public class MyClass
-  {
-      /// <summary>Old MyClass constructor summary.</summary>
-      /// <remarks>New MyClass constructor remarks.</remarks>
-      public MyClass() { }
-  }
+    /// <summary>New MyClass type summary.</summary>
+    /// <remarks>Unreplaceable MyClass type remarks.</remarks>
+    public class MyClass
+    {
+        /// <summary>Unreplaceable MyClass constructor summary.</summary>" +
+ctorRemarks +
+@"        public MyClass() { }
+    }
 }";
 
         List<string> docFiles = new() { docFile };
@@ -1433,7 +1438,7 @@ public enum MyEnum
 
         string expectedCode = @"namespace MyNamespace;
 /// <summary>This is the MyEnum summary.</summary>" +
-GetRemarks(skipRemarks, "MyEnum", "    ") +
+GetRemarks(skipRemarks, "MyEnum") +
 @"public enum MyEnum
 {
     /// <summary>This is the MyEnum.Value1 summary.</summary>
@@ -1752,7 +1757,7 @@ public struct MyStruct
 
         string expectedCode = @"namespace MyNamespace;
 /// <summary>This is the MyStruct summary.</summary>" +
-GetRemarks(skipRemarks, "MyStruct", "    ") +
+GetRemarks(skipRemarks, "MyStruct") +
 @"public struct MyStruct
 {
     /// <summary>This is the MyStruct constructor summary.</summary>" +
@@ -1775,8 +1780,7 @@ GetRemarks(skipRemarks, "MyIntMethod", "    ") +
     /// <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
     /// <returns>This is the MyGenericMethod returns description.</returns>" +
 GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
-@"
-    public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
+@"    public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
     /// <summary>This is the MyField summary.</summary>" +
 GetRemarks(skipRemarks, "MyField", "    ") +
 @"    public double MyField;
@@ -1893,36 +1897,36 @@ public interface MyInterface
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyInterface summary.</summary>
-/// <remarks>These are the MyInterface remarks.</remarks>
-public interface MyInterface
+/// <summary>This is the MyInterface summary.</summary>" +
+GetRemarks(skipRemarks, "MyInterface") +
+@"public interface MyInterface
 {
-    /// <summary>This is the MyVoidMethod summary.</summary>
-    /// <remarks>These are the MyVoidMethod remarks.</remarks>
-    public void MyVoidMethod();
+    /// <summary>This is the MyVoidMethod summary.</summary>" +
+GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
+@"    public void MyVoidMethod();
     /// <summary>This is the MyIntMethod summary.</summary>
     /// <param name=""withArgument"">This is the MyIntMethod withArgument description.</param>
-    /// <returns>This is the MyIntMethod returns description.</returns>
-    /// <remarks>These are the MyIntMethod remarks.</remarks>
-    public int MyIntMethod(int withArgument);
+    /// <returns>This is the MyIntMethod returns description.</returns>" +
+GetRemarks(skipRemarks, "MyIntMethod", "    ") +
+@"    public int MyIntMethod(int withArgument);
     /// <summary>This is the MyGenericMethod summary.</summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
     /// <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
-    /// <returns>This is the MyGenericMethod returns description.</returns>
-    /// <remarks>These are the MyGenericMethod remarks.</remarks>
-    public T MyGenericMethod<T>(T withGenericArgument);
+    /// <returns>This is the MyGenericMethod returns description.</returns>" +
+GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
+@"    public T MyGenericMethod<T>(T withGenericArgument);
     /// <summary>This is the MySetProperty summary.</summary>
-    /// <value>This is the MySetProperty value.</value>
-    /// <remarks>These are the MySetProperty remarks.</remarks>
-    public double MySetProperty { set; }
+    /// <value>This is the MySetProperty value.</value>" +
+GetRemarks(skipRemarks, "MySetProperty", "    ") +
+@"    public double MySetProperty { set; }
     /// <summary>This is the MyGetProperty summary.</summary>
-    /// <value>This is the MyGetProperty value.</value>
-    /// <remarks>These are the MyGetProperty remarks.</remarks>
-    public double MyGetProperty { get; }
+    /// <value>This is the MyGetProperty value.</value>" +
+GetRemarks(skipRemarks, "MyGetProperty", "    ") +
+@"    public double MyGetProperty { get; }
     /// <summary>This is the MyGetSetProperty summary.</summary>
-    /// <value>This is the MyGetSetProperty value.</value>
-    /// <remarks>These are the MyGetSetProperty remarks.</remarks>
-    public double MyGetSetProperty { get; set; }
+    /// <value>This is the MyGetSetProperty value.</value>" +
+GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
+@"    public double MyGetSetProperty { get; set; }
 }";
 
         List<string> docFiles = new() { docFile };
@@ -1933,7 +1937,7 @@ public interface MyInterface
         return TestWithStringsAsync(data, skipRemarks);
     }
 
-    private string GetRemarks(bool skipRemarks, string apiName, string? spacing = "")
+    private static string GetRemarks(bool skipRemarks, string apiName, string spacing = "")
     {
         return skipRemarks ? @"
 " : $@"
@@ -1946,9 +1950,9 @@ public interface MyInterface
 
     private static async Task TestWithStringsAsync(Configuration c, string assembly, StringTestData data)
     {
-        Assert.True(data.XDocs.Any(), "No XDoc elements passed.");
-        Assert.True(data.OriginalCodeFiles.Any(), "No original code files passed.");
-        Assert.True(data.ExpectedCodeFiles.Any(), "No expected code files passed.");
+        Assert.NotEmpty(data.XDocs);
+        Assert.NotEmpty(data.OriginalCodeFiles);
+        Assert.NotEmpty(data.ExpectedCodeFiles);
 
         c.IncludedAssemblies.Add(assembly);
 
@@ -1999,8 +2003,8 @@ public interface MyInterface
             Assert.True(symbolLocations.Any(), $"No symbol locations found for {resultDocId}.");
             foreach (ResolvedLocation location in symbolLocations)
             {
-                string newNode = location.NewNode.ToFullString();
-                Assert.Equal(expectedCode, newNode);
+                string actualCode = location.NewNode.ToFullString();
+                Assert.Equal(expectedCode, actualCode);
             }
         }
     }

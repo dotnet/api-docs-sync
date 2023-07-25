@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -127,7 +127,7 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             }
         }
 
-        public string Value
+        public override string Value
         {
             get
             {
@@ -146,7 +146,7 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             }
         }
 
-        public List<DocsException> Exceptions
+        public override List<DocsException> Exceptions
         {
             get
             {

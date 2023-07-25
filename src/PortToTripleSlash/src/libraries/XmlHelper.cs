@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -142,7 +142,8 @@ namespace ApiDocsSync.PortToTripleSlash
             //reader.MoveToContent();
             //return reader.ReadInnerXml().Trim();
 
-            return string.Join("", element.Nodes()).Trim();
+            string actualValue = string.Join("", element.Nodes()).Trim();
+            return actualValue.IsDocsEmpty() ? string.Empty : actualValue;
         }
 
         public static void SaveFormattedAsMarkdown(XElement element, string newValue, bool isMember)

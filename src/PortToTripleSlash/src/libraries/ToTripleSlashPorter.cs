@@ -96,7 +96,9 @@ namespace ApiDocsSync.PortToTripleSlash
                 Log.Error("No docs files found.");
                 return;
             }
+
             await MatchSymbolsAsync(_config.Loader.MainProject.Compilation, isMSBuildProject: true, cancellationToken).ConfigureAwait(false);
+
             await PortAsync(isMSBuildProject: true, cancellationToken).ConfigureAwait(false);
         }
 
@@ -144,7 +146,7 @@ namespace ApiDocsSync.PortToTripleSlash
                 foreach (ResolvedLocation resolvedLocation in docsType.SymbolLocations)
                 {
                     Log.Info($"Porting docs for tree '{resolvedLocation.Tree.FilePath}'...");
-                    TripleSlashSyntaxRewriter rewriter = new(_docsComments, resolvedLocation.Model);
+                    TripleSlashSyntaxRewriter rewriter = new(_docsComments, resolvedLocation);
                     SyntaxNode root = resolvedLocation.Tree.GetRoot(cancellationToken);
                     resolvedLocation.NewNode = rewriter.Visit(root);
                     if (resolvedLocation.NewNode == null)

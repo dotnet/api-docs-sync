@@ -1,6 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.IO;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace ApiDocsSync.PortToDocs.Tests
@@ -17,6 +20,28 @@ namespace ApiDocsSync.PortToDocs.Tests
         public string Original { get; }
         public string Expected { get; }
         public XDocument XDoc { get; }
-        public string Actual => XDoc.ToString();
+        public string Actual
+        {
+            get
+            {
+                XmlWriterSettings xws = new()
+                {
+                    Encoding = Encoding.UTF8,
+                    OmitXmlDeclaration = true,
+                    Indent = true,
+                    CheckCharacters = true,
+                    NewLineChars = Configuration.NewLine,
+                    NewLineHandling = NewLineHandling.Replace
+                };
+                using MemoryStream ms = new();
+                using (XmlWriter xw = XmlWriter.Create(ms, xws))
+                {
+                    XDoc.Save(xw);
+                }
+                ms.Position = 0;
+                using StreamReader sr = new(ms, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+                return sr.ReadToEnd();
+            }
+        }
     }
 }

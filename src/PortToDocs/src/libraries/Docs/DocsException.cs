@@ -35,7 +35,7 @@ namespace ApiDocsSync.PortToDocs.Docs
 
         public void AppendException(string toAppend)
         {
-            XmlHelper.AppendFormattedAsXml(XEException, $"\r\n\r\n-or-\r\n\r\n{toAppend}", removeUndesiredEndlines: false);
+            XmlHelper.AppendFormattedAsXml(XEException, $"\n\n-or-\n\n{toAppend}", removeUndesiredEndlines: false);
             ParentAPI.Changed = true;
         }
 

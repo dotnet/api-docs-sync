@@ -9,6 +9,7 @@ namespace ApiDocsSync.PortToDocs
 {
     public class Configuration
     {
+        public const string NewLine = "\n";
         private static readonly char Separator = ',';
 
         private enum Mode

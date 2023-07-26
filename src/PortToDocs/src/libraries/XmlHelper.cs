@@ -77,18 +77,11 @@ namespace ApiDocsSync.PortToDocs
             { "False ",                      "`false` " },
             { "<c>",                         "`"},
             { "</c>",                        "`"},
-            { "<para>",                      "" },
-            { "</para>",                     "\r\n\r\n" },
             { "\" />",                       ">" },
             { "<![CDATA[",                   "" },
             { "]]>",                         "" },
             { "<note type=\"inheritinfo\">", ""},
             { "</note>",                     "" }
-        };
-
-        private static readonly Dictionary<string, string> _replaceableExceptionPatterns = new Dictionary<string, string>{
-            { "<para>",  "\r\n" },
-            { "</para>", "" }
         };
 
         private static readonly Dictionary<string, string> _replaceableMarkdownRegexPatterns = new Dictionary<string, string> {
@@ -200,12 +193,12 @@ namespace ApiDocsSync.PortToDocs
             string remarksTitle = string.Empty;
             if (!updatedValue.Contains("## Remarks"))
             {
-                remarksTitle = "## Remarks\r\n\r\n";
+                remarksTitle = "## Remarks\n\n";
             }
 
             string spaces = isMember ? "          " : "      ";
 
-            xeFormat.ReplaceAll(new XCData("\r\n\r\n" + remarksTitle + updatedValue + "\r\n\r\n" + spaces));
+            xeFormat.ReplaceAll(new XCData("\n\n" + remarksTitle + updatedValue + "\n\n" + spaces));
 
             // Attribute at the end, otherwise it would be replaced by ReplaceAll
             xeFormat.SetAttributeValue("type", "text/markdown");
@@ -299,7 +292,7 @@ namespace ApiDocsSync.PortToDocs
 
         private static string RemoveUndesiredEndlines(string value)
         {
-            value = Regex.Replace(value, @"((?'undesiredEndlinePrefix'[^\.\:])(\r\n)+[ \t]*)", @"${undesiredEndlinePrefix} ");
+            value = Regex.Replace(value, @"((?'undesiredEndlinePrefix'[^\.\:])[\r\n]+[ \t]*)", @"${undesiredEndlinePrefix} ");
 
             return value.Trim();
         }
@@ -317,20 +310,8 @@ namespace ApiDocsSync.PortToDocs
             return updatedValue;
         }
 
-        internal static string ReplaceExceptionPatterns(string value)
-        {
-            string updatedValue = value;
-            foreach (KeyValuePair<string, string> kvp in _replaceableExceptionPatterns)
-            {
-                if (updatedValue.Contains(kvp.Key))
-                {
-                    updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
-                }
-            }
-
-            updatedValue = Regex.Replace(updatedValue, @"[\r\n\t ]+\-[ ]?or[ ]?\-[\r\n\t ]+", "\r\n\r\n-or-\r\n\r\n");
-            return updatedValue;
-        }
+        internal static string ReplaceExceptionPatterns(string value) =>
+            Regex.Replace(value, @"[\r\n\t ]+\-[ ]?or[ ]?\-[\r\n\t ]+", "\n\n-or-\n\n");
 
         private static string ReplaceNormalElementPatterns(string value)
         {

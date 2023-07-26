@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -45,7 +45,9 @@ namespace ApiDocsSync.PortToDocs.Docs
                         Encoding = type.FileEncoding,
                         OmitXmlDeclaration = true,
                         Indent = true,
-                        CheckCharacters = false
+                        CheckCharacters = false,
+                        NewLineChars = Configuration.NewLine,
+                        NewLineHandling = NewLineHandling.Replace
                     };
 
                     using (XmlWriter xw = XmlWriter.Create(type.FilePath, xws))
@@ -55,9 +57,9 @@ namespace ApiDocsSync.PortToDocs.Docs
 
                     // Workaround to delete the annoying endline added by XmlWriter.Save
                     string fileData = File.ReadAllText(type.FilePath);
-                    if (!fileData.EndsWith(Environment.NewLine))
+                    if (!fileData.EndsWith(Configuration.NewLine))
                     {
-                        File.WriteAllText(type.FilePath, fileData + Environment.NewLine, type.FileEncoding);
+                        File.WriteAllText(type.FilePath, fileData + Configuration.NewLine, type.FileEncoding);
                     }
 
                     Log.Success(" [Saved]");

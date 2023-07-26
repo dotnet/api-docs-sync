@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -2117,6 +2117,59 @@ Typeparamref `T`.
             configuration.IncludedAssemblies.Add("MyAssembly");
 
             TestWithStrings(intellisenseFile, docFiles, configuration);
+        }
+
+        [Fact]
+        public void Preserve_Para()
+        {
+            // Paragraphs are indicated with <para></para>. Ensure they are preserved.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary><para>I am paragraph one.</para><para>I am paragraph number two.</para></summary>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>
+      <para>I am paragraph one.</para>
+      <para>I am paragraph number two.</para>
+    </summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            Configuration configuration = new()
+            {
+                MarkdownRemarks = true
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
         private static void TestWithStrings(string intellisenseFile, string originalDocsFile, string expectedDocsFile, Configuration configuration) =>

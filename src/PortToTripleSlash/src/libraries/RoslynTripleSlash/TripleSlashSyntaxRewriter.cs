@@ -328,17 +328,10 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             return type != null;
         }
 
-        private static bool IsPublic([NotNullWhen(returnValue: true)] SyntaxNode? node)
-        {
-            if (node == null ||
-                node is not MemberDeclarationSyntax baseNode ||
-                !baseNode.Modifiers.Any(t => t.IsKind(SyntaxKind.PublicKeyword)))
-            {
-                return false;
-            }
-
-            return true;
-        }
+        private static bool IsPublic([NotNullWhen(returnValue: true)] SyntaxNode? node) =>
+            node != null &&
+            node is MemberDeclarationSyntax baseNode &&
+            baseNode.Modifiers.Any(t => t.IsKind(SyntaxKind.PublicKeyword));
 
         public SyntaxNode Generate(SyntaxNode node, IDocsAPI api)
         {

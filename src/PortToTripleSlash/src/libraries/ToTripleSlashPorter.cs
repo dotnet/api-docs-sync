@@ -252,7 +252,6 @@ namespace ApiDocsSync.PortToTripleSlash
             // Next, filter types that match the current docsType
             IEnumerable<ISymbol> currentTypeSymbols = visitor.AllTypesSymbols.Where(s => s != null && s.GetDocumentationCommentId() == docsType.DocId);
 
-            docsType.SymbolLocations ??= new();
             foreach (ISymbol symbol in currentTypeSymbols)
             {
                 GetSymbolLocations(docsType.SymbolLocations, compilation, symbol);

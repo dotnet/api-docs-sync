@@ -10,7 +10,6 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
     {
         public abstract APIKind Kind { get; }
         public abstract bool IsUndocumented { get; }
-        public abstract bool Changed { get; set; }
         public abstract string FilePath { get; set; }
         public abstract string DocId { get; }
         public abstract string DocIdUnprefixed { get; }
@@ -19,13 +18,11 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
         public abstract List<DocsParam> Params { get; }
         public abstract List<DocsTypeParameter> TypeParameters { get; }
         public abstract List<DocsTypeParam> TypeParams { get; }
-        public abstract string Summary { get; set; }
-        public abstract string Value { get; set; }
+        public abstract string Summary { get; }
+        public abstract string Value { get; }
         public abstract string ReturnType { get; }
-        public abstract string Returns { get; set; }
-        public abstract string Remarks { get; set; }
+        public abstract string Returns { get; }
+        public abstract string Remarks { get; }
         public abstract List<DocsException> Exceptions { get; }
-        public abstract DocsParam SaveParam(XElement xeCoreFXParam);
-        public abstract DocsTypeParam AddTypeParam(string name, string value);
     }
 }

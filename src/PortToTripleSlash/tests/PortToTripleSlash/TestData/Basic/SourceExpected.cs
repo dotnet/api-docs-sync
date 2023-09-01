@@ -1,13 +1,11 @@
-﻿using System;
+using System;
 
 namespace MyNamespace
 {
-    /// <summary>This is the MyEnum enum summary.</summary>
-    /// <remarks><format type="text/markdown"><![CDATA[
-    /// These are the <xref:MyNamespace.MyEnum> enum remarks. They contain an [!INCLUDE[MyInclude](~/includes/MyInclude.md)] which should prevent converting markdown to xml.
-    /// URL entities: %23%28%2C%29 must remain unconverted.
-    /// ]]></format></remarks>
     // Original MyEnum enum comments with information for maintainers, must stay.
+    /// <summary>This is the MyEnum enum summary.</summary>
+    /// <remarks>These are the <see cref="MyNamespace.MyEnum" /> enum remarks. They contain an [!INCLUDE[MyInclude](~/includes/MyInclude.md)] which should prevent converting markdown to xml.
+    /// URL entities: %23%28%2C%29 must remain unconverted.</remarks>
     public enum MyEnum
     {
         /// <summary>This is the MyEnumValue0 member summary. There is no public modifier.</summary>
@@ -17,6 +15,7 @@ namespace MyNamespace
         MyEnumValue1 = 1
     }
 
+    // Original MyType class comments with information for maintainers, must stay.
     /// <summary>This is the MyType class summary.</summary>
     /// <remarks>These are the <see cref="MyNamespace.MyType" /> class remarks.
     /// URL entities: #(),.
@@ -27,12 +26,11 @@ namespace MyNamespace
     /// ]]></format>
     /// This text is not a note. It has a <see cref="MyNamespace.MyType" /> that should be xml and outside <b>the cdata</b>.
     /// Long xrefs one after the other: <see cref="System.IO.Pipelines.PipeWriter.FlushAsync(System.Threading.CancellationToken)" /> or <see cref="System.IO.Pipelines.PipeWriter.WriteAsync(System.ReadOnlyMemory{byte},System.Threading.CancellationToken)" /> should both be converted to crefs.</remarks>
-    // Original MyType class comments with information for maintainers, must stay.
     public class MyType
     {
-        /// <summary>This is the MyType constructor summary.</summary>
         // Original MyType constructor double slash comments on top of triple slash, with information for maintainers, must stay but after triple slash.
         // Original MyType constructor double slash comments on bottom of triple slash, with information for maintainers, must stay.
+        /// <summary>This is the MyType constructor summary.</summary>
         public MyType()
         {
         } /* Trailing comments should remain untouched */
@@ -51,12 +49,12 @@ namespace MyNamespace
         // Double slash comments above private members should remain untouched.
         private int _myProperty;
 
+        // Original MyProperty property double slash comments with information for maintainers, must stay.
+        // This particular example has two rows of double slash comments and both should stay.
         /// <summary>This is the MyProperty summary.</summary>
         /// <value>This is the MyProperty value.</value>
         /// <remarks>These are the MyProperty remarks.
         /// Multiple lines and a reference to the field <see cref="MyNamespace.MyType.MyField" /> and the xref uses displayProperty, which should be ignored when porting.</remarks>
-        // Original MyProperty property double slash comments with information for maintainers, must stay.
-        // This particular example has two rows of double slash comments and both should stay.
         public int MyProperty
         {
             get { return _myProperty; /* Internal comments should remain untouched. */ }
@@ -139,6 +137,7 @@ namespace MyNamespace
         {
         }
 
+        // Original MyDelegate delegate comments with information for maintainers, must stay.
         /// <summary>This is the MyDelegate summary.</summary>
         /// <param name="sender">This is the sender parameter.</param>
         /// <remarks>These are the <see cref="MyNamespace.MyType.MyDelegate" /> remarks. There is a code example, which should be moved to its own examples section:</remarks>
@@ -153,18 +152,17 @@ namespace MyNamespace
         /// <seealso cref="System.Delegate"/>
         /// <altmember cref="System.Delegate"/>
         /// <related type="Article" href="https://github.com/dotnet/runtime">The .NET Runtime repo.</related>
-        // Original MyDelegate delegate comments with information for maintainers, must stay.
         public delegate void MyDelegate(object sender);
 
         /// <summary>This is the MyEvent summary.</summary>
         public event MyDelegate MyEvent;
 
+        // Original operator + method comments with information for maintainers, must stay.
         /// <summary>Adds two MyType instances.</summary>
         /// <param name="value1">The first type to add.</param>
         /// <param name="value2">The second type to add.</param>
         /// <returns>The added types.</returns>
         /// <remarks>These are the <see cref="MyNamespace.MyType.op_Addition(MyNamespace.MyType,MyNamespace.MyType)" /> remarks. They are in plain xml and should be transferred unmodified.</remarks>
-        // Original operator + method comments with information for maintainers, must stay.
         public static MyType operator +(MyType value1, MyType value2) => value1;
     }
 }

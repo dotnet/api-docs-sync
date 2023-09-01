@@ -1320,12 +1320,12 @@ GetRemarks(skipRemarks, "MyClass.MyVoidMethod", "    ") +
 {
     // Comment on top of type
     /// <summary>This is the MyClass type summary.</summary>" +
-    GetRemarks(skipRemarks, "MyClass type", "    ") +
+GetRemarks(skipRemarks, "MyClass type", "    ") +
 @"    public class MyClass
     {
         // Comment on top of constructor
         /// <summary>This is the MyClass constructor summary.</summary>" +
-    GetRemarks(skipRemarks, "MyClass constructor", "        ") +
+GetRemarks(skipRemarks, "MyClass constructor", "        ") +
 @"        public MyClass() { }
     }
 }";
@@ -1338,7 +1338,6 @@ GetRemarks(skipRemarks, "MyClass.MyVoidMethod", "    ") +
         return TestWithStringsAsync(data, skipRemarks);
     }
 
-    [ActiveIssue("https://github.com/dotnet/api-docs-sync/issues/149")]
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

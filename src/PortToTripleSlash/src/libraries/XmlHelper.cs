@@ -18,6 +18,7 @@ namespace ApiDocsSync.PortToTripleSlash
             (@"`(?'keyword'null|false|true)`", "<see langword=\"${keyword}\" />"),
             (@"<c>(?'keyword'null|false|true)</c>", "<see langword=\"${keyword}\" />"),
             (@"<xref:(?'docId'[a-zA-Z0-9\._\@\#\$\%\(\)\[\]<>\?\,]+)>", "<see cref=\"${docId}\" />"),
+            (@"%601", "{T}")
         };
 
         public static string GetAttributeValue(XElement parent, string name)

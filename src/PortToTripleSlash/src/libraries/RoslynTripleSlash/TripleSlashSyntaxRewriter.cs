@@ -1,22 +1,15 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection.Emit;
 using ApiDocsSync.PortToTripleSlash.Docs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
-using System.Reflection.Metadata;
-using System.Xml;
-using System.Xml.Linq;
-using System.Collections;
-using System.Security.Policy;
 
 /*
  * According to the Roslyn Quoter: https://roslynquoter.azurewebsites.net/
@@ -328,17 +321,10 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
             return type != null;
         }
 
-        private static bool IsPublic([NotNullWhen(returnValue: true)] SyntaxNode? node)
-        {
-            if (node == null ||
-                node is not MemberDeclarationSyntax baseNode ||
-                !baseNode.Modifiers.Any(t => t.IsKind(SyntaxKind.PublicKeyword)))
-            {
-                return false;
-            }
-
-            return true;
-        }
+        private static bool IsPublic([NotNullWhen(returnValue: true)] SyntaxNode? node) =>
+            node != null &&
+            node is MemberDeclarationSyntax baseNode &&
+            baseNode.Modifiers.Any(t => t.IsKind(SyntaxKind.PublicKeyword));
 
         public SyntaxNode Generate(SyntaxNode node, IDocsAPI api)
         {
@@ -358,9 +344,22 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
                     break;
                 }
 
+                if (originalTrivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    // Avoid re-adding existing whitespace trivia, it will always be added later
+                    continue;
+                }
+
                 if (!originalTrivia.HasStructure)
                 {
+                    // Double slash comments do not have a structure but must be preserved with the original indentation
+                    // Only add indentation if the current trivia is not a new line
+                    if ((SyntaxKind)originalTrivia.RawKind != SyntaxKind.EndOfLineTrivia && indentationTrivia.HasValue)
+                    {
+                        updatedLeadingTrivia.Add(indentationTrivia.Value);
+                    }
                     updatedLeadingTrivia.Add(originalTrivia);
+                    
                     continue;
                 }
 
@@ -369,6 +368,11 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
 
                 if (!structuredTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
                 {
+                    // Unsure if there are other structured comments, but must preserve them with the original indentation
+                    if (indentationTrivia.HasValue)
+                    {
+                        updatedLeadingTrivia.Add(indentationTrivia.Value);
+                    }
                     updatedLeadingTrivia.Add(originalTrivia);
                     continue;
                 }
@@ -396,7 +400,7 @@ namespace ApiDocsSync.PortToTripleSlash.Roslyn
 
             // The last trivia is the spacing before the actual node (usually before the visibility keyword)
             // must be replaced in its original location
-            if (indentationTrivia != null)
+            if (indentationTrivia.HasValue)
             {
                 updatedLeadingTrivia.Add(indentationTrivia.Value);
             }

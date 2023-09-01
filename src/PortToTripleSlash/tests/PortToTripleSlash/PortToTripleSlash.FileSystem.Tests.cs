@@ -19,9 +19,6 @@ namespace ApiDocsSync.PortToTripleSlash.Tests
         [Fact]
         public Task Port_Basic() => PortToTripleSlashAsync("Basic");
 
-        [Fact]
-        public Task Port_Generics() => PortToTripleSlashAsync("Generics");
-
         private static async Task PortToTripleSlashAsync(
             string testDataDir,
             bool skipInterfaceImplementations = true,

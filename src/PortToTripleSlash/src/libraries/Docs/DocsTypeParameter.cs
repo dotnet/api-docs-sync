@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -13,55 +13,18 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
     internal class DocsTypeParameter
     {
         private readonly XElement XETypeParameter;
-        public string Name
-        {
-            get
-            {
-                return XmlHelper.GetAttributeValue(XETypeParameter, "Name");
-            }
-        }
-        private XElement? Constraints
-        {
-            get
-            {
-                return XETypeParameter.Element("Constraints");
-            }
-        }
+
+        public string Name => XmlHelper.GetAttributeValue(XETypeParameter, "Name");
+
+        private XElement? Constraints => XETypeParameter.Element("Constraints");
+
         private List<string>? _constraintsParameterAttributes;
-        public List<string> ConstraintsParameterAttributes
-        {
-            get
-            {
-                if (_constraintsParameterAttributes == null)
-                {
-                    if (Constraints != null)
-                    {
-                        _constraintsParameterAttributes = Constraints.Elements("ParameterAttribute").Select(x => XmlHelper.GetNodesInPlainText(x)).ToList();
-                    }
-                    else
-                    {
-                        _constraintsParameterAttributes = new List<string>();
-                    }
-                }
-                return _constraintsParameterAttributes;
-            }
-        }
+        public List<string> ConstraintsParameterAttributes => _constraintsParameterAttributes ??= Constraints != null
+                        ? Constraints.Elements("ParameterAttribute").Select(x => XmlHelper.GetNodesInPlainText("ParameterAttribute", x)).ToList()
+                        : new List<string>();
 
-        public string ConstraintsBaseTypeName
-        {
-            get
-            {
-                if (Constraints != null)
-                {
-                    return XmlHelper.GetChildElementValue(Constraints, "BaseTypeName");
-                }
-                return string.Empty;
-            }
-        }
+        public string ConstraintsBaseTypeName => Constraints != null ? XmlHelper.GetChildElementValue(Constraints, "BaseTypeName") : string.Empty;
 
-        public DocsTypeParameter(XElement xeTypeParameter)
-        {
-            XETypeParameter = xeTypeParameter;
-        }
+        public DocsTypeParameter(XElement xeTypeParameter) => XETypeParameter = xeTypeParameter;
     }
 }

@@ -1936,6 +1936,76 @@ GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
         return TestWithStringsAsync(data, skipRemarks);
     }
 
+    [Fact]
+    public Task Class_Convert_Percent601_MarkdownRemarks()
+    {
+        string docMyGenericType = @"<Type Name=""MyGenericType&lt;T&gt;"" FullName=""MyNamespace.MyGenericType&lt;T&gt;"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyGenericType`1"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>This is the MyGenericType{T} class summary.</summary>
+    <remarks>
+      <format type=""text/markdown""><![CDATA[
+## Remarks
+Contains the nested class <xref:MyNamespace.MyGenericType%601.Enumerator>.
+      ]]></format>
+    </remarks>
+  </Docs>
+</Type>
+";
+
+        string docMyGenericTypeEnumerator = @"<Type Name=""MyGenericType&lt;T&gt;+Enumerator"" FullName=""MyNamespace.MyGenericType&lt;T&gt;+Enumerator"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyGenericType`1.Enumerator"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>This is the MyGenericType{T}.Enumerator class summary.</summary>
+  </Docs>
+</Type>
+";
+
+        string originalCode = @"using System;
+
+namespace MyNamespace
+{
+    // Original MyGenericType<T> class comments with information for maintainers, must stay.
+    public class MyGenericType<T>
+    {
+        // Original MyGenericType<T>.Enumerator class comments with information for maintainers, must stay.
+        public class Enumerator { }
+    }
+}";
+
+        string expectedCode = @"using System;
+
+namespace MyNamespace
+{
+    // Original MyGenericType<T> class comments with information for maintainers, must stay.
+    /// <summary>This is the MyGenericType{T} class summary.</summary>
+    /// <remarks>Contains the nested class <see cref=""MyNamespace.MyGenericType{T}.Enumerator"" />.</remarks>
+    public class MyGenericType<T>
+    {
+        // Original MyGenericType<T>.Enumerator class comments with information for maintainers, must stay.
+        /// <summary>This is the MyGenericType{T}.Enumerator class summary.</summary>
+        public class Enumerator { }
+    }
+}";
+
+        List<string> docFiles = new() { docMyGenericType, docMyGenericTypeEnumerator };
+        List<string> originalCodeFiles = new() { originalCode };
+        Dictionary<string, string> expectedCodeFiles = new()
+        {
+            { "T:MyNamespace.MyGenericType`1", expectedCode },
+            { "T:MyNamespace.MyGenericType`1.Enumerator", expectedCode }
+        };
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(data, skipRemarks: false);
+    }
+
     private static string GetRemarks(bool skipRemarks, string apiName, string spacing = "")
     {
         return skipRemarks ? @"

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -31,6 +31,11 @@ namespace ApiDocsSync.PortToDocs
             { "True ",          "<see langword=\"true\" /> " },
             { "False ",         "<see langword=\"false\" /> " },
             { "></see>",        " />" }
+        };
+
+        private static readonly Dictionary<string, string> _replaceableSeeAlsos = new Dictionary<string, string>
+        {
+            { "seealso cref", "see cref" }
         };
 
         private static readonly Dictionary<string, string> _replaceableNormalElementRegexPatterns = new Dictionary<string, string>
@@ -297,26 +302,19 @@ namespace ApiDocsSync.PortToDocs
             return value.Trim();
         }
 
-        private static string ReplaceMarkdownPatterns(string value)
-        {
-            string updatedValue = value;
-            foreach (KeyValuePair<string, string> kvp in _replaceableMarkdownPatterns)
-            {
-                if (updatedValue.Contains(kvp.Key))
-                {
-                    updatedValue = updatedValue.Replace(kvp.Key, kvp.Value);
-                }
-            }
-            return updatedValue;
-        }
-
         internal static string ReplaceExceptionPatterns(string value) =>
-            Regex.Replace(value, @"[\r\n\t ]+\-[ ]?or[ ]?\-[\r\n\t ]+", "\n\n-or-\n\n");
+            Regex.Replace(value, @"[\r\n\t ]+\-[ ]*(or|OR)[ ]*\-[\r\n\t ]+", "\n\n-or-\n\n");
 
-        private static string ReplaceNormalElementPatterns(string value)
+        internal static string ReplaceSeeAlsos(string value) => ReplacePatterns(value, _replaceableSeeAlsos);
+
+        private static string ReplaceMarkdownPatterns(string value) => ReplacePatterns(value, _replaceableMarkdownPatterns);
+
+        private static string ReplaceNormalElementPatterns(string value) => ReplacePatterns(value, _replaceableNormalElementPatterns);
+
+        private static string ReplacePatterns(string value, Dictionary<string, string> patterns)
         {
             string updatedValue = value;
-            foreach (KeyValuePair<string, string> kvp in _replaceableNormalElementPatterns)
+            foreach (KeyValuePair<string, string> kvp in patterns)
             {
                 if (updatedValue.Contains(kvp.Key))
                 {

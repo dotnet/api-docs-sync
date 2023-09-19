@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -18,7 +18,7 @@ namespace ApiDocsSync.PortToDocs.Docs
         private List<DocsTypeParameter>? _typeParameters;
         private List<DocsTypeParam>? _typeParams;
         private List<DocsAssemblyInfo>? _assemblyInfos;
-        private List<string>? _seeAlsoCrefs;
+        private List<DocsSeeAlso>? _seeAlsos;
         private List<string>? _altMemberCrefs;
         private List<DocsRelated>? _relateds;
         private XElement? _xInheritDoc = null;
@@ -140,22 +140,22 @@ namespace ApiDocsSync.PortToDocs.Docs
             }
         }
 
-        public List<string> SeeAlsoCrefs
+        public List<DocsSeeAlso> SeeAlsos
         {
             get
             {
-                if (_seeAlsoCrefs == null)
+                if (_seeAlsos == null)
                 {
                     if (Docs != null)
                     {
-                        _seeAlsoCrefs = Docs.Elements("seealso").Select(x => XmlHelper.GetAttributeValue(x, "cref")).ToList();
+                        _seeAlsos = Docs.Elements("seealso").Select(x => new DocsSeeAlso(this, x)).ToList();
                     }
                     else
                     {
-                        _seeAlsoCrefs = new();
+                        _seeAlsos = new();
                     }
                 }
-                return _seeAlsoCrefs;
+                return _seeAlsos;
             }
         }
 
@@ -308,6 +308,15 @@ namespace ApiDocsSync.PortToDocs.Docs
             XmlHelper.AddChildFormattedAsXml(Docs, typeParam, value);
             Changed = true;
             return new DocsTypeParam(this, typeParam);
+        }
+
+        public DocsSeeAlso AddSeeAlso(string cref)
+        {
+            XElement seeAlso = new XElement("seealso");
+            seeAlso.SetAttributeValue("cref", cref);
+            Docs.Add(seeAlso);
+            Changed = true;
+            return new DocsSeeAlso(this, seeAlso);
         }
 
         // For Types, these elements are called TypeSignature.

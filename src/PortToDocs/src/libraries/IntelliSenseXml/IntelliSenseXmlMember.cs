@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -107,6 +107,19 @@ namespace ApiDocsSync.PortToDocs.IntelliSenseXml
             }
         }
 
+        private List<IntelliSenseXmlSeeAlso>? _seeAlsos;
+        public IEnumerable<IntelliSenseXmlSeeAlso> SeeAlsos
+        {
+            get
+            {
+                if (_seeAlsos == null)
+                {
+                    _seeAlsos = XEMember.Elements("seealso").Select(x => new IntelliSenseXmlSeeAlso(x)).ToList();
+                }
+                return _seeAlsos;
+            }
+        }
+
         private string? _summary;
         public string Summary
         {
@@ -116,6 +129,7 @@ namespace ApiDocsSync.PortToDocs.IntelliSenseXml
                 {
                     XElement? xElement = XEMember.Element("summary");
                     _summary = (xElement != null) ? XmlHelper.GetNodesInPlainText(xElement) : string.Empty;
+                    _summary = XmlHelper.ReplaceSeeAlsos(_summary);
                 }
                 return _summary;
             }

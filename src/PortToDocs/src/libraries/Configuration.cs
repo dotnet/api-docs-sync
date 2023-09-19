@@ -33,10 +33,12 @@ namespace ApiDocsSync.PortToDocs
             PortMemberProperties,
             PortMemberReturns,
             PortMemberRemarks,
+            PortMemberSeeAlsos,
             PortMemberSummaries,
             PortMemberTypeParams,
             PortTypeParams, // Params of a Type
             PortTypeRemarks,
+            PortTypeSeeAlsos,
             PortTypeSummaries,
             PortTypeTypeParams, // TypeParams of a Type
             PreserveInheritDocTag,
@@ -88,6 +90,7 @@ namespace ApiDocsSync.PortToDocs
         public bool PortMemberProperties { get; set; } = true;
         public bool PortMemberReturns { get; set; } = true;
         public bool PortMemberRemarks { get; set; } = true;
+        public bool PortMemberSeeAlsos { get; set; } = true;
         public bool PortMemberSummaries { get; set; } = true;
         public bool PortMemberTypeParams { get; set; } = true;
         /// <summary>
@@ -95,6 +98,7 @@ namespace ApiDocsSync.PortToDocs
         /// </summary>
         public bool PortTypeParams { get; set; } = true;
         public bool PortTypeRemarks { get; set; } = true;
+        public bool PortTypeSeeAlsos { get; set; } = true;
         public bool PortTypeSummaries { get; set; } = true;
         /// <summary>
         /// TypeParams of a Type.
@@ -395,6 +399,10 @@ namespace ApiDocsSync.PortToDocs
                                     mode = Mode.PortMemberSummaries;
                                     break;
 
+                                case "-PORTMEMBERSEEALSOS":
+                                    mode = Mode.PortMemberSeeAlsos;
+                                    break;
+
                                 case "-PORTMEMBERTYPEPARAMS":
                                     mode = Mode.PortMemberTypeParams;
                                     break;
@@ -405,6 +413,10 @@ namespace ApiDocsSync.PortToDocs
 
                                 case "-PORTTYPEREMARKS":
                                     mode = Mode.PortTypeRemarks;
+                                    break;
+
+                                case "-PORTTYPESEEALSOS":
+                                    mode = Mode.PortTypeSeeAlsos;
                                     break;
 
                                 case "-PORTTYPESUMMARIES":
@@ -516,6 +528,13 @@ namespace ApiDocsSync.PortToDocs
                             break;
                         }
 
+                    case Mode.PortMemberSeeAlsos:
+                        {
+                            config.PortMemberSeeAlsos = ParseOrExit(arg, "Port member SeeAlsos");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
                     case Mode.PortMemberSummaries:
                         {
                             config.PortMemberSummaries = ParseOrExit(arg, "Port member Summaries");
@@ -540,6 +559,13 @@ namespace ApiDocsSync.PortToDocs
                     case Mode.PortTypeRemarks:
                         {
                             config.PortTypeRemarks = ParseOrExit(arg, "Port Type Remarks");
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.PortTypeSeeAlsos:
+                        {
+                            config.PortTypeSeeAlsos = ParseOrExit(arg, "Port type SeeAlsos");
                             mode = Mode.Initial;
                             break;
                         }
@@ -802,6 +828,12 @@ Options:
                                                     Usage example:
                                                         -PortMemberRemarks false
 
+    -PortMemberSeeAlsos         bool            Default is true (ports Member seealsos).
+                                                Enable or disable finding and porting Member seealsos.
+                                                These are found directly under the Docs xml element.
+                                                    Usage example:
+                                                        -PortMemberSeeAlsos false
+
     -PortMemberSummaries        bool            Default is true (ports Member summaries).
                                                 Enable or disable finding and porting Member summaries.
                                                     Usage example:
@@ -821,6 +853,12 @@ Options:
                                                 Enable or disable finding and porting Type remarks.
                                                     Usage example:
                                                         -PortTypeRemarks false
+
+    -PortTypeSeeAlsos           bool            Default is true (ports Type seealsos).
+                                                Enable or disable finding and porting Type seealsos.
+                                                These are found directly under the Docs xml element.
+                                                    Usage example:
+                                                        -PortTypeSeeAlsos false
 
     -PortTypeSummaries          bool            Default is true (ports Type summaries).
                                                 Enable or disable finding and porting Type summaries.

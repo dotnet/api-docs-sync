@@ -239,6 +239,8 @@ namespace ApiDocsSync.PortToDocs
                     TryPortMissingReturnsForMember(dTypeToUpdate, mc.Returns);
                 }
 
+                TryPortMissingSeeAlsosForMember(dTypeToUpdate, tsTypeToPort);
+
                 if (dTypeToUpdate.Changed)
                 {
                     ModifiedTypes.Add(docId);
@@ -308,6 +310,8 @@ namespace ApiDocsSync.PortToDocs
                 {
                     TryPortMissingReturnsForMember(dMemberToUpdate, mc.Returns, mc.IsEII);
                 }
+
+                TryPortMissingSeeAlsosForMember(dMemberToUpdate, tsMemberToPort);
 
                 if (dMemberToUpdate.Changed)
                 {
@@ -960,6 +964,24 @@ namespace ApiDocsSync.PortToDocs
                             TotalModifiedIndividualElements++;
                         }
                     }
+                }
+            }
+        }
+
+        private void TryPortMissingSeeAlsosForMember(DocsAPI dAPIToUpdate, IntelliSenseXmlMember? tsMemberToPort)
+        {
+            if ((dAPIToUpdate.Kind == APIKind.Member && !Config.PortMemberSeeAlsos) || (dAPIToUpdate.Kind == APIKind.Type && !Config.PortTypeSeeAlsos) || tsMemberToPort == null)
+            {
+                return;
+            }
+
+            foreach (IntelliSenseXmlSeeAlso tsSeeAlso in tsMemberToPort.SeeAlsos)
+            {
+                if (!dAPIToUpdate.SeeAlsos.Any(x => x.Cref == tsSeeAlso.Cref))
+                {
+                    dAPIToUpdate.AddSeeAlso(tsSeeAlso.Cref);
+                    PrintModifiedMember("seealso", dAPIToUpdate.FilePath, tsSeeAlso.Cref, isEII: false);
+                    TotalModifiedIndividualElements++;
                 }
             }
         }

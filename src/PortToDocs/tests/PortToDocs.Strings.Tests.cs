@@ -526,6 +526,7 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
         public void SeeAlso_Cref()
         {
             // Normally, references to other APIs are indicated with <see cref="X:DocId"/> in xml, or with <xref:DocId> in markdown. But there are some rare cases where <seealso cref="X:DocId"/> is used, and we need to make sure to handle them just as see crefs.
+            // The only ones that need to be preserved unmodified are the ones that are outside a documentation element (directly under Docs).
 
             string originalIntellisense = @"<?xml version=""1.0""?>
 <doc>
@@ -539,6 +540,105 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
     <member name=""M:MyNamespace.MyType.MyMethod"">
       <summary>The summary of MyMethod. See <seealso cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
       <remarks>See <seealso cref=""M:MyNamespace.MyType.MyMethod"" />.</remarks>
+      <seealso cref=""T:MyNamespace.MyType"" />
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+    <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>See <see cref=""T:MyNamespace.MyType"" />.</summary>
+    <remarks>To be added.</remarks>
+    <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>The summary of MyMethod. See <see cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
+        <remarks>
+          <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+See <xref:MyNamespace.MyType.MyMethod>.
+
+          ]]></format>
+        </remarks>
+        <seealso cref=""T:MyNamespace.MyType"" />
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+
+            Configuration configuration = new()
+            {
+                MarkdownRemarks = true
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
+        [Fact]
+        public void SeeAlso_SkipPortingForMembers()
+        {
+            // Do not port seealso elements for members if specified in CLI argument.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>To be added.</summary>
+      <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <summary>To be added.</summary>
+      <remarks>To be added.</remarks>
+      <seealso cref=""T:MyNamespace.MyType"" />
     </member>
   </members>
 </doc>";
@@ -576,7 +676,69 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
   <Docs>
-    <summary>See <seealso cref=""T:MyNamespace.MyType"" />.</summary>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+    <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+
+            Configuration configuration = new()
+            {
+                PortTypeSeeAlsos = true,
+                PortMemberSeeAlsos = false
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
+        [Fact]
+        public void SeeAlso_SkipPortingForTypes()
+        {
+            // Do not port seealso elements for types if specified in CLI argument.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>To be added.</summary>
+      <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <summary>To be added.</summary>
+      <remarks>To be added.</remarks>
+      <seealso cref=""T:MyNamespace.MyType"" />
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
     <remarks>To be added.</remarks>
   </Docs>
   <Members>
@@ -590,16 +752,36 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
         <ReturnType>System.Void</ReturnType>
       </ReturnValue>
       <Docs>
-        <summary>The summary of MyMethod. See <seealso cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
-        <remarks>
-          <format type=""text/markdown""><![CDATA[
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
 
-## Remarks
-
-See <xref:MyNamespace.MyType.MyMethod>.
-
-          ]]></format>
-        </remarks>
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+        <seealso cref=""T:MyNamespace.MyType"" />
       </Docs>
     </Member>
   </Members>
@@ -608,7 +790,8 @@ See <xref:MyNamespace.MyType.MyMethod>.
 
             Configuration configuration = new()
             {
-                MarkdownRemarks = true
+                PortTypeSeeAlsos = false,
+                PortMemberSeeAlsos = true
             };
             configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
 

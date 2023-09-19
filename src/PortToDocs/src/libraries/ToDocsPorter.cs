@@ -970,7 +970,7 @@ namespace ApiDocsSync.PortToDocs
 
         private void TryPortMissingSeeAlsosForMember(DocsAPI dAPIToUpdate, IntelliSenseXmlMember? tsMemberToPort)
         {
-            if (!Config.PortMemberSeeAlsos || tsMemberToPort == null)
+            if ((dAPIToUpdate.Kind == APIKind.Member && !Config.PortMemberSeeAlsos) || (dAPIToUpdate.Kind == APIKind.Type && !Config.PortTypeSeeAlsos) || tsMemberToPort == null)
             {
                 return;
             }

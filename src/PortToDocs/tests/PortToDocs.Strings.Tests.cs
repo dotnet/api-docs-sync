@@ -621,6 +621,184 @@ See <xref:MyNamespace.MyType.MyMethod>.
         }
 
         [Fact]
+        public void SeeAlso_SkipPortingForMembers()
+        {
+            // Do not port seealso elements for members if specified in CLI argument.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>To be added.</summary>
+      <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <summary>To be added.</summary>
+      <remarks>To be added.</remarks>
+      <seealso cref=""T:MyNamespace.MyType"" />
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+    <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+
+            Configuration configuration = new()
+            {
+                PortTypeSeeAlsos = true,
+                PortMemberSeeAlsos = false
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
+        [Fact]
+        public void SeeAlso_SkipPortingForTypes()
+        {
+            // Do not port seealso elements for types if specified in CLI argument.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>To be added.</summary>
+      <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
+    </member>
+    <member name=""M:MyNamespace.MyType.MyMethod"">
+      <summary>To be added.</summary>
+      <remarks>To be added.</remarks>
+      <seealso cref=""T:MyNamespace.MyType"" />
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members>
+    <Member MemberName=""MyMethod"">
+      <MemberSignature Language=""DocId"" Value=""M:MyNamespace.MyType.MyMethod"" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>MyAssembly</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+        <seealso cref=""T:MyNamespace.MyType"" />
+      </Docs>
+    </Member>
+  </Members>
+</Type>";
+
+
+            Configuration configuration = new()
+            {
+                PortTypeSeeAlsos = false,
+                PortMemberSeeAlsos = true
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
+        [Fact]
         public void See_Langword()
         {
             // Reserved words are indicated with <see langword="word" />. They need to be copied as <see langword="word" /> in xml, or transformed to `word` in markdown.

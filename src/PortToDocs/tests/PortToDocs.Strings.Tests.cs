@@ -526,6 +526,7 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
         public void SeeAlso_Cref()
         {
             // Normally, references to other APIs are indicated with <see cref="X:DocId"/> in xml, or with <xref:DocId> in markdown. But there are some rare cases where <seealso cref="X:DocId"/> is used, and we need to make sure to handle them just as see crefs.
+            // The only ones that need to be preserved unmodified are the ones that are outside a documentation element (directly under Docs).
 
             string originalIntellisense = @"<?xml version=""1.0""?>
 <doc>
@@ -539,6 +540,7 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
     <member name=""M:MyNamespace.MyType.MyMethod"">
       <summary>The summary of MyMethod. See <seealso cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
       <remarks>See <seealso cref=""M:MyNamespace.MyType.MyMethod"" />.</remarks>
+      <seealso cref=""T:MyNamespace.MyType"" />
     </member>
   </members>
 </doc>";
@@ -551,6 +553,7 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
   <Docs>
     <summary>To be added.</summary>
     <remarks>To be added.</remarks>
+    <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
   </Docs>
   <Members>
     <Member MemberName=""MyMethod"">
@@ -576,8 +579,9 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
   <Docs>
-    <summary>See <seealso cref=""T:MyNamespace.MyType"" />.</summary>
+    <summary>See <see cref=""T:MyNamespace.MyType"" />.</summary>
     <remarks>To be added.</remarks>
+    <seealso cref=""M:MyNamespace.MyType.MyMethod"" />
   </Docs>
   <Members>
     <Member MemberName=""MyMethod"">
@@ -590,7 +594,7 @@ I have a reference to the generic type <xref:MyNamespace.MyGenericType%601> and 
         <ReturnType>System.Void</ReturnType>
       </ReturnValue>
       <Docs>
-        <summary>The summary of MyMethod. See <seealso cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
+        <summary>The summary of MyMethod. See <see cref=""M:MyNamespace.MyType.MyMethod"" />.</summary>
         <remarks>
           <format type=""text/markdown""><![CDATA[
 
@@ -600,6 +604,7 @@ See <xref:MyNamespace.MyType.MyMethod>.
 
           ]]></format>
         </remarks>
+        <seealso cref=""T:MyNamespace.MyType"" />
       </Docs>
     </Member>
   </Members>

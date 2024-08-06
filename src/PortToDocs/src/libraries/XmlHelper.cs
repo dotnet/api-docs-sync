@@ -61,7 +61,8 @@ namespace ApiDocsSync.PortToDocs
             { @"\<(see|seealso){1} cref\=""object""[ ]*\/\>",  "<see cref=\"T:System.Object\" />" },
             { @"\<(see|seealso){1} cref\=""dynamic""[ ]*\/\>", "<see langword=\"dynamic\" />" },
             { @"\<(see|seealso){1} cref\=""string""[ ]*\/\>",  "<see cref=\"T:System.String\" />" },
-            { "<code data-dev-comment-type=\"(?<elementName>[a-zA-Z0-9_]+)\">(?<elementValue>[a-zA-Z0-9_]+)</code>", "<see ${elementName}=\"${elementValue}\" />" },
+            { @"<code data-dev-comment-type=""(?<elementName>[a-zA-Z0-9_]+)"">(?<elementValue>[a-zA-Z0-9_]+)</code>", "<see ${elementName}=\"${elementValue}\" />" },
+            { @"<xref data-throw-if-not-resolved=""[a-zA-Z0-9_]+"" uid=""(?<docId>.+)""><\/xref>", "<see cref=\"T:${docId}\" />" },
         };
 
         private static readonly Dictionary<string, string> _replaceableMarkdownPatterns = new Dictionary<string, string> {
@@ -121,7 +122,8 @@ namespace ApiDocsSync.PortToDocs
             // Params, typeparams, langwords
             { @"\<(typeparamref|paramref){1} name\=""(?'refNameContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${refNameContents}`" },
             { @"\<see langword\=""(?'seeLangwordContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${seeLangwordContents}`" },
-            { "<code data-dev-comment-type=\"[a-zA-Z0-9_]+\">(?<elementValue>[a-zA-Z0-9_]+)</code>", "`${elementValue}`" },
+            { @"<code data-dev-comment-type=""[a-zA-Z0-9_]+"">(?<elementValue>[a-zA-Z0-9_]+)</code>", "`${elementValue}`" },
+            { @"<xref data-throw-if-not-resolved=""[a-zA-Z0-9_]+"" uid=""(?<docId>.+)""><\/xref>", "<xref:${docId}>" },
         };
 
         private static readonly string[] _splittingSeparators = new string[] { "\r", "\n", "\r\n" };

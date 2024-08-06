@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -120,6 +122,9 @@ namespace ApiDocsSync.PortToDocs
             { @"\<see langword\=""(?'seeLangwordContents'[a-zA-Z0-9_\-]+)""[ ]*\/\>",  @"`${seeLangwordContents}`" },
         };
 
+        private static readonly string[] _splittingSeparators = new string[] { "\r", "\n", "\r\n" };
+        private static readonly StringSplitOptions _splittingStringSplitOptions = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+
         public static string GetAttributeValue(XElement parent, string name)
         {
             if (parent == null)
@@ -182,10 +187,33 @@ namespace ApiDocsSync.PortToDocs
 
         public static string GetFormattedAsXml(string value, bool removeUndesiredEndlines)
         {
-            string updatedValue = removeUndesiredEndlines ? RemoveUndesiredEndlines(value) : value;
+            string updatedValue = ReplaceEndLinesWithParas(value);
+            updatedValue = removeUndesiredEndlines ? RemoveUndesiredEndlines(updatedValue) : updatedValue;
             updatedValue = ReplaceNormalElementPatterns(updatedValue);
             updatedValue = SubstituteRegexPatterns(updatedValue, _replaceableNormalElementRegexPatterns);
             return updatedValue;
+        }
+
+        private static string ReplaceEndLinesWithParas(string updatedValue)
+        {
+            string[] splitted = updatedValue.Split(_splittingSeparators, _splittingStringSplitOptions);
+            bool moreThanOne = splitted.Count() > 1;
+
+            StringBuilder newValue = new();
+            foreach (string s in splitted)
+            {
+                if (moreThanOne && !s.StartsWith("<para>"))
+                {
+                    newValue.Append("<para>");
+                }
+                newValue.Append(s);
+                if (moreThanOne && !s.EndsWith("</para>"))
+                {
+                    newValue.Append("</para>");
+                }
+            }
+
+            return newValue.ToString();
         }
 
         public static string GetFormattedAsMarkdown(string value, bool isMember)

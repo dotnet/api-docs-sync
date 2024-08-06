@@ -2466,6 +2466,126 @@ I am paragraph number three.</summary>
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
+        [Fact]
+        public void Convert_CodeDataDevCommentType_To_ExpectedElementNames()
+        {
+            // The compiled xml files sometimes generate langwords, paramrefs and typeparamrefs with the format
+            // <code data-dev-comment-type="...">...</code>, so we need to convert them to the expected element type.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>Langword <code data-dev-comment-type=""langword"">true</code>. Paramref <code data-dev-comment-type=""paramref"">myParam</code>. Typeparamref <code data-dev-comment-type=""typeparamref"">myTypeParam</code>.</summary>
+      <remarks>Langword <code data-dev-comment-type=""langword"">true</code>. Paramref <code data-dev-comment-type=""paramref"">myParam</code>. Typeparamref <code data-dev-comment-type=""typeparamref"">myTypeParam</code>.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>Langword <see langword=""true"" />. Paramref <see paramref=""myParam"" />. Typeparamref <see typeparamref=""myTypeParam"" />.</summary>
+    <remarks>
+      <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+Langword `true`. Paramref `myParam`. Typeparamref `myTypeParam`.
+
+      ]]></format>
+    </remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            Configuration configuration = new()
+            {
+                MarkdownRemarks = true
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
+        [Fact]
+        public void Convert_XrefDataThrowIfNotResolved_To_ExpectedElementNames()
+        {
+            // The compiled xml files sometimes generate type references with the format
+            // <xref data-throw-if-not-resolved="{bool}" uid="{DocId}"></xref>, so we need to convert them to the expected element type.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>Type: <xref data-throw-if-not-resolved=""true"" uid=""MyNamespace.MyType""/>.</summary>
+      <remarks>Type: <xref data-throw-if-not-resolved=""true"" uid=""MyNamespace.MyType""></xref>.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>Type: <see cref=""T:MyNamespace.MyType"" />.</summary>
+    <remarks>
+      <format type=""text/markdown""><![CDATA[
+
+## Remarks
+
+Type: <xref:MyNamespace.MyType>.
+
+      ]]></format>
+    </remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            Configuration configuration = new()
+            {
+                MarkdownRemarks = true
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
         private static void TestWithStrings(string intellisenseFile, string originalDocsFile, string expectedDocsFile, Configuration configuration) =>
             TestWithStrings(intellisenseFile, new List<StringTestData>() { new StringTestData(originalDocsFile, expectedDocsFile) }, configuration);
 

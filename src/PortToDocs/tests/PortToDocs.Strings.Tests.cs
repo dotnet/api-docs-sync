@@ -2539,7 +2539,7 @@ Langword `true`. Paramref `myParam`. Typeparamref `myTypeParam`.
   </assembly>
   <members>
     <member name=""T:MyNamespace.MyType"">
-      <summary>Type: <xref data-throw-if-not-resolved=""true"" uid=""MyNamespace.MyType""></xref>.</summary>
+      <summary>Type: <xref data-throw-if-not-resolved=""true"" uid=""MyNamespace.MyType""/>.</summary>
       <remarks>Type: <xref data-throw-if-not-resolved=""true"" uid=""MyNamespace.MyType""></xref>.</remarks>
     </member>
   </members>

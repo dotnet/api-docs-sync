@@ -1,4 +1,4 @@
-﻿<Type Name="MyType" FullName="MyNamespace.MyType">
+<Type Name="MyType" FullName="MyNamespace.MyType">
   <TypeSignature Language="DocId" Value="T:MyNamespace.MyType" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
@@ -32,11 +32,11 @@
         <exception cref="T:System.EightyPercentCollisionException">Word1 Word2 Word3 Word4 Word5 Word6 Word7 Word8.</exception>
         <exception cref="T:System.SeventyPercentCollisionException">Word1 Word2 Word3 Word4 Word5 Word6 Word7.</exception>
         <exception cref="T:System.SixtyPercentCollisionException">Word1 Word2 Word3 Word4 Word5 Word6.</exception>
-        <exception cref="T:System.FiftyPercentCollisionException">Word1 Word2 Word3 Word4 Word5.
-
--or-
-
-Word1 Word2 Word3 Word4 Word5 Word6 Word7 Word8 Word9 Word10.</exception>
+        <exception cref="T:System.FiftyPercentCollisionException">
+          <para>Word1 Word2 Word3 Word4 Word5.</para>
+          <para>-or-</para>
+          <para>Word1 Word2 Word3 Word4 Word5 Word6 Word7 Word8 Word9 Word10.</para>
+        </exception>
       </Docs>
     </Member>
   </Members>

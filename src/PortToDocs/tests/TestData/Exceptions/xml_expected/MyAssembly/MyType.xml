@@ -1,4 +1,4 @@
-﻿<Type Name="MyType" FullName="MyNamespace.MyType">
+<Type Name="MyType" FullName="MyNamespace.MyType">
   <TypeSignature Language="DocId" Value="T:MyNamespace.MyType" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
@@ -29,19 +29,15 @@
         <summary>This is the method summary.</summary>
         <remarks>To be added.</remarks>
         <exception cref="T:System.ArgumentNullException">This is the original text of ArgumentNullException thrown for MyMethod.</exception>
-        <exception cref="T:System.IndexOutOfRangeException">This is the original text of IndexOutOfRangeException thrown for MyMethod.
-
--or-
-
-A proper alternative.
-
--or-
-
-An improper alternative.
-
--or-
-
-A somewhat proper alternative.</exception>
+        <exception cref="T:System.IndexOutOfRangeException">
+          <para>This is the original text of IndexOutOfRangeException thrown for MyMethod.</para>
+          <para>-or-</para>
+          <para>A proper alternative.</para>
+          <para>-or-</para>
+          <para>An improper alternative.</para>
+          <para>-or-</para>
+          <para>A somewhat proper alternative.</para>
+        </exception>
       </Docs>
     </Member>
   </Members>

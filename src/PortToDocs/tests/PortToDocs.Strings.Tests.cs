@@ -2355,6 +2355,117 @@ Typeparamref `T`.
             TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
         }
 
+        [Fact]
+        public void Convert_NewLines_To_Para()
+        {
+            // Convert triple slash new lines to para xml items.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary>I am paragraph one.
+I am paragraph number two.</summary>
+      <remarks>I have no newlines.</remarks>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>
+      <para>I am paragraph one.</para>
+      <para>I am paragraph number two.</para>
+    </summary>
+    <remarks>I have no newlines.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            Configuration configuration = new()
+            {
+                MarkdownRemarks = false
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
+        [Fact]
+        public void Convert_NewLines_To_Para_Preserve_Existing_Para()
+        {
+            // Convert triple slash new lines to para xml items. If there are paras too, keep them.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary><para>I am paragraph one.</para>
+I am paragraph number two.
+I am paragraph number three.</summary>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>
+      <para>I am paragraph one.</para>
+      <para>I am paragraph number two.</para>
+      <para>I am paragraph number three.</para>
+    </summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            Configuration configuration = new()
+            {
+                MarkdownRemarks = true
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
         private static void TestWithStrings(string intellisenseFile, string originalDocsFile, string expectedDocsFile, Configuration configuration) =>
             TestWithStrings(intellisenseFile, new List<StringTestData>() { new StringTestData(originalDocsFile, expectedDocsFile) }, configuration);
 

@@ -2503,7 +2503,7 @@ I am paragraph number three.</summary>
     <AssemblyName>MyAssembly</AssemblyName>
   </AssemblyInfo>
   <Docs>
-    <summary>Langword <see langword=""true"" />. Paramref <see paramref=""myParam"" />. Typeparamref <see typeparamref=""myTypeParam"" />.</summary>
+    <summary>Langword <see langword=""true"" />. Paramref <paramref name=""myParam"" />. Typeparamref <typeparamref name=""myTypeParam"" />.</summary>
     <remarks>
       <format type=""text/markdown""><![CDATA[
 

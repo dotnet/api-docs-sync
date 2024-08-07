@@ -25,7 +25,8 @@ namespace ApiDocsSync.PortToTripleSlash
             Initial,
             IsMono,
             SkipInterfaceImplementations,
-            SkipInterfaceRemarks
+            SkipInterfaceRemarks,
+            SkipRemarks
         }
 
         // The default boilerplate string for what dotnet-api-docs
@@ -64,6 +65,7 @@ namespace ApiDocsSync.PortToTripleSlash
         public bool IsMono { get; set; }
         public bool SkipInterfaceImplementations { get; set; } = false;
         public bool SkipInterfaceRemarks { get; set; } = true;
+        public bool SkipRemarks { get; set; } = true;
 
         public static Configuration GetCLIArguments(string[] args)
         {
@@ -331,6 +333,10 @@ namespace ApiDocsSync.PortToTripleSlash
                                     mode = Mode.SkipInterfaceRemarks;
                                     break;
 
+                                case "-SKIPREMARKS":
+                                    mode = Mode.SkipRemarks;
+                                    break;
+
                                 default:
                                     Log.ErrorAndExit($"Unrecognized argument: {arg}");
                                     break;
@@ -354,6 +360,13 @@ namespace ApiDocsSync.PortToTripleSlash
                     case Mode.SkipInterfaceRemarks:
                         {
                             config.SkipInterfaceRemarks = ParseOrExit(arg, nameof(Mode.SkipInterfaceRemarks));
+                            mode = Mode.Initial;
+                            break;
+                        }
+
+                    case Mode.SkipRemarks:
+                        {
+                            config.SkipRemarks = ParseOrExit(arg, nameof(Mode.SkipRemarks));
                             mode = Mode.Initial;
                             break;
                         }
@@ -490,6 +503,10 @@ Options:
                                                 the interface API.
                                                     Usage example:
                                                         -SkipInterfaceRemarks false
+     -SkipRemarks                       bool    Default is true (excludes remarks).
+                                                Whether you want to backport remarks.
+                                                    Usage example:
+                                                        -SkipRemarks true
             ");
             Log.Warning(@"
     TL;DR:

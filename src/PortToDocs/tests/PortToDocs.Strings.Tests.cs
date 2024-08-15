@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml.Linq;
@@ -2467,6 +2468,67 @@ I am paragraph number three.</summary>
         }
 
         [Fact]
+        public void Para_EdgeCases()
+        {
+            // Convert triple slash new lines to para xml items. If there are paras too, keep them.
+
+            string originalIntellisense = @"<?xml version=""1.0""?>
+<doc>
+  <assembly>
+    <name>MyAssembly</name>
+  </assembly>
+  <members>
+    <member name=""T:MyNamespace.MyType"">
+      <summary><para>I am paragraph one with pre-existing paras.</para>
+I am paragraph number two but I am
+divided into two lines. I am paragraph three but I am in the same line, my spacing between lines should be ignored         
+               and the next newlines should be ignored.
+
+
+      <para>I am the fourth paragraph with pre-existing paras.</para>
+</summary>
+    </member>
+  </members>
+</doc>";
+
+            string originalDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            string expectedDocs = @"<Type Name=""MyType"" FullName=""MyNamespace.MyType"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyType"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>
+      <para>I am paragraph one with pre-existing paras.</para>
+      <para>I am paragraph number two but I am divided into two lines. I am paragraph three but I am in the same line, my spacing between lines should be ignored and the next newlines should be ignored.</para>
+      <para>I am the fourth paragraph with pre-existing paras.</para>
+    </summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+  <Members></Members>
+</Type>";
+
+            Configuration configuration = new()
+            {
+                MarkdownRemarks = true
+            };
+            configuration.IncludedAssemblies.Add(FileTestData.TestAssembly);
+
+            TestWithStrings(originalIntellisense, originalDocs, expectedDocs, configuration);
+        }
+
+        [Fact]
         public void Convert_CodeDataDevCommentType_To_ExpectedElementNames()
         {
             // The compiled xml files sometimes generate langwords, paramrefs and typeparamrefs with the format
@@ -2619,6 +2681,4 @@ Type: <xref:MyNamespace.MyType>.
             }
         }
     }
-
-
 }

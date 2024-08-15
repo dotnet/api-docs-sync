@@ -203,19 +203,57 @@ namespace ApiDocsSync.PortToDocs
         private static string ReplaceEndLinesWithParas(string updatedValue)
         {
             string[] splitted = updatedValue.Split(_splittingSeparators, _splittingStringSplitOptions);
-            bool moreThanOne = splitted.Count() > 1;
+
+            if (splitted.Length == 1)
+            {
+                // No need to add paras
+                return splitted[0];
+            }
 
             StringBuilder newValue = new();
-            foreach (string s in splitted)
+            ReadOnlySpan<char> ros;
+            bool addStartParaNext = true;
+            for (int i = 0; i < splitted.Length; i++)
             {
-                if (moreThanOne && !s.StartsWith("<para>"))
+                ros = splitted[i];
+
+                if (ros.StartsWith("<para>") && ros.EndsWith("</para>"))
                 {
-                    newValue.Append("<para>");
+                    // No change
+                    newValue.Append(ros);
+                    // Next time we find a line not surrounded by paras, we need to add the starting one first
+                    addStartParaNext = true;
                 }
-                newValue.Append(s);
-                if (moreThanOne && !s.EndsWith("</para>"))
+                else
                 {
-                    newValue.Append("</para>");
+                    if (addStartParaNext)
+                    {
+                        newValue.Append("<para>");
+                        addStartParaNext = false;
+                    }
+
+                    if (splitted[i].Equals("- or -"))
+                    {
+                        newValue.Append("-or-");
+                    }
+                    else
+                    {
+                        newValue.Append(ros);
+                    }
+                    if (!ros.EndsWith("</para>"))
+                    {
+                        if (ros[^1] is '.' or ':' || (i + 1) >= splitted.Length || splitted[i].Equals("-or-") || splitted[i].Equals("- or -"))
+                        {
+                            // We're done with this line
+                            newValue.Append("</para>");
+                            addStartParaNext = true;
+                        }
+                        else
+                        {
+                            // Space separator, the next line will get appended next
+                            newValue.Append(' ');
+                        }
+                    }
                 }
             }
 

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -33,13 +33,12 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             AssemblyInfos.AddRange(XERoot.Elements("AssemblyInfo").Select(x => new DocsAssemblyInfo(x)));
         }
 
-        public List<ResolvedLocation>? SymbolLocations { get; set; }
+        private List<ResolvedLocation>? _symbolLocations;
+        public List<ResolvedLocation> SymbolLocations => _symbolLocations ??= new();
 
-        public XDocument XDoc { get; set; }
+        public XDocument XDoc { get; }
 
-        public override bool Changed { get; set; }
-
-        public Encoding FileEncoding { get; internal set; }
+        public Encoding FileEncoding { get; }
 
         public string TypeName
         {
@@ -64,29 +63,9 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             }
         }
 
-        public string Name
-        {
-            get
-            {
-                if (_name == null)
-                {
-                    _name = XmlHelper.GetAttributeValue(XERoot, "Name");
-                }
-                return _name;
-            }
-        }
+        public string Name => _name ??= XmlHelper.GetAttributeValue(XERoot, "Name");
 
-        public string FullName
-        {
-            get
-            {
-                if (_fullName == null)
-                {
-                    _fullName = XmlHelper.GetAttributeValue(XERoot, "FullName");
-                }
-                return _fullName;
-            }
-        }
+        public string FullName => _fullName ??= XmlHelper.GetAttributeValue(XERoot, "FullName");
 
         public string Namespace
         {
@@ -101,25 +80,9 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             }
         }
 
-        public List<DocsTypeSignature> TypeSignatures
-        {
-            get
-            {
-                if (_typesSignatures == null)
-                {
-                    _typesSignatures = XERoot.Elements("TypeSignature").Select(x => new DocsTypeSignature(x)).ToList();
-                }
-                return _typesSignatures;
-            }
-        }
+        public List<DocsTypeSignature> TypeSignatures => _typesSignatures ??= XERoot.Elements("TypeSignature").Select(x => new DocsTypeSignature(x)).ToList();
 
-        public XElement? Base
-        {
-            get
-            {
-                return XERoot.Element("Base");
-            }
-        }
+        public XElement? Base => XERoot.Element("Base");
 
         public string BaseTypeName
         {
@@ -137,13 +100,7 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             }
         }
 
-        public XElement? Interfaces
-        {
-            get
-            {
-                return XERoot.Element("Interfaces");
-            }
-        }
+        public XElement? Interfaces => XERoot.Element("Interfaces");
 
         public List<string> InterfaceNames
         {
@@ -181,17 +138,9 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             }
         }
 
-        public override string Summary
-        {
-            get
-            {
-                return GetNodesInPlainText("summary");
-            }
-            set
-            {
-                SaveFormattedAsXml("summary", value, addIfMissing: true);
-            }
-        }
+        public override string Summary => GetNodesInPlainText("summary");
+
+        public override string Value => string.Empty;
 
         /// <summary>
         /// Only available when the type is a delegate.
@@ -212,50 +161,18 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
         /// <summary>
         /// Only available when the type is a delegate.
         /// </summary>
-        public override string Returns
-        {
-            get
-            {
-                return (ReturnType != "System.Void") ? GetNodesInPlainText("returns") : string.Empty;
-            }
-            set
-            {
-                if (ReturnType != "System.Void")
-                {
-                    SaveFormattedAsXml("returns", value, addIfMissing: false);
-                }
-                else
-                {
-                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocId}");
-                }
-            }
-        }
+        public override string Returns => (ReturnType != "System.Void") ? GetNodesInPlainText("returns") : string.Empty;
 
-        public override string Remarks
-        {
-            get
-            {
-                return GetNodesInPlainText("remarks");
-            }
-            set
-            {
-                SaveFormattedAsMarkdown("remarks", value, addIfMissing: !value.IsDocsEmpty(), isMember: false);
-            }
-        }
+        public override string Remarks => GetNodesInPlainText("remarks");
 
-        public override string ToString()
-        {
-            return FullName;
-        }
+        public override List<DocsException> Exceptions { get; } = new();
+
+        public override string ToString() => FullName;
 
         protected override string GetApiSignatureDocId()
         {
             DocsTypeSignature? dts = TypeSignatures.FirstOrDefault(x => x.Language == "DocId");
-            if (dts == null)
-            {
-                throw new FormatException($"DocId TypeSignature not found for {FullName}");
-            }
-            return dts.Value;
+            return dts != null ? dts.Value : throw new FormatException($"DocId TypeSignature not found for {FullName}");
         }
     }
 }

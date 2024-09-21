@@ -13,17 +13,11 @@
 
   <ItemGroup>
     <!-- All test assets need to get excluded from compilation but still want them to show up in the Solution Explorer. -->
-    <Compile Remove="PortToTripleSlash\TestData\Generics\SourceExpected.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\Generics\SourceOriginal.cs" />
     <Compile Remove="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
     <Compile Remove="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
-    <Compile Remove="PortToTripleSlash\TestData\Generics\MyAssembly.csproj" />
     <Compile Remove="PortToTripleSlash\TestData\Basic\MyAssembly.csproj" />
-    <None Include="PortToTripleSlash\TestData\Generics\SourceExpected.cs" />
-    <None Include="PortToTripleSlash\TestData\Generics\SourceOriginal.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\SourceExpected.cs" />
     <None Include="PortToTripleSlash\TestData\Basic\SourceOriginal.cs" />
-    <None Include="PortToTripleSlash\TestData\Generics\MyAssembly.csproj" />
     <None Include="PortToTripleSlash\TestData\Basic\MyAssembly.csproj" />
   </ItemGroup>
 

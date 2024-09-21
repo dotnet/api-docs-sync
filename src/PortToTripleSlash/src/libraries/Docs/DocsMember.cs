@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -24,43 +24,11 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
 
         public DocsType ParentType { get; private set; }
 
-        public override bool Changed
-        {
-            get => ParentType.Changed;
-            set => ParentType.Changed |= value;
-        }
+        public string MemberName => _memberName ??= XmlHelper.GetAttributeValue(XERoot, "MemberName");
 
-        public string MemberName
-        {
-            get
-            {
-                if (_memberName == null)
-                {
-                    _memberName = XmlHelper.GetAttributeValue(XERoot, "MemberName");
-                }
-                return _memberName;
-            }
-        }
+        public List<DocsMemberSignature> MemberSignatures => _memberSignatures ??= XERoot.Elements("MemberSignature").Select(x => new DocsMemberSignature(x)).ToList();
 
-        public List<DocsMemberSignature> MemberSignatures
-        {
-            get
-            {
-                if (_memberSignatures == null)
-                {
-                    _memberSignatures = XERoot.Elements("MemberSignature").Select(x => new DocsMemberSignature(x)).ToList();
-                }
-                return _memberSignatures;
-            }
-        }
-
-        public string MemberType
-        {
-            get
-            {
-                return XmlHelper.GetChildElementValue(XERoot, "MemberType");
-            }
-        }
+        public string MemberType => XmlHelper.GetChildElementValue(XERoot, "MemberType");
 
         public string ImplementsInterfaceMember
         {
@@ -76,77 +44,19 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             get
             {
                 XElement? xeReturnValue = XERoot.Element("ReturnValue");
-                if (xeReturnValue != null)
-                {
-                    return XmlHelper.GetChildElementValue(xeReturnValue, "ReturnType");
-                }
-                return string.Empty;
+                return xeReturnValue != null ? XmlHelper.GetChildElementValue(xeReturnValue, "ReturnType") : string.Empty;
             }
         }
 
-        public override string Returns
-        {
-            get
-            {
-                return (ReturnType != "System.Void") ? GetNodesInPlainText("returns") : string.Empty;
-            }
-            set
-            {
-                if (ReturnType != "System.Void")
-                {
-                    SaveFormattedAsXml("returns", value, addIfMissing: false);
-                }
-                else
-                {
-                    Log.Warning($"Attempted to save a returns item for a method that returns System.Void: {DocId}");
-                }
-            }
-        }
+        public override string Returns => (ReturnType != "System.Void") ? GetNodesInPlainText("returns") : string.Empty;
 
-        public override string Summary
-        {
-            get
-            {
-                return GetNodesInPlainText("summary");
-            }
-            set
-            {
-                SaveFormattedAsXml("summary", value, addIfMissing: true);
-            }
-        }
+        public override string Summary => GetNodesInPlainText("summary");
 
-        public override string Remarks
-        {
-            get
-            {
-                return GetNodesInPlainText("remarks");
-            }
-            set
-            {
-                SaveFormattedAsMarkdown("remarks", value, addIfMissing: !value.IsDocsEmpty(), isMember: true);
-            }
-        }
+        public override string Remarks => GetNodesInPlainText("remarks");
 
-        public string Value
-        {
-            get
-            {
-                return (MemberType == "Property") ? GetNodesInPlainText("value") : string.Empty;
-            }
-            set
-            {
-                if (MemberType == "Property")
-                {
-                    SaveFormattedAsXml("value", value, addIfMissing: true);
-                }
-                else
-                {
-                    Log.Warning($"Attempted to save a value element for an API that is not a property: {DocId}");
-                }
-            }
-        }
+        public override string Value => (MemberType == "Property") ? GetNodesInPlainText("value") : string.Empty;
 
-        public List<DocsException> Exceptions
+        public override List<DocsException> Exceptions
         {
             get
             {
@@ -165,29 +75,12 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             }
         }
 
-        public override string ToString()
-        {
-            return DocId;
-        }
-
-        public DocsException AddException(string cref, string value)
-        {
-            XElement exception = new XElement("exception");
-            exception.SetAttributeValue("cref", cref);
-            XmlHelper.SaveFormattedAsXml(exception, value, removeUndesiredEndlines: false);
-            Docs.Add(exception);
-            Changed = true;
-            return new DocsException(this, exception);
-        }
+        public override string ToString() => DocId;
 
         protected override string GetApiSignatureDocId()
         {
             DocsMemberSignature? dts = MemberSignatures.FirstOrDefault(x => x.Language == "DocId");
-            if (dts == null)
-            {
-                throw new FormatException($"DocId TypeSignature not found for {MemberName}");
-            }
-            return dts.Value;
+            return dts != null ? dts.Value : throw new FormatException($"DocId TypeSignature not found for {MemberName}");
         }
     }
 }

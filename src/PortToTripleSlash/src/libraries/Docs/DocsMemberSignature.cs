@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Xml.Linq;
@@ -9,25 +9,10 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
     {
         private readonly XElement XEMemberSignature;
 
-        public string Language
-        {
-            get
-            {
-                return XmlHelper.GetAttributeValue(XEMemberSignature, "Language");
-            }
-        }
+        public string Language => XmlHelper.GetAttributeValue(XEMemberSignature, "Language");
 
-        public string Value
-        {
-            get
-            {
-                return XmlHelper.GetAttributeValue(XEMemberSignature, "Value");
-            }
-        }
+        public string Value => XmlHelper.GetAttributeValue(XEMemberSignature, "Value");
 
-        public DocsMemberSignature(XElement xeMemberSignature)
-        {
-            XEMemberSignature = xeMemberSignature;
-        }
+        public DocsMemberSignature(XElement xeMemberSignature) => XEMemberSignature = xeMemberSignature;
     }
 }

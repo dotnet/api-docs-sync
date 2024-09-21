@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Xml.Linq;
@@ -9,24 +9,13 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
     {
         private readonly XElement XERelatedArticle;
 
-        public IDocsAPI ParentAPI
-        {
-            get; private set;
-        }
+        public IDocsAPI ParentAPI { get; }
 
         public string ArticleType => XmlHelper.GetAttributeValue(XERelatedArticle, "type");
 
         public string Href => XmlHelper.GetAttributeValue(XERelatedArticle, "href");
 
-        public string Value
-        {
-            get => XmlHelper.GetNodesInPlainText(XERelatedArticle);
-            set
-            {
-                XmlHelper.SaveFormattedAsXml(XERelatedArticle, value);
-                ParentAPI.Changed = true;
-            }
-        }
+        public string Value => XmlHelper.GetNodesInPlainText("related", XERelatedArticle);
 
         public DocsRelated(IDocsAPI parentAPI, XElement xeRelatedArticle)
         {
@@ -34,9 +23,6 @@ namespace ApiDocsSync.PortToTripleSlash.Docs
             XERelatedArticle = xeRelatedArticle;
         }
 
-        public override string ToString()
-        {
-            return Value;
-        }
+        public override string ToString() => Value;
     }
 }

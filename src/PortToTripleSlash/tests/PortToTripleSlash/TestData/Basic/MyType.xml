@@ -1,4 +1,4 @@
-﻿<Type Name="MyType" FullName="MyNamespace.MyType">
+<Type Name="MyType" FullName="MyNamespace.MyType">
   <TypeSignature Language="DocId" Value="T:MyNamespace.MyType" />
   <AssemblyInfo>
     <AssemblyName>MyAssembly</AssemblyName>
@@ -13,7 +13,7 @@
 
 These are the <xref:MyNamespace.MyType> class remarks.
 
-URL entities: %23%28%29%2C.
+These URL entities should be converted: %23%28%29%2C.
 
 Multiple lines.
 

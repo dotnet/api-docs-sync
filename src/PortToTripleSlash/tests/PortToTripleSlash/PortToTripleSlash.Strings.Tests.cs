@@ -51,7 +51,9 @@ public class MyClass
 }";
 
         string expectedCode = $@"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>" +
+/// <summary>
+/// This is the MyClass summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyClass") +
 @"public class MyClass
 {
@@ -91,7 +93,9 @@ public struct MyStruct
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyStruct summary.</summary>" +
+/// <summary>
+/// This is the MyStruct summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyStruct") +
 @"public struct MyStruct
 {
@@ -131,7 +135,9 @@ public interface MyInterface
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyInterface summary.</summary>" +
+/// <summary>
+/// This is the MyInterface summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyInterface") +
 @"public interface MyInterface
 {
@@ -171,7 +177,9 @@ public enum MyEnum
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyEnum summary.</summary>" +
+/// <summary>
+/// This is the MyEnum summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyEnum") +
 @"public enum MyEnum
 {
@@ -221,7 +229,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyClass constructor summary.</summary>" +
+    /// <summary>
+    /// This is the MyClass constructor summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyClass constructor", "    ") +
 @"    public MyClass() { }
 }";
@@ -271,7 +281,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyClass constructor summary.</summary>
+    /// <summary>
+    /// This is the MyClass constructor summary.
+    /// </summary>
     /// <param name=""intParam"">This is the MyClass constructor parameter description.</param>" +
 GetRemarks(skipRemarks, "MyClass constructor", "    ") +
 @"    public MyClass(int intParam) { }
@@ -321,7 +333,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyVoidMethod summary.</summary>" +
+    /// <summary>
+    /// This is the MyVoidMethod summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
 @"    public void MyVoidMethod() { }
 }";
@@ -372,7 +386,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyIntMethod summary.</summary>
+    /// <summary>
+    /// This is the MyIntMethod summary.
+    /// </summary>
     /// <param name=""withArgument"">This is the MyIntMethod withArgument description.</param>
     /// <returns>This is the MyIntMethod returns description.</returns>" +
 GetRemarks(skipRemarks, "MyIntMethod", "    ") +
@@ -424,7 +440,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyGenericMethod summary.</summary>
+    /// <summary>
+    /// This is the MyGenericMethod summary.
+    /// </summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>" +
 GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
 @"    public void MyGenericMethod<T>() { }
@@ -476,7 +494,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyGenericMethod summary.</summary>
+    /// <summary>
+    /// This is the MyGenericMethod summary.
+    /// </summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
     /// <param name=""intParam"">This is the MyGenericMethod parameter description.</param>" +
 GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
@@ -530,7 +550,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyGenericMethod summary.</summary>
+    /// <summary>
+    /// This is the MyGenericMethod summary.
+    /// </summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
     /// <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
     /// <returns>This is the MyGenericMethod returns description.</returns>" +
@@ -583,7 +605,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyVoidMethod summary.</summary>
+    /// <summary>
+    /// This is the MyVoidMethod summary.
+    /// </summary>
     /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>" +
 GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
 @"    public void MyVoidMethod() { }
@@ -633,7 +657,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyField summary.</summary>" +
+    /// <summary>
+    /// This is the MyField summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyField", "    ") +
 @"    public double MyField;
 }";
@@ -684,7 +710,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MySetProperty summary.</summary>
+    /// <summary>
+    /// This is the MySetProperty summary.
+    /// </summary>
     /// <value>This is the MySetProperty value.</value>" +
 GetRemarks(skipRemarks, "MySetProperty", "    ") +
 @"    public double MySetProperty { set; }
@@ -736,7 +764,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyGetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyGetProperty summary.
+    /// </summary>
     /// <value>This is the MyGetProperty value.</value>" +
 GetRemarks(skipRemarks, "MyGetProperty", "    ") +
 @"    public double MyGetProperty { get; }
@@ -788,7 +818,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyGetSetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyGetSetProperty summary.
+    /// </summary>
     /// <value>This is the MyGetSetProperty value.</value>" +
 GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
 @"    public double MyGetSetProperty { get; set; }
@@ -841,7 +873,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyGetSetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyGetSetProperty summary.
+    /// </summary>
     /// <value>This is the MyGetSetProperty value.</value>
     /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyGetSetProperty.</exception>" +
 GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
@@ -892,7 +926,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyEvent summary.</summary>" +
+    /// <summary>
+    /// This is the MyEvent summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyEvent", "    ") +
 @"    public event MyDelegate MyEvent;
 }";
@@ -948,7 +984,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the MyDelegate summary.</summary>
+    /// <summary>
+    /// This is the MyDelegate summary.
+    /// </summary>
     /// <param name=""sender"">This is the MyDelegate sender description.</param>" +
 GetRemarks(skipRemarks, "MyDelegate", "    ") +
 @"    public delegate void MyDelegate(object sender);
@@ -1019,17 +1057,25 @@ public class MyClass
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>" +
+/// <summary>
+/// This is the MyClass summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyClass") +
 @"public class MyClass
 {
-    /// <summary>This is the MyEnum summary.</summary>" +
+    /// <summary>
+    /// This is the MyEnum summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyEnum", "    ") +
 @"    public enum MyEnum
     {
-        /// <summary>This is the MyEnum.Value1 summary.</summary>
+        /// <summary>
+        /// This is the MyEnum.Value1 summary.
+        /// </summary>
         Value1,
-        /// <summary>This is the MyEnum.Value2 summary.</summary>
+        /// <summary>
+        /// This is the MyEnum.Value2 summary.
+        /// </summary>
         Value2
     }
 }";
@@ -1085,11 +1131,15 @@ public class MyClass
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>" +
+/// <summary>
+/// This is the MyClass summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyClass") +
 @"public class MyClass
 {
-    /// <summary>This is the MyStruct summary.</summary>" +
+    /// <summary>
+    /// This is the MyStruct summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyStruct", "    ") +
 @"    public struct MyStruct
     {
@@ -1143,7 +1193,9 @@ public class MyClass
         string expectedCode = @"namespace MyNamespace;
 public class MyClass
 {
-    /// <summary>This is the + operator summary.</summary>
+    /// <summary>
+    /// This is the + operator summary.
+    /// </summary>
     /// <param name=""value1"">This is the + operator value1 description.</param>
     /// <param name=""value2"">This is the + operator value2 description.</param>
     /// <returns>This is the + operator returns description.</returns>" +
@@ -1240,14 +1292,20 @@ public interface MyInterface
 }";
 
         string interfaceExpectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyInterface summary.</summary>" +
+/// <summary>
+/// This is the MyInterface summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyInterface") +
 @"public interface MyInterface
 {
-    /// <summary>This is the MyInterface.MyVoidMethod summary.</summary>" +
+    /// <summary>
+    /// This is the MyInterface.MyVoidMethod summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyInterface.MyVoidMethod", "    ") +
 @"    public void MyVoidMethod();
-    /// <summary>This is the MyInterface.MyGetSetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyInterface.MyGetSetProperty summary.
+    /// </summary>
     /// <value>This is the MyInterface.MyGetSetProperty value.</value>" +
 GetRemarks(skipRemarks, "MyInterface.MyGetSetProperty", "    ") +
 @"    public double MyGetSetProperty { get; set; }
@@ -1261,7 +1319,9 @@ public class MyClass : MyInterface
 }";
 
         string classExpectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>" +
+/// <summary>
+/// This is the MyClass summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyClass") +
 @"public class MyClass : MyInterface
 {" +
@@ -1319,12 +1379,16 @@ GetRemarks(skipRemarks, "MyClass.MyVoidMethod", "    ") +
         string expectedCode = @"namespace MyNamespace
 {
     // Comment on top of type
-    /// <summary>This is the MyClass type summary.</summary>" +
+    /// <summary>
+    /// This is the MyClass type summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyClass type", "    ") +
 @"    public class MyClass
     {
         // Comment on top of constructor
-        /// <summary>This is the MyClass constructor summary.</summary>" +
+        /// <summary>
+        /// This is the MyClass constructor summary.
+        /// </summary>" +
 GetRemarks(skipRemarks, "MyClass constructor", "        ") +
 @"        public MyClass() { }
     }
@@ -1376,9 +1440,18 @@ GetRemarks(skipRemarks, "MyClass constructor", "        ") +
     }
 }";
 
-        string ctorRemarks = skipRemarks ? "\n" : "\n        /// <remarks>New MyClass constructor remarks.</remarks>\n";
+        string ctorRemarks = skipRemarks ? @"
+        /// <remarks>Replaceable MyClass constructor remarks.</remarks>
+" : @"
+        /// <remarks>New MyClass constructor remarks.</remarks>
+";
+
+        // The type remarks must always remain untouched: If skipRemarks is true, they're preexisting. If skipRemarks is false, there's no replacement.
+        // The member remarks must only change if skipRemarks is false, otherwise the old ones need to remain untouched.
         string expectedCode = @"namespace MyNamespace {
-    /// <summary>New MyClass type summary.</summary>
+    /// <summary>
+    /// New MyClass type summary.
+    /// </summary>
     /// <remarks>Unreplaceable MyClass type remarks.</remarks>
     public class MyClass
     {
@@ -1436,13 +1509,19 @@ public enum MyEnum
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyEnum summary.</summary>" +
+/// <summary>
+/// This is the MyEnum summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyEnum") +
 @"public enum MyEnum
 {
-    /// <summary>This is the MyEnum.Value1 summary.</summary>
+    /// <summary>
+    /// This is the MyEnum.Value1 summary.
+    /// </summary>
     Value1,
-    /// <summary>This is the MyEnum.Value2 summary.</summary>
+    /// <summary>
+    /// This is the MyEnum.Value2 summary.
+    /// </summary>
     Value2
 }";
 
@@ -1577,48 +1656,70 @@ public class MyClass
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyClass summary.</summary>" +
+/// <summary>
+/// This is the MyClass summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyClass") +
 @"public class MyClass
 {
-    /// <summary>This is the MyClass constructor summary.</summary>" +
+    /// <summary>
+    /// This is the MyClass constructor summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyClass constructor", "    ") +
 @"    public MyClass() { }
-    /// <summary>This is the MyClass constructor summary.</summary>
+    /// <summary>
+    /// This is the MyClass constructor summary.
+    /// </summary>
     /// <param name=""intParam"">This is the MyClass constructor parameter description.</param>" +
 GetRemarks(skipRemarks, "MyClass constructor", "    ") +
 @"    public MyClass(int intParam) { }
-    /// <summary>This is the MyVoidMethod summary.</summary>
+    /// <summary>
+    /// This is the MyVoidMethod summary.
+    /// </summary>
     /// <exception cref=""System.NullReferenceException"">The null reference exception thrown by MyVoidMethod.</exception>" +
 GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
 @"    public void MyVoidMethod() { }
-    /// <summary>This is the MyIntMethod summary.</summary>
+    /// <summary>
+    /// This is the MyIntMethod summary.
+    /// </summary>
     /// <param name=""withArgument"">This is the MyIntMethod withArgument description.</param>
     /// <returns>This is the MyIntMethod returns description.</returns>" +
 GetRemarks(skipRemarks, "MyIntMethod", "    ") +
 @"    public int MyIntMethod(int withArgument) => withArgument;
-    /// <summary>This is the MyGenericMethod summary.</summary>
+    /// <summary>
+    /// This is the MyGenericMethod summary.
+    /// </summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
     /// <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
     /// <returns>This is the MyGenericMethod returns description.</returns>" +
 GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
 @"    public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
-    /// <summary>This is the MyField summary.</summary>" +
+    /// <summary>
+    /// This is the MyField summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyField", "    ") +
 @"    public double MyField;
-    /// <summary>This is the MySetProperty summary.</summary>
+    /// <summary>
+    /// This is the MySetProperty summary.
+    /// </summary>
     /// <value>This is the MySetProperty value.</value>" +
 GetRemarks(skipRemarks, "MySetProperty", "    ") +
 @"    public double MySetProperty { set => MyField = value; }
-    /// <summary>This is the MyGetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyGetProperty summary.
+    /// </summary>
     /// <value>This is the MyGetProperty value.</value>" +
 GetRemarks(skipRemarks, "MyGetProperty", "    ") +
 @"    public double MyGetProperty => MyField;
-    /// <summary>This is the MyGetSetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyGetSetProperty summary.
+    /// </summary>
     /// <value>This is the MyGetSetProperty value.</value>" +
 GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
 @"    public double MyGetSetProperty { get; set; }
-    /// <summary>This is the + operator summary.</summary>
+    /// <summary>
+    /// This is the + operator summary.
+    /// </summary>
     /// <param name=""value1"">This is the + operator value1 description.</param>
     /// <param name=""value2"">This is the + operator value2 description.</param>
     /// <returns>This is the + operator returns description.</returns>" +
@@ -1755,47 +1856,69 @@ public struct MyStruct
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyStruct summary.</summary>" +
+/// <summary>
+/// This is the MyStruct summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyStruct") +
 @"public struct MyStruct
 {
-    /// <summary>This is the MyStruct constructor summary.</summary>" +
+    /// <summary>
+    /// This is the MyStruct constructor summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyStruct constructor", "    ") +
 @"    public MyStruct() { }
-    /// <summary>This is the MyStruct constructor summary.</summary>
+    /// <summary>
+    /// This is the MyStruct constructor summary.
+    /// </summary>
     /// <param name=""intParam"">This is the MyStruct constructor parameter description.</param>" +
 GetRemarks(skipRemarks, "MyStruct constructor", "    ") +
 @"    public MyStruct(int intParam) { }
-    /// <summary>This is the MyVoidMethod summary.</summary>" +
+    /// <summary>
+    /// This is the MyVoidMethod summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
 @"    public void MyVoidMethod() { }
-    /// <summary>This is the MyIntMethod summary.</summary>
+    /// <summary>
+    /// This is the MyIntMethod summary.
+    /// </summary>
     /// <param name=""withArgument"">This is the MyIntMethod withArgument description.</param>
     /// <returns>This is the MyIntMethod returns description.</returns>" +
 GetRemarks(skipRemarks, "MyIntMethod", "    ") +
 @"    public int MyIntMethod(int withArgument) => withArgument;
-    /// <summary>This is the MyGenericMethod summary.</summary>
+    /// <summary>
+    /// This is the MyGenericMethod summary.
+    /// </summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
     /// <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
     /// <returns>This is the MyGenericMethod returns description.</returns>" +
 GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
 @"    public T MyGenericMethod<T>(T withGenericArgument) => withGenericArgument;
-    /// <summary>This is the MyField summary.</summary>" +
+    /// <summary>
+    /// This is the MyField summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyField", "    ") +
 @"    public double MyField;
-    /// <summary>This is the MySetProperty summary.</summary>
+    /// <summary>
+    /// This is the MySetProperty summary.
+    /// </summary>
     /// <value>This is the MySetProperty value.</value>" +
 GetRemarks(skipRemarks, "MySetProperty", "    ") +
 @"    public double MySetProperty { set => MyField = value; }
-    /// <summary>This is the MyGetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyGetProperty summary.
+    /// </summary>
     /// <value>This is the MyGetProperty value.</value>" +
 GetRemarks(skipRemarks, "MyGetProperty", "    ") +
 @"    public double MyGetProperty => MyField;
-    /// <summary>This is the MyGetSetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyGetSetProperty summary.
+    /// </summary>
     /// <value>This is the MyGetSetProperty value.</value>" +
 GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
 @"    public double MyGetSetProperty { get; set; }
-    /// <summary>This is the + operator summary.</summary>
+    /// <summary>
+    /// This is the + operator summary.
+    /// </summary>
     /// <param name=""value1"">This is the + operator value1 description.</param>
     /// <param name=""value2"">This is the + operator value2 description.</param>
     /// <returns>This is the + operator returns description.</returns>" +
@@ -1896,33 +2019,47 @@ public interface MyInterface
 }";
 
         string expectedCode = @"namespace MyNamespace;
-/// <summary>This is the MyInterface summary.</summary>" +
+/// <summary>
+/// This is the MyInterface summary.
+/// </summary>" +
 GetRemarks(skipRemarks, "MyInterface") +
 @"public interface MyInterface
 {
-    /// <summary>This is the MyVoidMethod summary.</summary>" +
+    /// <summary>
+    /// This is the MyVoidMethod summary.
+    /// </summary>" +
 GetRemarks(skipRemarks, "MyVoidMethod", "    ") +
 @"    public void MyVoidMethod();
-    /// <summary>This is the MyIntMethod summary.</summary>
+    /// <summary>
+    /// This is the MyIntMethod summary.
+    /// </summary>
     /// <param name=""withArgument"">This is the MyIntMethod withArgument description.</param>
     /// <returns>This is the MyIntMethod returns description.</returns>" +
 GetRemarks(skipRemarks, "MyIntMethod", "    ") +
 @"    public int MyIntMethod(int withArgument);
-    /// <summary>This is the MyGenericMethod summary.</summary>
+    /// <summary>
+    /// This is the MyGenericMethod summary.
+    /// </summary>
     /// <typeparam name=""T"">This is the MyGenericMethod type parameter description.</typeparam>
     /// <param name=""withGenericArgument"">This is the MyGenericMethod withGenericArgument description.</param>
     /// <returns>This is the MyGenericMethod returns description.</returns>" +
 GetRemarks(skipRemarks, "MyGenericMethod", "    ") +
 @"    public T MyGenericMethod<T>(T withGenericArgument);
-    /// <summary>This is the MySetProperty summary.</summary>
+    /// <summary>
+    /// This is the MySetProperty summary.
+    /// </summary>
     /// <value>This is the MySetProperty value.</value>" +
 GetRemarks(skipRemarks, "MySetProperty", "    ") +
 @"    public double MySetProperty { set; }
-    /// <summary>This is the MyGetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyGetProperty summary.
+    /// </summary>
     /// <value>This is the MyGetProperty value.</value>" +
 GetRemarks(skipRemarks, "MyGetProperty", "    ") +
 @"    public double MyGetProperty { get; }
-    /// <summary>This is the MyGetSetProperty summary.</summary>
+    /// <summary>
+    /// This is the MyGetSetProperty summary.
+    /// </summary>
     /// <value>This is the MyGetSetProperty value.</value>" +
 GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
 @"    public double MyGetSetProperty { get; set; }
@@ -1937,7 +2074,7 @@ GetRemarks(skipRemarks, "MyGetSetProperty", "    ") +
     }
 
     [Fact]
-    public Task Class_Convert_Percent601_MarkdownRemarks()
+    public Task Class_Convert_Generics_Percent601_MarkdownRemarks()
     {
         string docMyGenericType = @"<Type Name=""MyGenericType&lt;T&gt;"" FullName=""MyNamespace.MyGenericType&lt;T&gt;"">
   <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyGenericType`1"" />
@@ -1971,10 +2108,8 @@ Contains the nested class <xref:MyNamespace.MyGenericType%601.Enumerator>.
 
 namespace MyNamespace
 {
-    // Original MyGenericType<T> class comments with information for maintainers, must stay.
     public class MyGenericType<T>
     {
-        // Original MyGenericType<T>.Enumerator class comments with information for maintainers, must stay.
         public class Enumerator { }
     }
 }";
@@ -1983,13 +2118,15 @@ namespace MyNamespace
 
 namespace MyNamespace
 {
-    // Original MyGenericType<T> class comments with information for maintainers, must stay.
-    /// <summary>This is the MyGenericType{T} class summary.</summary>
+    /// <summary>
+    /// This is the MyGenericType{T} class summary.
+    /// </summary>
     /// <remarks>Contains the nested class <see cref=""MyNamespace.MyGenericType{T}.Enumerator"" />.</remarks>
     public class MyGenericType<T>
     {
-        // Original MyGenericType<T>.Enumerator class comments with information for maintainers, must stay.
-        /// <summary>This is the MyGenericType{T}.Enumerator class summary.</summary>
+        /// <summary>
+        /// This is the MyGenericType{T}.Enumerator class summary.
+        /// </summary>
         public class Enumerator { }
     }
 }";
@@ -2001,6 +2138,118 @@ namespace MyNamespace
             { "T:MyNamespace.MyGenericType`1", expectedCode },
             { "T:MyNamespace.MyGenericType`1.Enumerator", expectedCode }
         };
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(data, skipRemarks: false);
+    }
+
+    [Fact]
+    public Task Class_Preserve_URLEntities_MarkdownRemarks()
+    {
+        string docId = "T:MyNamespace.MyClass";
+
+        string docFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>
+      <format type=""text/markdown"">
+  <![CDATA[
+
+## Remarks
+
+URL entities: %23%28%2C%29 must remain unconverted.
+
+      ]]></format>
+    </remarks>
+  </Docs>
+</Type>
+";
+
+        string originalCode = @"using System;
+
+namespace MyNamespace
+{
+    public class MyClass
+    {
+    }
+}";
+
+        string expectedCode = @"using System;
+
+namespace MyNamespace
+{
+    /// <remarks>URL entities: %23%28%2C%29 must remain unconverted.</remarks>
+    public class MyClass
+    {
+    }
+}";
+
+        List<string> docFiles = new() { docFile };
+        List<string> originalCodeFiles = new() { originalCode };
+        Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
+        StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
+
+        return TestWithStringsAsync(data, skipRemarks: false);
+    }
+
+    [Fact]
+    public Task Class_Multiline_MarkdownRemarks()
+    {
+        string docId = "T:MyNamespace.MyClass";
+
+        string docFile = @"<Type Name=""MyClass"" FullName=""MyNamespace.MyClass"">
+  <TypeSignature Language=""DocId"" Value=""T:MyNamespace.MyClass"" />
+  <AssemblyInfo>
+    <AssemblyName>MyAssembly</AssemblyName>
+  </AssemblyInfo>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>
+      <format type=""text/markdown"">
+  <![CDATA[
+
+## Remarks
+
+Line 1.
+
+Line 2.
+
+Line 3.
+
+      ]]></format>
+    </remarks>
+  </Docs>
+</Type>
+";
+
+        string originalCode = @"using System;
+
+namespace MyNamespace
+{
+    public class MyClass
+    {
+    }
+}";
+
+        string expectedCode = @"using System;
+
+namespace MyNamespace
+{
+    /// <remarks>Line 1.
+    /// Line 2.
+    /// Line 3.</remarks>
+    public class MyClass
+    {
+    }
+}";
+
+        List<string> docFiles = new() { docFile };
+        List<string> originalCodeFiles = new() { originalCode };
+        Dictionary<string, string> expectedCodeFiles = new() { { docId, expectedCode } };
         StringTestData data = new(docFiles, originalCodeFiles, expectedCodeFiles, false);
 
         return TestWithStringsAsync(data, skipRemarks: false);

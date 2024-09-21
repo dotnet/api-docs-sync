@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -91,7 +93,6 @@ namespace ApiDocsSync.PortToTripleSlash
                 actualValue = ReplaceMarkdown(actualValue);
             }
 
-            //string actualValue = string.Join("", element.Nodes()).Trim();
             return actualValue.IsDocsEmpty() ? string.Empty : actualValue;
         }
 
@@ -102,7 +103,7 @@ namespace ApiDocsSync.PortToTripleSlash
                 value = Regex.Replace(value, bad, good);
             }
 
-            return value;
+            return string.Join(Environment.NewLine, value.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
         }
     }
 }
